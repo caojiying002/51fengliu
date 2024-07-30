@@ -11,6 +11,7 @@ fun Retrofit.setUrl(url: String): Retrofit {
     return newBuilder().baseUrl(url).build()
 }
 
+@Deprecated("使用RetrofitClient2")
 object RetrofitClient {
 
     private val DEBUG_HTTP: Boolean = (false /*&& BuildConfig.DEBUG*/)

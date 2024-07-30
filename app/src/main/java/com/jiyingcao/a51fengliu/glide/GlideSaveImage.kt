@@ -21,7 +21,16 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.net.URL
 
-fun glideSaveImage(context: Context, imageUrl: String) {
+private const val SUB_FOLDER = "51fengliu"
+
+/**
+ * 使用 Glide 下载图片并保存到相册
+ *
+ * @param context 上下文
+ * @param imageUrl 图片 URL
+ * @param subFolder 子文件夹名称
+ */
+fun glideSaveImage(context: Context, imageUrl: String, subFolder: String = SUB_FOLDER) {
     // 使用 URL 类提取文件路径
     val url = URL(imageUrl)
     val fileName = File(url.path).name
@@ -36,9 +45,9 @@ fun glideSaveImage(context: Context, imageUrl: String) {
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                            saveImageMediaStoreAPI(context, resource.inputStream(), "91kuaihuo", fileName)
+                            saveImageMediaStoreAPI(context, resource.inputStream(), subFolder, fileName)
                         } else {
-                            saveImageLegacyAPI(context, resource.inputStream(), "91kuaihuo", fileName)
+                            saveImageLegacyAPI(context, resource.inputStream(), subFolder, fileName)
                         }
                     } catch (e: IOException) {
                         e.printStackTrace()

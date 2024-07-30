@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.request.target.CustomViewTarget
 import com.jiyingcao.a51fengliu.api.toFullUrl
 import com.jiyingcao.a51fengliu.databinding.ActivityBigImageViewerBinding
+import com.jiyingcao.a51fengliu.glide.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.glide.GlideApp
 import com.jiyingcao.a51fengliu.glide.glideSaveImage
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
@@ -92,7 +93,7 @@ private class ImagePagerAdapter(
             }
         }
 
-        val imageUrl = imageUrls[position].toFullUrl()
+        val imageUrl = BASE_IMAGE_URL + imageUrls[position]
         GlideApp
             .with(context)
             .load(imageUrl)

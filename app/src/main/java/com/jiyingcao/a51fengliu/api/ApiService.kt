@@ -1,13 +1,30 @@
 package com.jiyingcao.a51fengliu.api
 
-import com.jiyingcao.a51fengliu.api.response.ApiResponse
+import com.jiyingcao.a51fengliu.api.response.*
+import retrofit2.Call
 import retrofit2.Response
-import retrofit2.http.Field
-import retrofit2.http.FormUrlEncoded
-import retrofit2.http.POST
-import retrofit2.http.Url
+import retrofit2.http.*
 
 interface ApiService {
+
+    @GET("/api/web/info/page.json")
+    suspend fun getPageData(
+        @Query("perPage") perPage: Int = 60,
+        @Query("sort") sort: String = "daily",
+    ): ApiResponse2<PageData>
+
+    @GET("/api/web/info/page.json")
+    suspend fun search2(
+        @Query("keywords") keywords: String,
+        @Query("page") page: Int = 1,
+    ): ApiResponse2<PageData>
+
+    @GET("/api/web/info/detail.json")
+    suspend fun getDetail(
+        @Query("infoId") id: String
+    ): ApiResponse2<Record>
+
+
 
     @POST("/public/index/data/getdata.html")
     suspend fun getData(): ApiResponse

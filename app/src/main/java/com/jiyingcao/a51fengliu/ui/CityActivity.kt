@@ -58,7 +58,7 @@ class CityActivity: BaseActivity() {
                 Log.d(TAG, "Item $position clicked")
                 itemDataAdapter.getItem(position)?.let {
                     if (it.id == 1) { return@let }  // "快活林APP已推出，欢迎下载" 不处理点击
-                    DetailActivity.start(context, it)
+                    // DetailActivity.start(context, it)
                 }
             }
         }

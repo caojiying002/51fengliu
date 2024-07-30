@@ -1,8 +1,6 @@
 package com.jiyingcao.a51fengliu.ui.adapter
 
 import android.content.Context
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import android.view.View.GONE
 import android.view.View.VISIBLE
@@ -12,34 +10,34 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.chad.library.adapter4.BaseQuickAdapter
 import com.jiyingcao.a51fengliu.R
-import com.jiyingcao.a51fengliu.api.response.ItemData
+import com.jiyingcao.a51fengliu.api.response.Record
 import com.jiyingcao.a51fengliu.api.toFullUrl
 import com.jiyingcao.a51fengliu.databinding.ItemViewBinding
+import com.jiyingcao.a51fengliu.glide.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.glide.GlideApp
 import com.jiyingcao.a51fengliu.util.dp
 
-@Deprecated("Use RecordAdapter instead")
-class ItemDataAdapter : BaseQuickAdapter<ItemData, ItemDataAdapter.ItemDataViewHolder>() {
-    class ItemDataViewHolder(val binding: ItemViewBinding) : RecyclerView.ViewHolder(binding.root) {
+class RecordAdapter : BaseQuickAdapter<Record, RecordAdapter.RecordViewHolder>() {
+    class RecordViewHolder(val binding: ItemViewBinding) : RecyclerView.ViewHolder(binding.root) {
     }
 
-    override fun onBindViewHolder(holder: ItemDataViewHolder, position: Int, item: ItemData?) {
+    override fun onBindViewHolder(holder: RecordViewHolder, position: Int, item: Record?) {
         requireNotNull(item) { "ItemData is null" }
 
         holder.binding.apply {
             itemTitle.text = item.title
-            itemProcess.text = item.process
-            itemDz.text = item.dz
-            itemCreateTime.text = item.create_time
-            itemBrowse.text = item.browse
+            itemProcess.text = item.desc
+            itemDz.text = item.cityCode // TODO 城市代码转换为城市名称
+            itemCreateTime.text = item.publishedAt // TODO 时间格式化
+            itemBrowse.text = item.viewCount
 
             itemImage.let {
-                if (item.img.isBlank()) {
+                if (item.coverPicture.isNullOrBlank()) {
                     it.visibility = GONE
                 } else {
                     it.visibility = VISIBLE
                     GlideApp.with(it.context)
-                        .load(item.img.toFullUrl())
+                        .load(BASE_IMAGE_URL + item.coverPicture)   // TODO 简化拼接URL过程
                         .placeholder(R.drawable.placeholder)
                         .error(R.drawable.image_broken)
                         .transform(CenterCrop(), RoundedCorners(4.dp))
@@ -54,9 +52,9 @@ class ItemDataAdapter : BaseQuickAdapter<ItemData, ItemDataAdapter.ItemDataViewH
         context: Context,
         parent: ViewGroup,
         viewType: Int
-    ): ItemDataViewHolder {
+    ): RecordViewHolder {
         val binding: ItemViewBinding =
             ItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return ItemDataViewHolder(binding)
+        return RecordViewHolder(binding)
     }
 }

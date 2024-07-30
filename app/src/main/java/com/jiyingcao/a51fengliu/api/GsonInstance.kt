@@ -11,7 +11,7 @@ private const val TAG = "GsonInstance"
 object GsonInstance {
     val gson: Gson by lazy {
         GsonBuilder()
-            .registerTypeAdapterFactory(NullStringToEmptyAdapterFactory())
+            //.registerTypeAdapterFactory(NullStringToEmptyAdapterFactory())
             //.registerTypeAdapter(String::class.java, NullStringDeserializer())
             //.registerTypeAdapter(ItemData::class.java, NullObjectDeserializer(ItemData::class.java))
             .create()

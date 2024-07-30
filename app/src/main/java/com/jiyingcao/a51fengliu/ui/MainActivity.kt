@@ -28,12 +28,13 @@ import com.jiyingcao.a51fengliu.databinding.DefaultLayoutStatefulRecyclerViewBin
 import com.jiyingcao.a51fengliu.databinding.ItemViewBinding
 import com.jiyingcao.a51fengliu.glide.GlideApp
 import com.jiyingcao.a51fengliu.ui.adapter.ItemDataAdapter
+import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout
 import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout.State.*
 import com.jiyingcao.a51fengliu.util.dp
 import com.jiyingcao.a51fengliu.util.setEdgeToEdgePaddings
-import com.jiyingcao.a51fengliu.viewmodel.MainViewModel
+import com.jiyingcao.a51fengliu.viewmodel.MainViewModel2
 import com.jiyingcao.a51fengliu.viewmodel.UiState
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
 
@@ -43,50 +44,14 @@ class MainActivity : BaseActivity() {
     private lateinit var refreshLayout: SmartRefreshLayout
     private lateinit var recyclerView: RecyclerView
 
-    private lateinit var viewModel: MainViewModel
+    private lateinit var viewModel: MainViewModel2
 
+    @Deprecated("Use recordAdapter instead")
     private lateinit var itemDataAdapter: ItemDataAdapter
+    private lateinit var recordAdapter: RecordAdapter
 
     /** 是否有数据已经加载 */
     private var hasDataLoaded: Boolean = false
-
-/*
-    private val dummyDataSet: List<ItemData> = listOf(
-        ItemData(
-            310552,
-            "MiTaoTunSaoDouDou",
-            "27",
-            "500",
-            "LuoHuBuCuoDeQuanTaoZiYuan",
-            "广东-深圳市",
-            "10226",
-            "2024-03-11",
-            "/uploads/thumb2/24c6017407bf9f76db7affb36a738e84.jpg"
-        ),
-        ItemData(
-            310677,
-            "FengTaiDaXiongSaoFu",
-            "30岁",
-            "1000",
-            "ChongZheTaDeDaBaiNaiZiQuDe",
-            "北京-丰台区",
-            "7747",
-            "2024-03-11",
-            "/uploads/thumb2/e8fcab7170b0317bde652d5c5a0b22d9.jpg"
-        ),
-        ItemData(
-            310533,
-            "NvYouBanDeGanShou",
-            "28",
-            "400",
-            "PengYouJieShaoGuoQuDe YanZhiBuDi JiuXiangNvPengYouYiYang",
-            "河南-郑州市",
-            "7722",
-            "2024-03-11",
-            "/uploads/thumb2/b1882c80ac090ca57a7a48437076bba7.jpg"
-        )
-    )
-*/
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -113,24 +78,24 @@ class MainActivity : BaseActivity() {
             }
 
         }
-        itemDataAdapter = ItemDataAdapter().apply {
+        recordAdapter = RecordAdapter().apply {
             setOnItemClickListener { _, _, position ->
-                Log.d(TAG, "Item $position clicked")
-                itemDataAdapter.getItem(position)?.let {
-                    if (it.id == 1) { return@let }  // "快活林APP已推出，欢迎下载" 不处理点击
+                Log.d(TAG, "Record $position clicked")
+                recordAdapter.getItem(position)?.let {
                     DetailActivity.start(context, it)
                 }
             }
         }
+
         recyclerView.apply {
             // 使用线性布局管理器
             layoutManager = LinearLayoutManager(context)
             // 指定适配器
-            adapter = ConcatAdapter(fixedAreaAdapter, itemDataAdapter)
+            adapter = ConcatAdapter(fixedAreaAdapter, recordAdapter)
         }
 
-        refreshLayout.setOnRefreshListener { viewModel.fetchData(false) }
-        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
+        refreshLayout.setOnRefreshListener { viewModel.fetchByPage(false) }
+        viewModel = ViewModelProvider(this)[MainViewModel2::class.java]
         viewModel.data.observe(this) { state ->
             when (state) {
                 is UiState.Loading -> {
@@ -143,7 +108,7 @@ class MainActivity : BaseActivity() {
                     refreshLayout.finishRefresh()
                     // 显示数据
                     statefulLayout.currentState = CONTENT
-                    itemDataAdapter.submitList(state.data)
+                    recordAdapter.submitList(state.data.records)
                     // TODO 如果列表为空需要显示空状态
                 }
                 is UiState.Empty -> {
@@ -161,7 +126,7 @@ class MainActivity : BaseActivity() {
             }
         }
 
-        viewModel.fetchData(true)
+        viewModel.fetchByPage(true)
 
         findViewById<View>(R.id.title_bar_menu)?.setOnClickListener { CityActivity.start(this) }
         findViewById<View>(R.id.title_bar_profile)?.setOnClickListener { SearchActivity.start(this) }

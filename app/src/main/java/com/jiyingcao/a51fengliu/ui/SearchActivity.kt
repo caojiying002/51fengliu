@@ -25,6 +25,7 @@ import com.jiyingcao.a51fengliu.api.response.SearchItemData
 import com.jiyingcao.a51fengliu.api.response.isEmpty
 import com.jiyingcao.a51fengliu.databinding.DefaultLayoutStatefulRecyclerViewBinding
 import com.jiyingcao.a51fengliu.ui.adapter.ItemDataAdapter
+import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout
 import com.jiyingcao.a51fengliu.util.setEdgeToEdgePaddings
@@ -45,6 +46,7 @@ class SearchActivity: BaseActivity() {
     private lateinit var viewModel: SearchViewModel
 
     private lateinit var itemDataAdapter: ItemDataAdapter
+    private lateinit var recordAdapter: RecordAdapter
 
     /** 是否有数据已经加载 */
     @Deprecated("") private var hasDataLoaded: Boolean = false
@@ -100,7 +102,7 @@ class SearchActivity: BaseActivity() {
             setOnItemClickListener { _, _, position ->
                 Log.d(TAG, "Item $position clicked")
                 itemDataAdapter.getItem(position)?.let {
-                    DetailActivity.start(context, it)
+                    // DetailActivity.start(context, it)
                 }
             }
         }

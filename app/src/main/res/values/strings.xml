@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">51风流</string>
+    <string name="lorem_ipsum"> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris quam augue, molestie vel mi eget, fringilla vulputate velit. Quisque cursus turpis a ipsum venenatis tempus. Integer luctus erat id libero pharetra posuere. Nam vel nulla in urna pharetra varius nec sit amet nunc. Nulla ac tincidunt eros. Proin ac nulla metus. Aenean dictum risus fringilla mi cursus euismod. Morbi a risus leo. Quisque condimentum vehicula dui et sodales.
+
+Phasellus in leo massa. Aliquam malesuada, enim nec auctor posuere, quam sem malesuada dui, eget venenatis lorem erat eu diam. Morbi urna nibh, finibus ut nisl id, tristique consequat ipsum. Etiam vel rutrum enim. Duis tristique dui quam, nec egestas mauris rhoncus vitae. Fusce ultrices vulputate lectus a eleifend. Integer quis lacinia felis. Fusce ultrices, metus eu pharetra maximus, magna enim hendrerit enim, vitae feugiat nisl elit et odio. </string>
+
+    <string name="stateful_default_loading">加载中…</string>
+    <string name="stateful_default_error">加载失败</string>
+    <string name="stateful_default_empty">暂无数据</string>
+    <string name="stateful_default_retry">重试</string>
+
+    <string name="intro_anti_fraud">本站接到投诉，近期有人冒充本站管理人员，对本站会员进行诈骗，本站郑重声明，我们不会以任何形式去主动联络任何人，更不会索要任何照片以及钱财，自称是91快活林管理以及审核员的都是骗子。本站唯一联系方式：\nkuaihuo66888@gmail.com</string>
+    <string name="zuixin_dizhi">最新地址</string>
+    <string name="zuixin_xinxi">最新信息</string>
+    <string name="shangjia">商家</string>
+    <string name="fabu_xinxi">发布信息</string>
+    <string name="vip">VIP升级</string>
+    <string name="shouji_app">手机APP</string>
+    <string name="jifen_guize">积分规则</string>
+
+</resources>

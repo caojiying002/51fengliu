@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <include layout="@layout/tool_bar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/toolbar_height"/>
+
+    <com.jiyingcao.a51fengliu.ui.widget.StatefulLayout
+        android:id="@+id/stateful_layout"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        app:loadingLayout="@layout/stateful_default_loading"
+        app:contentLayout="@layout/stateful_default_content"
+        app:errorLayout="@layout/stateful_default_error"
+        app:emptyLayout="@layout/stateful_default_empty">
+    </com.jiyingcao.a51fengliu.ui.widget.StatefulLayout>
+
+
+</LinearLayout>

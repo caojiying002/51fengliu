@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="6dp"
+    android:layout_marginVertical="4dp"
+    android:background="@drawable/corner_solid_white_no_padding" >
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/itemContent"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/itemImage"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/itemTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:lines="1"
+            android:textColor="@color/text_dark_gray"
+            android:textSize="18dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="风骚E奶熟女少妇"
+            tools:ignore="SpUsage" />
+
+        <TextView
+            android:id="@+id/itemCreateTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:drawablePadding="4dp"
+            android:lines="1"
+            android:textColor="@color/text_light_gray"
+            android:textSize="11dp"
+            app:drawableLeftCompat="@drawable/icon_time"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/itemTitle"
+            tools:text="2024-07-18"
+            tools:ignore="SpUsage" />
+
+        <TextView
+            android:id="@+id/itemBrowse"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:drawablePadding="4dp"
+            android:lines="1"
+            android:textColor="@color/text_light_gray"
+            android:textSize="11dp"
+            app:drawableLeftCompat="@drawable/icon_browse"
+            app:layout_constraintStart_toEndOf="@+id/itemCreateTime"
+            app:layout_constraintTop_toTopOf="@+id/itemCreateTime"
+            tools:text="8900"
+            tools:ignore="SpUsage" />
+
+        <TextView
+            android:id="@+id/itemProcess"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:lineSpacingExtra="1dp"
+            android:lines="2"
+            android:textColor="@color/text_default"
+            android:textSize="@dimen/text_default"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/itemCreateTime"
+            tools:text="看了照片，丰满，颜值也不错，是小狼非常喜欢的类型，之前还担心是照片，到了之后发现基本和照片大差不差,开门后就穿着开档黑丝，胸巨大，人长的也照片差不多，皮肤也挺白的，当时就硬了。过程就是最基本的，洗浴，服务,爱爱，一对大胸让我爱不释手，口活也不糊弄，抱着大奶熟女一顿猛插，不要太爽，态度好，不催人，喜欢大胸的狼友可以冲了"
+            tools:ignore="SpUsage" />
+
+        <TextView
+            android:id="@+id/itemDz"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:drawablePadding="4dp"
+            android:lines="1"
+            android:textColor="@color/text_strong"
+            android:textSize="@dimen/text_default"
+            app:drawableLeftCompat="@drawable/icon_dz"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/itemProcess"
+            tools:text="广东-深圳市"
+            tools:ignore="SpUsage" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <ImageView
+        android:id="@+id/itemImage"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginVertical="8dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="19dp"
+        android:layout_weight="0"
+        android:adjustViewBounds="true"
+        android:scaleType="centerCrop"
+        app:layout_constraintDimensionRatio="H,4:3"
+        app:layout_constraintBottom_toBottomOf="@+id/itemContent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/itemContent"
+        tools:src="@drawable/dummy_list_image" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

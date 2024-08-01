@@ -20,10 +20,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.chad.library.adapter4.BaseSingleItemAdapter
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.response.ItemData
+import com.jiyingcao.a51fengliu.api.response.PageData
 import com.jiyingcao.a51fengliu.api.response.PagedItemData
 import com.jiyingcao.a51fengliu.api.response.SearchItemData
 import com.jiyingcao.a51fengliu.api.response.isEmpty
 import com.jiyingcao.a51fengliu.databinding.DefaultLayoutStatefulRecyclerViewBinding
+import com.jiyingcao.a51fengliu.ui.CityActivity.Companion
 import com.jiyingcao.a51fengliu.ui.adapter.ItemDataAdapter
 import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
@@ -45,6 +47,7 @@ class SearchActivity: BaseActivity() {
 
     private lateinit var viewModel: SearchViewModel
 
+    @Deprecated("User recordAdapter instead")
     private lateinit var itemDataAdapter: ItemDataAdapter
     private lateinit var recordAdapter: RecordAdapter
 
@@ -98,11 +101,11 @@ class SearchActivity: BaseActivity() {
             }
 
         }
-        itemDataAdapter = ItemDataAdapter().apply {
+        recordAdapter = RecordAdapter().apply {
             setOnItemClickListener { _, _, position ->
-                Log.d(TAG, "Item $position clicked")
-                itemDataAdapter.getItem(position)?.let {
-                    // DetailActivity.start(context, it)
+                Log.d(TAG, "Record $position clicked")
+                recordAdapter.getItem(position)?.let {
+                    DetailActivity.start(context, it.id)
                 }
             }
         }
@@ -110,7 +113,7 @@ class SearchActivity: BaseActivity() {
             // 使用线性布局管理器
             layoutManager = LinearLayoutManager(context)
             // 指定适配器
-            adapter = ConcatAdapter(fixedAreaAdapter, itemDataAdapter)
+            adapter = ConcatAdapter(fixedAreaAdapter, recordAdapter)
         }
 
         refreshLayout.setRefreshHeader(ClassicsHeader(this))
@@ -125,15 +128,16 @@ class SearchActivity: BaseActivity() {
 
             // Success: 将数据提交或追加到列表
             if (state is Success<*>) {
-                val searchResultData = state.data as SearchItemData
-                val data = searchResultData.data
+                val pageData = state.data as PageData
+                val page = pageData.current
+                val data = pageData.records
 
-                if (searchResultData.page == 1) {
-                    itemDataAdapter.submitList(data)
+                if (page == 1) {
+                    recordAdapter.submitList(data)
                     // refreshLayout.setEnableLoadMore(true)   // 第一页有数据了，可以启用LoadMore了
                 }
                 else
-                    itemDataAdapter.addAll(data)
+                    recordAdapter.addAll(data)
             }
         }
 
@@ -187,7 +191,7 @@ class SearchActivity: BaseActivity() {
                 LOAD_MORE -> {
                     refreshLayout.finishLoadMore(true)
 
-                    if (state.data is PagedItemData && state.data.isEmpty())
+                    if (state.data is PageData && state.data.records.isEmpty())
                         refreshLayout.setNoMoreData(true)
                 }
                 NONE -> {}

@@ -14,6 +14,7 @@ typealias ItemDataList = List<ItemData>
  * @param data 数据列表
  * @param page 当前页码
  */
+@Deprecated("51风流不需要自己包装页码")
 open class PagedItemData (
     open val data: List<ItemData> = emptyList(),
     open val page: Int = 1,

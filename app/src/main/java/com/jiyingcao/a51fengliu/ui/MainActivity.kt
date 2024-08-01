@@ -82,7 +82,7 @@ class MainActivity : BaseActivity() {
             setOnItemClickListener { _, _, position ->
                 Log.d(TAG, "Record $position clicked")
                 recordAdapter.getItem(position)?.let {
-                    DetailActivity.start(context, it)
+                    DetailActivity.start(context, it.id)
                 }
             }
         }

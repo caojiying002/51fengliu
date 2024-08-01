@@ -4,23 +4,15 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.View
-import android.view.View.GONE
-import android.widget.Button
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.jiyingcao.a51fengliu.R
-import com.jiyingcao.a51fengliu.api.response.ItemData
 import com.jiyingcao.a51fengliu.databinding.DefaultLayoutStatefulRecyclerViewBinding
-import com.jiyingcao.a51fengliu.ui.adapter.ItemDataAdapter
+import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout
 import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout.State.*
-import com.jiyingcao.a51fengliu.util.setEdgeToEdgePaddings
 import com.jiyingcao.a51fengliu.viewmodel.CityViewModel
 import com.jiyingcao.a51fengliu.viewmodel.UiState
 import com.scwang.smart.refresh.footer.ClassicsFooter
@@ -35,7 +27,7 @@ class CityActivity: BaseActivity() {
 
     private lateinit var viewModel: CityViewModel
 
-    private lateinit var itemDataAdapter: ItemDataAdapter
+    private lateinit var recordAdapter: RecordAdapter
 
     /** 是否有数据已经加载 */
     private var hasDataLoaded: Boolean = false
@@ -53,26 +45,26 @@ class CityActivity: BaseActivity() {
         statefulLayout = binding.statefulLayout // 简化代码调用
         refreshLayout = findViewById(R.id.refreshLayout)
         recyclerView = findViewById(R.id.recyclerView)
-        itemDataAdapter = ItemDataAdapter().apply {
+        recordAdapter = RecordAdapter().apply {
             setOnItemClickListener { _, _, position ->
-                Log.d(TAG, "Item $position clicked")
-                itemDataAdapter.getItem(position)?.let {
-                    if (it.id == 1) { return@let }  // "快活林APP已推出，欢迎下载" 不处理点击
-                    // DetailActivity.start(context, it)
+                Log.d(TAG, "Record $position clicked")
+                recordAdapter.getItem(position)?.let {
+                    DetailActivity.start(context, it.id)
                 }
             }
         }
+
         recyclerView.apply {
             // 使用线性布局管理器
             layoutManager = LinearLayoutManager(context)
             // 指定适配器
-            adapter = itemDataAdapter
+            adapter = recordAdapter
         }
 
         refreshLayout.setRefreshHeader(ClassicsHeader(this))
         refreshLayout.setRefreshFooter(ClassicsFooter(this))
-        refreshLayout.setOnRefreshListener { viewModel.fetchCityDataByPage(1) }
-        refreshLayout.setOnLoadMoreListener { viewModel.fetchCityDataByPage(currentPage+1) }
+        refreshLayout.setOnRefreshListener { viewModel.fetchCityDataByPage("330100", 1) }
+        refreshLayout.setOnLoadMoreListener { viewModel.fetchCityDataByPage("330100", currentPage+1) }
         // refreshLayout.setEnableLoadMore(false)  // 加载第一页成功前暂时禁用LoadMore
         viewModel = ViewModelProvider(this)[CityViewModel::class.java]
         viewModel.data.observe(this) { state ->
@@ -87,17 +79,21 @@ class CityActivity: BaseActivity() {
                     refreshLayout.finishLoadMore()
                     statefulLayout.currentState = CONTENT
 
-                    val page = state.data.page
-                    val data: List<ItemData> = state.data.data
+                    val pageData = state.data
+                    val page = pageData.current
+                    val data = pageData.records
+
                     // 记录页数
                     currentPage = page
                     // 显示数据
                     if (page == 1) {
-                        itemDataAdapter.submitList(data)
+                        recordAdapter.submitList(data)
                         // refreshLayout.setEnableLoadMore(true)   // 第一页有数据了，可以启用LoadMore了
                     }
                     else
-                        itemDataAdapter.addAll(data)
+                        recordAdapter.addAll(data)
+
+                    // TODO 如果没有新数据了需要禁用loadMore
                 }
                 is UiState.Empty -> {
                     // 不再使用
@@ -112,7 +108,7 @@ class CityActivity: BaseActivity() {
             }
         }
 
-        viewModel.fetchCityDataByPage(1)
+        viewModel.fetchCityDataByPage("330100", 1)
     }
 
     companion object {

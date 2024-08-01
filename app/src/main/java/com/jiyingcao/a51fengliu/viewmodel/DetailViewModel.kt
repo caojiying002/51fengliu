@@ -5,25 +5,30 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.RetrofitClient2
-import com.jiyingcao.a51fengliu.api.response.*
-import com.jiyingcao.a51fengliu.viewmodel.UiState.*
+import com.jiyingcao.a51fengliu.api.response.Record
+import com.jiyingcao.a51fengliu.viewmodel.UiState.Error
+import com.jiyingcao.a51fengliu.viewmodel.UiState.Loading
+import com.jiyingcao.a51fengliu.viewmodel.UiState.Success
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-// TODO [CityViewModel]和[SearchViewModel]是否需要抽取共同父类[PagedViewModel]？
-class CityViewModel: ViewModel() {
-    private val _data = MutableLiveData<UiState<PageData>>()
-    val data: LiveData<UiState<PageData>> = _data
+class DetailViewModel: ViewModel() {
+    private val _data = MutableLiveData<UiState<Record>>()
+    val data: LiveData<UiState<Record>> = _data
 
-    fun fetchCityDataByPage(cityCode: String = "330100", page: Int = 1) {
+    fun fetchRecordById(
+        showFullScreenLoading: Boolean = false,
+        id: String
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
+            // TODO showFullScreenLoading不再使用, 待移除
             val loadingState =
-                if (page == 1) Loading.fullScreen() else Loading.pullRefresh()
+                if (showFullScreenLoading) Loading.fullScreen() else Loading.pullRefresh()
             _data.postValue(loadingState)
+
             try {
-                val response = RetrofitClient2.apiService.getCityData2(cityCode = cityCode, page = page)
+                val response = RetrofitClient2.apiService.getDetail(id)
                 if (response.code != 0) {
                     _data.postValue(Error("API状态码 code=${response.code}, msg=${response.msg}"))
                     Log.w(TAG, "API状态码 code=${response.code}, msg=${response.msg}")
@@ -31,14 +36,14 @@ class CityViewModel: ViewModel() {
                 }
                 _data.postValue(Success(response.data!!))
             } catch (e: Exception) {
+                // 处理错误
                 _data.postValue(Error("网络请求失败"))
-                Log.w(TAG, "fetchData error: ", e)
+                Log.w(TAG, "网络请求失败: ", e)
             }
-
         }
     }
 
     companion object {
-        private const val TAG: String = "CityViewModel"
+        private const val TAG: String = "DetailViewModel"
     }
 }

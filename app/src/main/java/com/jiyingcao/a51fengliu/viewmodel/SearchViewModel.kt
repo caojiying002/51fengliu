@@ -5,8 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jiyingcao.a51fengliu.api.RetrofitClient
-import com.jiyingcao.a51fengliu.api.response.SearchItemData
+import com.jiyingcao.a51fengliu.api.RetrofitClient2
 import com.jiyingcao.a51fengliu.viewmodel.LoadingType.*
 import com.jiyingcao.a51fengliu.viewmodel.UiState2.*
 import kotlinx.coroutines.Dispatchers
@@ -61,10 +60,13 @@ class SearchViewModel: ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.postValue(Loading(loadingType))
             try {
-                val response = RetrofitClient.apiService.search(keywords = keywords, page = page)
-                val searchResultData = SearchItemData(response.data, page, keywords)
-                _uiState.postValue(Success(searchResultData, loadingType))
-                //_data.postValue(dataWithLoadingType)
+                val response = RetrofitClient2.apiService.search2(keywords = keywords, page = page)
+                if (response.code != 0) {
+                    Log.w(TAG, "API状态码 code=${response.code}, msg=${response.msg}")
+                    _uiState.postValue(Error(loadingType))
+                    return@launch
+                }
+                _uiState.postValue(Success(response.data!!, loadingType))
             } catch (e: Exception) {
                 _uiState.postValue(Error(loadingType))
                 if (_page.value!! > 1) _page.postValue(page-1)     // 出错了重置页数

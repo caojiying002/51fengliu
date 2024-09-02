@@ -508,6 +508,9 @@ fun String?.to2LevelName(): String {
     if (!this.isValidRegionCode()) return this
 
     val secondLevelName = administrativeDivisions[this] ?: return this
+    if (this.endsWith("0000")) return secondLevelName   // 例：110000返回“北京市”而不是“北京市-北京市”
+
+    // 绝大部分情况返回XXXX省-XXXX市
     return administrativeDivisions[this.substring(0, 2) + "0000"]  + "-"+ secondLevelName
 }
 

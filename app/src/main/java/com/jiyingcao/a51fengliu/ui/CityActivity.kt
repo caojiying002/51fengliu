@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -33,6 +34,7 @@ class CityActivity: BaseActivity() {
     private var hasDataLoaded: Boolean = false
     /** 当前已经加载成功的页数 */
     private var currentPage: Int = 0
+    private var cityCode = "330100"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,8 +63,8 @@ class CityActivity: BaseActivity() {
         refreshLayout.apply {
             setRefreshHeader(ClassicsHeader(context))
             setRefreshFooter(ClassicsFooter(context))
-            setOnRefreshListener { viewModel.fetchCityDataByPage("330100", 1) }
-            setOnLoadMoreListener { viewModel.fetchCityDataByPage("330100", currentPage+1) }
+            setOnRefreshListener { viewModel.fetchCityDataByPage(cityCode, 1) }
+            setOnLoadMoreListener { viewModel.fetchCityDataByPage(cityCode, currentPage+1) }
             // setEnableLoadMore(false)  // 加载第一页成功前暂时禁用LoadMore
         }
 
@@ -108,7 +110,32 @@ class CityActivity: BaseActivity() {
             }
         }
 
-        viewModel.fetchCityDataByPage("330100", 1)
+        viewModel.fetchCityDataByPage(cityCode, 1)
+
+        findViewById<View>(R.id.title_bar_menu)?.setOnClickListener {
+            val intent = ChooseCityActivity.createIntent(this)
+            startActivityForResult(intent, 42)  // TODO 管理requestCode和bundle key
+        }
+    }
+
+    @Deprecated("This method has been deprecated in favor of using the Activity Result API\n      which brings increased type safety via an {@link ActivityResultContract} and the prebuilt\n      contracts for common intents available in\n      {@link androidx.activity.result.contract.ActivityResultContracts}, provides hooks for\n      testing, and allow receiving results in separate, testable classes independent from your\n      activity. Use\n      {@link #registerForActivityResult(ActivityResultContract, ActivityResultCallback)}\n      with the appropriate {@link ActivityResultContract} and handling the result in the\n      {@link ActivityResultCallback#onActivityResult(Object) callback}.")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 42 && resultCode == RESULT_OK) {
+            val cityCode = data?.getStringExtra("CITY_CODE")
+            Log.d(TAG, "City code selected: $cityCode")
+            cityCode?.let {
+                if (it == this.cityCode) return
+
+                // 清空数据
+                recordAdapter.submitList(emptyList())
+                hasDataLoaded = false
+                currentPage = 0
+
+                this.cityCode = it
+                viewModel.fetchCityDataByPage(it, 1)
+            }
+        }
     }
 
     companion object {

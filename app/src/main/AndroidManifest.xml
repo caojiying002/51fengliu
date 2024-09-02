@@ -36,6 +36,9 @@
             android:name=".ui.SearchActivity"
             android:exported="false" />
         <activity
+            android:name=".ui.ChooseCityActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.common.WebViewActivity"
             android:exported="false" />
         <activity

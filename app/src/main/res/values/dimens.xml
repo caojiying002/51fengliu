@@ -2,7 +2,7 @@
 <resources>
     <dimen name="toolbar_height">64dp</dimen>
 
-    <dimen name="text_default">16dp</dimen>
+    <dimen name="text_default">14dp</dimen>
     <dimen name="home_icon_size">32dp</dimen>
     <dimen name="home_icon_drawable_padding">8dp</dimen>
     <dimen name="home_icon_vertical_padding">8dp</dimen>

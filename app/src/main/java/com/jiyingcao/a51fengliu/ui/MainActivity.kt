@@ -91,7 +91,7 @@ class MainActivity : BaseActivity() {
             // 使用线性布局管理器
             layoutManager = LinearLayoutManager(context)
             // 指定适配器
-            adapter = ConcatAdapter(fixedAreaAdapter, recordAdapter)
+            adapter = recordAdapter
         }
 
         refreshLayout.setOnRefreshListener { viewModel.fetchByPage(false) }

@@ -22,24 +22,12 @@
             android:id="@+id/content_without_title_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="8dp"
+            android:paddingVertical="8dp"
             android:orientation="vertical">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/home_horizontal_space"
-                android:background="@drawable/corner_solid_white_padding"
-                android:textColor="@color/primary"
-                android:textSize="@dimen/text_default"
-                android:lineSpacingExtra="2dp"
-                android:text="@string/intro_anti_fraud"
-                tools:ignore="SpUsage" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
                 android:layout_marginHorizontal="@dimen/home_horizontal_space"
                 android:paddingVertical="16dp"
                 android:background="@drawable/corner_solid_white_no_padding">
@@ -350,7 +338,7 @@
                     android:focusable="true"
                     android:drawablePadding="4dp"
                     android:drawableLeft="@drawable/icon_jubao"
-                    android:text="举报/申请删帖"
+                    android:text="我要举报"
                     app:layout_constraintStart_toStartOf="@+id/infoContainer"
                     app:layout_constraintTop_toBottomOf="@+id/infoContainer"
                     tools:ignore="HardcodedText" />
@@ -370,12 +358,24 @@
                     android:focusable="true"
                     android:drawablePadding="4dp"
                     android:drawableLeft="@drawable/icon_shoucang"
-                    android:text="收藏"
+                    android:text="我要收藏"
                     app:layout_constraintStart_toEndOf="@+id/jubao"
                     app:layout_constraintTop_toTopOf="@+id/jubao"
                     tools:ignore="HardcodedText" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <TextView
+                android:id="@+id/contactWarning"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/home_horizontal_space"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/corner_solid_white_padding"
+                android:lineSpacingExtra="0dp"
+                android:textSize="@dimen/text_default"
+                android:textColor="@color/text_warning_yellow"
+                android:text="@string/intro_anti_fraud" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -422,21 +422,6 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     android:background="@color/background" />
 
-                <TextView
-                    android:id="@+id/contactWarning"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="16dp"
-                    android:layout_marginVertical="16dp"
-                    android:background="@drawable/bg_contact_warning_yellow"
-                    android:lineSpacingExtra="0dp"
-                    android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_warning_yellow"
-                    app:layout_constraintTop_toBottomOf="@+id/divider"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    android:text="凡是有要求路费/定金/保证金/照片验证/视频验证等任何提前付费的行为，千万不要上当。同时也请注意仙人跳，在寻欢前不要露富和带过于贵重随身物品。本站为分享信息并不对寻欢经历负责，碰到有问题的信息，请及时举报给我们删除信息。部分小姐姐较为敏感，所以请在联系对方时不要透露此条信息来源。" />
-
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/contactInfoContainer"
@@ -447,7 +432,7 @@
                     android:paddingBottom="12dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/contactWarning">
+                    app:layout_constraintTop_toBottomOf="@+id/divider">
 
                     <TextView
                         android:id="@+id/introQQ"
@@ -617,85 +602,16 @@
                     tools:ignore="HardcodedText" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <androidx.constraintlayout.widget.ConstraintLayout
+            <TextView
+                android:id="@+id/process"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/home_horizontal_space"
                 android:layout_marginVertical="8dp"
-                android:paddingVertical="16dp"
-                android:background="@drawable/corner_solid_white_no_padding">
-
-                <TextView
-                    android:id="@+id/introDetailInfo"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:lines="1"
-                    android:textSize="18dp"
-                    android:textColor="@color/text_dark_gray"
-                    android:drawablePadding="8dp"
-                    app:drawableStartCompat="@drawable/icon_detail"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    android:text="详细介绍" />
-
-                <View
-                    android:id="@+id/divider_below_detail_info"
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="16dp"
-                    app:layout_constraintTop_toBottomOf="@+id/introDetailInfo"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    android:background="@color/background" />
-
-                <TextView
-                    android:id="@+id/process"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="16dp"
-                    android:layout_marginVertical="16dp"
-                    android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_default"
-                    app:layout_constraintTop_toBottomOf="@+id/divider_below_detail_info"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    android:text="整体能打个9分吧，长得比我还高一点，估计有170以上，身材高挑，腿细长细长的，技术一般以上，综合性价比挺高的，喜欢身材好的可以约" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/primary"
-                android:orientation="vertical"
-                android:paddingVertical="20dp"
-                android:gravity="center_horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:lines="1"
-                    android:textSize="@dimen/text_default"
-                    android:textColor="@color/white"
-                    android:text="Copyright © 快活林 All rights reserved." />
-
-                <Space
-                    android:layout_width="match_parent"
-                    android:layout_height="16dp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:lines="1"
-                    android:textSize="@dimen/text_default"
-                    android:textColor="@color/white"
-                    android:text="免责申明" />
-
-                <Space
-                    android:id="@+id/system_bottom_bar_padding"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp" />
-            </LinearLayout>
+                android:textSize="@dimen/text_default"
+                android:textColor="@color/text_default"
+                android:background="@drawable/corner_solid_white_padding"
+                android:text="整体能打个9分吧，长得比我还高一点，估计有170以上，身材高挑，腿细长细长的，技术一般以上，综合性价比挺高的，喜欢身材好的可以约" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

@@ -506,7 +506,9 @@ val administrativeDivisions = mapOf( // TODO 移除省直辖县，如：429004 �
 fun String?.to2LevelName(): String {
     if (this == null) return ""
     if (!this.isValidRegionCode()) return this
-    return administrativeDivisions[this.substring(0, 2) + "0000"]  + "-"+ administrativeDivisions[this]
+
+    val secondLevelName = administrativeDivisions[this] ?: return this
+    return administrativeDivisions[this.substring(0, 2) + "0000"]  + "-"+ secondLevelName
 }
 
 fun String.isValidRegionCode(): Boolean {

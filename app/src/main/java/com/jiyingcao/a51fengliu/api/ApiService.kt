@@ -9,8 +9,9 @@ interface ApiService {
 
     @GET("/api/web/info/page.json")
     suspend fun getPageData(
-        @Query("perPage") perPage: Int = 60,
+        //@Query("perPage") perPage: Int = 30,
         @Query("sort") sort: String = "daily",
+        @Query("page") page: Int = 1,
     ): ApiResponse2<PageData>
 
     @GET("/api/web/info/page.json")

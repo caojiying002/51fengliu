@@ -31,7 +31,6 @@ class CityActivity: BaseActivity() {
 
     /** 是否有数据已经加载 */
     private var hasDataLoaded: Boolean = false
-
     /** 当前已经加载成功的页数 */
     private var currentPage: Int = 0
 
@@ -53,19 +52,20 @@ class CityActivity: BaseActivity() {
                 }
             }
         }
-
         recyclerView.apply {
             // 使用线性布局管理器
             layoutManager = LinearLayoutManager(context)
             // 指定适配器
             adapter = recordAdapter
         }
+        refreshLayout.apply {
+            setRefreshHeader(ClassicsHeader(context))
+            setRefreshFooter(ClassicsFooter(context))
+            setOnRefreshListener { viewModel.fetchCityDataByPage("330100", 1) }
+            setOnLoadMoreListener { viewModel.fetchCityDataByPage("330100", currentPage+1) }
+            // setEnableLoadMore(false)  // 加载第一页成功前暂时禁用LoadMore
+        }
 
-        refreshLayout.setRefreshHeader(ClassicsHeader(this))
-        refreshLayout.setRefreshFooter(ClassicsFooter(this))
-        refreshLayout.setOnRefreshListener { viewModel.fetchCityDataByPage("330100", 1) }
-        refreshLayout.setOnLoadMoreListener { viewModel.fetchCityDataByPage("330100", currentPage+1) }
-        // refreshLayout.setEnableLoadMore(false)  // 加载第一页成功前暂时禁用LoadMore
         viewModel = ViewModelProvider(this)[CityViewModel::class.java]
         viewModel.data.observe(this) { state ->
             when (state) {

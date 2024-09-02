@@ -28,7 +28,8 @@ class MainViewModel2: ViewModel() {
             _data.postValue(loadingState)
 
             try {
-                val response = RetrofitClient2.apiService.getPageData()
+                // sort=daily是热门，sort=publish是最新
+                val response = RetrofitClient2.apiService.getPageData(/*sort = "publish", */page = page)
                 if (response.code != 0) {
                     _data.postValue(Error("API状态码 code=${response.code}, msg=${response.msg}"))
                     Log.w(TAG, "API状态码 code=${response.code}, msg=${response.msg}")

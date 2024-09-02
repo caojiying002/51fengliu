@@ -1,41 +1,26 @@
 package com.jiyingcao.a51fengliu.ui
 
 import android.content.Context
-import android.content.Intent
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.load.resource.bitmap.CenterCrop
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.chad.library.adapter4.BaseSingleItemAdapter
 import com.jiyingcao.a51fengliu.R
-import com.jiyingcao.a51fengliu.api.response.ItemData
-import com.jiyingcao.a51fengliu.api.toFullUrl
-import com.jiyingcao.a51fengliu.databinding.ActivityMainBinding
 import com.jiyingcao.a51fengliu.databinding.DefaultLayoutStatefulRecyclerViewBinding
-import com.jiyingcao.a51fengliu.databinding.ItemViewBinding
-import com.jiyingcao.a51fengliu.glide.GlideApp
-import com.jiyingcao.a51fengliu.ui.adapter.ItemDataAdapter
 import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout
 import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout.State.*
-import com.jiyingcao.a51fengliu.util.dp
-import com.jiyingcao.a51fengliu.util.setEdgeToEdgePaddings
 import com.jiyingcao.a51fengliu.viewmodel.MainViewModel2
 import com.jiyingcao.a51fengliu.viewmodel.UiState
+import com.scwang.smart.refresh.footer.ClassicsFooter
+import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
 
 class MainActivity : BaseActivity() {
@@ -46,12 +31,12 @@ class MainActivity : BaseActivity() {
 
     private lateinit var viewModel: MainViewModel2
 
-    @Deprecated("Use recordAdapter instead")
-    private lateinit var itemDataAdapter: ItemDataAdapter
     private lateinit var recordAdapter: RecordAdapter
 
     /** 是否有数据已经加载 */
     private var hasDataLoaded: Boolean = false
+    /** 当前已经加载成功的页数 */
+    private var currentPage: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,15 +71,20 @@ class MainActivity : BaseActivity() {
                 }
             }
         }
-
         recyclerView.apply {
             // 使用线性布局管理器
             layoutManager = LinearLayoutManager(context)
             // 指定适配器
             adapter = recordAdapter
         }
+        refreshLayout.apply {
+            setRefreshHeader(ClassicsHeader(context))
+            setRefreshFooter(ClassicsFooter(context))
+            setOnRefreshListener { viewModel.fetchByPage(false) }
+            setOnLoadMoreListener { viewModel.fetchByPage(false, currentPage+1) }
+            // setEnableLoadMore(false)  // 加载第一页成功前暂时禁用LoadMore
+        }
 
-        refreshLayout.setOnRefreshListener { viewModel.fetchByPage(false) }
         viewModel = ViewModelProvider(this)[MainViewModel2::class.java]
         viewModel.data.observe(this) { state ->
             when (state) {
@@ -106,9 +96,22 @@ class MainActivity : BaseActivity() {
                 is UiState.Success -> {
                     hasDataLoaded = true
                     refreshLayout.finishRefresh()
-                    // 显示数据
+                    refreshLayout.finishLoadMore()
                     statefulLayout.currentState = CONTENT
-                    recordAdapter.submitList(state.data.records)
+
+                    val pageData = state.data
+                    val page = pageData.current
+                    val data = pageData.records
+
+                    // 记录页数
+                    currentPage = page
+                    // 显示数据
+                    if (page == 1) {
+                        recordAdapter.submitList(data)
+                        // refreshLayout.setEnableLoadMore(true)   // 第一页有数据了，可以启用LoadMore了
+                    }
+                    else
+                        recordAdapter.addAll(data)
                     // TODO 如果列表为空需要显示空状态
                 }
                 is UiState.Empty -> {
@@ -117,6 +120,7 @@ class MainActivity : BaseActivity() {
                 }
                 is UiState.Error -> {
                     refreshLayout.finishRefresh()
+                    refreshLayout.finishLoadMore()
                     // 显示错误信息
                     if (!hasDataLoaded)
                         statefulLayout.currentState = ERROR
@@ -136,44 +140,3 @@ class MainActivity : BaseActivity() {
         private const val TAG: String = "MainActivity"
     }
 }
-
-@Deprecated("Use ItemDataAdapter instead")
-class MyAdapter(private val dataset: List<ItemData>) :
-    RecyclerView.Adapter<MyAdapter.MyViewHolder>() {
-
-    class MyViewHolder(val binding: ItemViewBinding) : RecyclerView.ViewHolder(binding.root)
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
-        val binding: ItemViewBinding = ItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return MyViewHolder(binding)
-    }
-
-    override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        val context = holder.itemView.context
-        val itemData = dataset[position]
-        holder.itemView.setOnClickListener {
-            Log.d("MyAdapter", "Item $position clicked")
-            val intent = Intent(context, DetailActivity::class.java).apply {
-                putExtra("ITEM_DATA", itemData)
-            }
-            context.startActivity(intent)
-        }
-        val binding = holder.binding
-        binding.itemTitle.text = itemData.title
-        binding.itemProcess.text = itemData.process
-        binding.itemDz.text = itemData.dz
-        binding.itemCreateTime.text = itemData.create_time
-        binding.itemBrowse.text = itemData.browse
-        // 加载图片，这里只是示例，实际可能需要用到像Glide这样的库来加载网络图片
-        GlideApp.with(binding.itemImage.context)
-            .load(itemData.img.toFullUrl())
-            .placeholder(R.drawable.placeholder)
-            .error(R.drawable.image_broken)
-            .transform(CenterCrop(), RoundedCorners(4.dp))
-            //.transition(DrawableTransitionOptions.withCrossFade())
-            .into(binding.itemImage)
-    }
-
-    override fun getItemCount() = dataset.size
-}
-

@@ -10,7 +10,7 @@ import kotlinx.parcelize.Parcelize
  * 3. 目前只假定id、title不可空（返回null会crash）
  */
 @Parcelize
-data class Record(
+data class Record(  // TODO 重命名为RecordItem，避免和java.lang.Record重名
     val id: String, // Int,
     val userId: String?, // Int,
     val status: String?, //Int,
@@ -56,7 +56,8 @@ data class Record(
     val yuni: String?,
     val phone: String?,
     val address: String?,
-) : Parcelable {
-    val pictureList: List<String>
-        get() = picture?.split(",") ?: emptyList()
+) : Parcelable
+
+fun Record.getPictures(): List<String> {
+    return picture?.split(",") ?: emptyList()
 }

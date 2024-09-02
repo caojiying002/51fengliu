@@ -9,26 +9,24 @@ import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.Toast
 import androidx.core.app.ActivityOptionsCompat
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.jiyingcao.a51fengliu.R
-import com.jiyingcao.a51fengliu.api.response.ItemData
 import com.jiyingcao.a51fengliu.api.response.Record
+import com.jiyingcao.a51fengliu.api.response.getPictures
 import com.jiyingcao.a51fengliu.api.toFullUrl
 import com.jiyingcao.a51fengliu.databinding.ActivityDetailV2Binding
 import com.jiyingcao.a51fengliu.glide.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.glide.GlideApp
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.common.BigImageViewerActivity
-import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout.State.CONTENT
-import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout.State.ERROR
-import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout.State.LOADING
 import com.jiyingcao.a51fengliu.util.copyOnLongClick
 import com.jiyingcao.a51fengliu.util.dp
 import com.jiyingcao.a51fengliu.util.showToast
+import com.jiyingcao.a51fengliu.util.timestampToDay
+import com.jiyingcao.a51fengliu.util.to2LevelName
 import com.jiyingcao.a51fengliu.viewmodel.DetailViewModel
 import com.jiyingcao.a51fengliu.viewmodel.UiState
 
@@ -99,7 +97,7 @@ class DetailActivity : BaseActivity() {
     
     private fun updateUi(itemData: Record) {
         //displayImagesIfAny(itemData.file)
-        displayImagesIfAnyV2(itemData.pictureList)
+        displayImagesIfAnyV2(itemData.getPictures())
 
         binding.title.copyOnLongClick()
         binding.dz.copyOnLongClick()
@@ -113,8 +111,8 @@ class DetailActivity : BaseActivity() {
         binding.price.text = itemData.consumeLv
         binding.process.text = itemData.desc
         binding.project.text = itemData.serveList
-        binding.dz.text = itemData.cityCode // TODO 城市代码转换为城市名称
-        binding.createTime.text = itemData.publishedAt // TODO 时间格式化
+        binding.dz.text = itemData.cityCode.to2LevelName()
+        binding.createTime.text = timestampToDay(itemData.publishedAt)
         binding.browse.text = itemData.viewCount
         binding.qq.text = itemData.qq
         binding.wechat.text = itemData.wechat

@@ -5,7 +5,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.RetrofitClient2
 import com.jiyingcao.a51fengliu.api.response.*
 import com.jiyingcao.a51fengliu.viewmodel.UiState.*

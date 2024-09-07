@@ -22,9 +22,6 @@ class SearchViewModel: ViewModel() {
     private val _uiState = MutableLiveData<UiState2>()
     val uiState: LiveData<UiState2> = _uiState
 
-    @Deprecated("") private val _data = MutableLiveData<ItemDataWithLoadingType>()
-    @Deprecated("") val data: LiveData<ItemDataWithLoadingType> = _data
-
     init {
         _keywords.value = ""
         _page.value = 1

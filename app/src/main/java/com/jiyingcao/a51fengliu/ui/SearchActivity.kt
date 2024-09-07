@@ -19,18 +19,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.chad.library.adapter4.BaseSingleItemAdapter
 import com.jiyingcao.a51fengliu.R
-import com.jiyingcao.a51fengliu.api.response.ItemData
 import com.jiyingcao.a51fengliu.api.response.PageData
-import com.jiyingcao.a51fengliu.api.response.PagedItemData
-import com.jiyingcao.a51fengliu.api.response.SearchItemData
-import com.jiyingcao.a51fengliu.api.response.isEmpty
 import com.jiyingcao.a51fengliu.databinding.DefaultLayoutStatefulRecyclerViewBinding
-import com.jiyingcao.a51fengliu.ui.CityActivity.Companion
-import com.jiyingcao.a51fengliu.ui.adapter.ItemDataAdapter
 import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout
-import com.jiyingcao.a51fengliu.util.setEdgeToEdgePaddings
 import com.jiyingcao.a51fengliu.viewmodel.LoadingType.*
 import com.jiyingcao.a51fengliu.viewmodel.SearchViewModel
 import com.jiyingcao.a51fengliu.viewmodel.UiState2
@@ -47,8 +40,6 @@ class SearchActivity: BaseActivity() {
 
     private lateinit var viewModel: SearchViewModel
 
-    @Deprecated("User recordAdapter instead")
-    private lateinit var itemDataAdapter: ItemDataAdapter
     private lateinit var recordAdapter: RecordAdapter
 
     /** 是否有数据已经加载 */

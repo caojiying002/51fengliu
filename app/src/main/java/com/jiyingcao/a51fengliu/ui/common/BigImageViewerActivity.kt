@@ -10,7 +10,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.request.target.CustomViewTarget
-import com.jiyingcao.a51fengliu.api.toFullUrl
 import com.jiyingcao.a51fengliu.databinding.ActivityBigImageViewerBinding
 import com.jiyingcao.a51fengliu.glide.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.glide.GlideApp

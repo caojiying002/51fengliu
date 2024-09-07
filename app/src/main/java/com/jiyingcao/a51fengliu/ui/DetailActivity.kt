@@ -16,7 +16,6 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.response.Record
 import com.jiyingcao.a51fengliu.api.response.getPictures
-import com.jiyingcao.a51fengliu.api.toFullUrl
 import com.jiyingcao.a51fengliu.databinding.ActivityDetailV2Binding
 import com.jiyingcao.a51fengliu.glide.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.glide.GlideApp
@@ -163,53 +162,6 @@ class DetailActivity : BaseActivity() {
                 )
                 startActivity(intent, options.toBundle())
             }
-        }
-    }
-
-    @Deprecated("Use displayImagesIfAnyV2 instead")
-    private fun displayImagesIfAny(img: String) {
-        val imageContainer = binding.imageContainer
-        imageContainer.removeAllViews()
-        val subUrls: List<String> = img.split(',')
-
-        if (img.isEmpty() || subUrls.isEmpty()) {
-            imageContainer.visibility = View.GONE
-            return
-        }
-
-        imageContainer.visibility = View.VISIBLE
-        for ((index, subUrl) in subUrls.withIndex()) {
-            val imageView = ImageView(this).apply {
-                adjustViewBounds = true
-                scaleType = ImageView.ScaleType.CENTER_CROP
-                setPadding(0, 0, 0, 0)
-                GlideApp.with(context)
-                    .load(subUrl.toFullUrl())
-                    .placeholder(R.drawable.placeholder)
-                    .error(R.drawable.image_broken)
-                    .transform(CenterCrop(), RoundedCorners(4.dp))
-                    //.transition(DrawableTransitionOptions.withCrossFade())
-                    .into(this)
-
-                transitionName = "image$index"
-                setOnClickListener {
-                    val intent = Intent(this@DetailActivity, BigImageViewerActivity::class.java).apply {
-                        putStringArrayListExtra("IMAGES", ArrayList(subUrls))
-                        putExtra("INDEX", index)
-                    }
-                    // 创建包含共享元素的ActivityOptions
-                    val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
-                        this@DetailActivity,
-                        it, // 这是当前活动中的共享ImageView
-                        "image$index" // 与BigImageViewerActivity中的ImageView相同的transitionName
-                    )
-                    startActivity(intent, options.toBundle())
-                }
-            }
-            val layoutParams = LinearLayout.LayoutParams(72.dp, 96.dp).apply {
-                marginEnd = 48
-            }
-            imageContainer.addView(imageView, layoutParams)
         }
     }
 

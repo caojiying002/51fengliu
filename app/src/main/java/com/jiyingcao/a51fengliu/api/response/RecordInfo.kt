@@ -6,7 +6,7 @@ package com.jiyingcao.a51fengliu.api.response
  * 2. 有些字段在未登录态下不可见，所以在Record中是可空的
  * 3. 目前只假定id、title不可空（返回null会crash）
  */
-data class Record(  // TODO 重命名为RecordItem，避免和java.lang.Record重名
+data class RecordInfo(  // 2024.09.13重命名为RecordInfo，避免和java.lang.Record重名
     val id: String, // Int,
     val userId: String?, // Int,
     val status: String?, //Int,

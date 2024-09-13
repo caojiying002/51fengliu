@@ -1,6 +1,7 @@
 package com.jiyingcao.a51fengliu.ui.adapter
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View.GONE
 import android.view.View.VISIBLE
@@ -10,7 +11,7 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.chad.library.adapter4.BaseQuickAdapter
 import com.jiyingcao.a51fengliu.R
-import com.jiyingcao.a51fengliu.api.response.Record
+import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.databinding.ItemViewBinding
 import com.jiyingcao.a51fengliu.glide.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.glide.GlideApp
@@ -18,17 +19,19 @@ import com.jiyingcao.a51fengliu.util.dp
 import com.jiyingcao.a51fengliu.util.timestampToDay
 import com.jiyingcao.a51fengliu.util.to2LevelName
 
-class RecordAdapter : BaseQuickAdapter<Record, RecordAdapter.RecordViewHolder>() {
-    class RecordViewHolder(val binding: ItemViewBinding) : RecyclerView.ViewHolder(binding.root) {
-    }
+class RecordAdapter : BaseQuickAdapter<RecordInfo, RecordAdapter.RecordViewHolder>() {
+    class RecordViewHolder(val binding: ItemViewBinding) : RecyclerView.ViewHolder(binding.root)
 
-    override fun onBindViewHolder(holder: RecordViewHolder, position: Int, item: Record?) {
-        requireNotNull(item) { "ItemData is null" }
+    override fun onBindViewHolder(holder: RecordViewHolder, position: Int, item: RecordInfo?) {
+        if (item == null) {
+            Log.w("RecordAdapter", "onBindViewHolder: item<RecordInfo?> is null")
+            return
+        }
 
         holder.binding.apply {
             itemTitle.text = item.title
             itemProcess.text = item.desc
-            itemDz.text = item.cityCode.to2LevelName() // TODO 城市代码转换为城市名称
+            itemDz.text = item.cityCode.to2LevelName() // 城市代码转换为城市名称
             itemCreateTime.text = timestampToDay(item.publishedAt)
             itemBrowse.text = item.viewCount
 

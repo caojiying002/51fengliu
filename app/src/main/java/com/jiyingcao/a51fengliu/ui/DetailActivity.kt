@@ -16,7 +16,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.jiyingcao.a51fengliu.R
-import com.jiyingcao.a51fengliu.api.response.Record
+import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.databinding.ActivityStatefulDetailBinding
 import com.jiyingcao.a51fengliu.glide.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.glide.GlideApp
@@ -106,9 +106,9 @@ class DetailActivity : BaseActivity() {
         recordId?.let { viewModel.fetchRecordById(id = it) }
     }
     
-    private fun updateUi(itemData: Record) {
+    private fun updateUi(record: RecordInfo) {
         //displayImagesIfAny(itemData.file)
-        displayImagesIfAnyV2(itemData.getPictures())
+        displayImagesIfAnyV2(record.getPictures())
 
         val title = realContentView.findViewById<TextView>(R.id.title)
         val dz = realContentView.findViewById<TextView>(R.id.dz)
@@ -132,21 +132,21 @@ class DetailActivity : BaseActivity() {
         val browse = realContentView.findViewById<TextView>(R.id.browse)
         val publisher = realContentView.findViewById<TextView>(R.id.publisher)
 
-        title.text = itemData.title
-        age.text = itemData.girlAge
-        price.text = itemData.consumeLv
-        process.text = itemData.desc
-        project.text = itemData.serveList
-        dz.text = itemData.cityCode.to2LevelName()
-        createTime.text = timestampToDay(itemData.publishedAt)
-        browse.text = itemData.viewCount
-        qq.text = itemData.qq
-        wechat.text = itemData.wechat
-        phone.text = itemData.phone
-        address.text = itemData.address
+        title.text = record.title
+        age.text = record.girlAge
+        price.text = record.consumeLv
+        process.text = record.desc
+        project.text = record.serveList
+        dz.text = record.cityCode.to2LevelName()
+        createTime.text = timestampToDay(record.publishedAt)
+        browse.text = record.viewCount
+        qq.text = record.qq
+        wechat.text = record.wechat
+        phone.text = record.phone
+        address.text = record.address
         publisher.text = when {
-            itemData.anonymous == true -> "匿名"
-            itemData.publisher != null -> itemData.publisher.name
+            record.anonymous == true -> "匿名"
+            record.publisher != null -> record.publisher.name
             else -> "匿名"
         }
     }

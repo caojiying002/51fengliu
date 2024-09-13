@@ -1,7 +1,7 @@
 package com.jiyingcao.a51fengliu.api.response
 
 data class PageData(
-    val records: List<Record>,
+    val records: List<RecordInfo>,
     val total: Int,
     val size: Int,
     val current: Int,

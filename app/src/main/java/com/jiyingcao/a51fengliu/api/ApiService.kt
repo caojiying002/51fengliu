@@ -28,5 +28,5 @@ interface ApiService {
     @GET("/api/web/info/detail.json")
     suspend fun getDetail(
         @Query("infoId") id: String
-    ): ApiResponse<Record>
+    ): ApiResponse<RecordInfo>
 }

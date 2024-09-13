@@ -6,7 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.api.RetrofitClient
-import com.jiyingcao.a51fengliu.api.response.Record
+import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.viewmodel.UiState.Error
 import com.jiyingcao.a51fengliu.viewmodel.UiState.Loading
 import com.jiyingcao.a51fengliu.viewmodel.UiState.Success
@@ -14,8 +14,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class DetailViewModel: ViewModel() {
-    private val _data = MutableLiveData<UiState<Record>>()
-    val data: LiveData<UiState<Record>> = _data
+    private val _data = MutableLiveData<UiState<RecordInfo>>()
+    val data: LiveData<UiState<RecordInfo>> = _data
 
     fun fetchRecordById(
         showFullScreenLoading: Boolean = false,

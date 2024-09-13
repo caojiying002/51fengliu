@@ -56,8 +56,8 @@ data class Record(  // TODO 重命名为RecordItem，避免和java.lang.Record�
     val yuni: String?,
     val phone: String?,
     val address: String?,
-) : Parcelable
-
-fun Record.getPictures(): List<String> {
-    return picture?.split(",") ?: emptyList()
+) : Parcelable {
+    fun getPictures(): List<String> {
+        return picture?.split(",") ?: emptyList()
+    }
 }

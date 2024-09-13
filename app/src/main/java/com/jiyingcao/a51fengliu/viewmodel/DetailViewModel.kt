@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jiyingcao.a51fengliu.api.RetrofitClient2
+import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.Record
 import com.jiyingcao.a51fengliu.viewmodel.UiState.Error
 import com.jiyingcao.a51fengliu.viewmodel.UiState.Loading
@@ -28,7 +28,7 @@ class DetailViewModel: ViewModel() {
             _data.postValue(loadingState)
 
             try {
-                val response = RetrofitClient2.apiService.getDetail(id)
+                val response = RetrofitClient.apiService.getDetail(id)
                 if (response.code != 0) {
                     _data.postValue(Error("API状态码 code=${response.code}, msg=${response.msg}"))
                     Log.w(TAG, "API状态码 code=${response.code}, msg=${response.msg}")

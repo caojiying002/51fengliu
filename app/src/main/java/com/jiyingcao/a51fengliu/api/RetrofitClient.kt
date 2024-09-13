@@ -8,9 +8,9 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 private val DEBUG_HTTP: Boolean = (false)
 
-const val BASE_URL_2 = "https://309.16dress.xyz/" //"https://903.16duty.xyz/"
+const val BASE_URL = "https://309.16dress.xyz/" //"https://903.16duty.xyz/"
 
-object RetrofitClient2 {
+object RetrofitClient {
 
     val okHttpClient by lazy {
         OkHttpClient.Builder()
@@ -26,7 +26,7 @@ object RetrofitClient2 {
                 // 如果URL是图片请求（主URL为BASE_IMAGE_URL），则添加两个图片专用请求头
                 if (originalRequest.url.toString().startsWith(BASE_IMAGE_URL)) {
                     val requestWithHeaders = originalRequest.newBuilder()
-                        .header("Referer", BASE_URL_2)
+                        .header("Referer", BASE_URL)
                         //.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3")
                         .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0")
                         .build()
@@ -40,7 +40,7 @@ object RetrofitClient2 {
     val retrofit: Retrofit by lazy {
         Retrofit.Builder()
             .client(okHttpClient)
-            .baseUrl(BASE_URL_2)
+            .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create(GsonInstance.gson))
             //.addCallAdapterFactory(CoroutineCallAdapterFactory())
             .build()

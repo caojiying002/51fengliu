@@ -7,7 +7,7 @@ import com.bumptech.glide.annotation.GlideModule
 import com.bumptech.glide.integration.okhttp3.OkHttpUrlLoader
 import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.module.AppGlideModule
-import com.jiyingcao.a51fengliu.api.RetrofitClient2
+import com.jiyingcao.a51fengliu.api.RetrofitClient
 import okhttp3.OkHttpClient
 import java.io.InputStream
 
@@ -15,7 +15,7 @@ import java.io.InputStream
 class OkHttpGlideModule: AppGlideModule() {
     override fun registerComponents(context: Context, glide: Glide, registry: Registry) {
         // 使用Retrofit用的 OkHttpClient
-        val okHttpClient: OkHttpClient = RetrofitClient2.okHttpClient
+        val okHttpClient: OkHttpClient = RetrofitClient.okHttpClient
         registry.replace(
             GlideUrl::class.java, InputStream::class.java, OkHttpUrlLoader.Factory(okHttpClient)
         )

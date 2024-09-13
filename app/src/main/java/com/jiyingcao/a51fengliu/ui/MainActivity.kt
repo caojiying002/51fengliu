@@ -17,7 +17,7 @@ import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout
 import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout.State.*
-import com.jiyingcao.a51fengliu.viewmodel.MainViewModel2
+import com.jiyingcao.a51fengliu.viewmodel.MainViewModel
 import com.jiyingcao.a51fengliu.viewmodel.UiState
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
@@ -29,7 +29,7 @@ class MainActivity : BaseActivity() {
     private lateinit var refreshLayout: SmartRefreshLayout
     private lateinit var recyclerView: RecyclerView
 
-    private lateinit var viewModel: MainViewModel2
+    private lateinit var viewModel: MainViewModel
 
     private lateinit var recordAdapter: RecordAdapter
 
@@ -85,7 +85,7 @@ class MainActivity : BaseActivity() {
             // setEnableLoadMore(false)  // 加载第一页成功前暂时禁用LoadMore
         }
 
-        viewModel = ViewModelProvider(this)[MainViewModel2::class.java]
+        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
         viewModel.data.observe(this) { state ->
             when (state) {
                 is UiState.Loading -> {

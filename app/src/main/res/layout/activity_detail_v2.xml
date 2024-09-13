@@ -122,7 +122,7 @@
                     android:layout_marginTop="16dp"
                     android:layout_marginHorizontal="16dp"
                     android:lines="1"
-                    android:text="吴中小朵儿"
+                    tools:text="吴中小朵儿"
                     android:textColor="@color/text_dark_gray"
                     android:textSize="18dp"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -137,7 +137,7 @@
                     android:layout_marginTop="5dp"
                     android:drawablePadding="4dp"
                     android:lines="1"
-                    android:text="2024-07-21"
+                    tools:text="2024-07-21"
                     android:textColor="@color/text_light_gray"
                     android:textSize="11dp"
                     app:drawableLeftCompat="@drawable/icon_time"
@@ -152,7 +152,7 @@
                     android:layout_marginStart="8dp"
                     android:drawablePadding="4dp"
                     android:lines="1"
-                    android:text="7320"
+                    tools:text="7320"
                     android:textColor="@color/text_light_gray"
                     android:textSize="11dp"
                     app:drawableLeftCompat="@drawable/icon_browse"
@@ -167,7 +167,7 @@
                     android:layout_marginStart="8dp"
                     android:drawablePadding="4dp"
                     android:lines="1"
-                    android:text="匿名"
+                    tools:text="匿名"
                     android:textColor="@color/text_light_gray"
                     android:textSize="11dp"
                     app:drawableLeftCompat="@drawable/icon_author"
@@ -275,7 +275,7 @@
                         android:textColor="@color/text_default"
                         app:layout_constraintStart_toEndOf="@id/vertical_barrier_space"
                         app:layout_constraintBottom_toBottomOf="@+id/introDz"
-                        android:text="江苏-苏州市" />
+                        tools:text="江苏-苏州市" />
 
                     <TextView
                         android:id="@+id/age"
@@ -286,7 +286,7 @@
                         android:textColor="@color/text_default"
                         app:layout_constraintStart_toEndOf="@id/vertical_barrier_space"
                         app:layout_constraintBottom_toBottomOf="@+id/introAge"
-                        android:text="20～25" />
+                        tools:text="20～25" />
 
                     <TextView
                         android:id="@+id/faceValue"
@@ -297,7 +297,7 @@
                         android:textColor="@color/text_default"
                         app:layout_constraintStart_toEndOf="@id/vertical_barrier_space"
                         app:layout_constraintBottom_toBottomOf="@+id/introFaceValue"
-                        android:text="7" />
+                        tools:text="7" />
 
                     <TextView
                         android:id="@+id/price"
@@ -308,7 +308,7 @@
                         android:textColor="@color/text_default"
                         app:layout_constraintStart_toEndOf="@id/vertical_barrier_space"
                         app:layout_constraintBottom_toBottomOf="@+id/introPrice"
-                        android:text="800～1200 (不要先给钱)" />
+                        tools:text="800～1200 (不要先给钱)" />
 
                     <TextView
                         android:id="@+id/project"
@@ -320,7 +320,7 @@
                         app:layout_constraintStart_toEndOf="@id/vertical_barrier_space"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="@+id/introProject"
-                        android:text="鸳鸯戏水，胸推，漫游，指划，调情，冰火kj，制服诱惑" />
+                        tools:text="鸳鸯戏水，胸推，漫游，指划，调情，冰火kj，制服诱惑" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -510,7 +510,7 @@
                         android:textColor="@color/text_default"
                         app:layout_constraintStart_toEndOf="@id/vertical_barrier_space_in_contact_info"
                         app:layout_constraintBottom_toBottomOf="@+id/introQQ"
-                        android:text="1090011279" />
+                        tools:text="1090011279" />
 
                     <TextView
                         android:id="@+id/wechat"
@@ -521,7 +521,7 @@
                         android:textColor="@color/text_default"
                         app:layout_constraintStart_toEndOf="@id/vertical_barrier_space_in_contact_info"
                         app:layout_constraintBottom_toBottomOf="@+id/introWechat"
-                        android:text="fcc67896" />
+                        tools:text="fcc67896" />
 
                     <TextView
                         android:id="@+id/phone"
@@ -532,7 +532,7 @@
                         android:textColor="@color/text_default"
                         app:layout_constraintStart_toEndOf="@id/vertical_barrier_space_in_contact_info"
                         app:layout_constraintBottom_toBottomOf="@+id/introPhone"
-                        android:text="15183570655" />
+                        tools:text="15183570655" />
 
                     <TextView
                         android:id="@+id/address"
@@ -543,7 +543,7 @@
                         android:textColor="@color/text_default"
                         app:layout_constraintStart_toEndOf="@id/vertical_barrier_space_in_contact_info"
                         app:layout_constraintBottom_toBottomOf="@+id/introAddress"
-                        android:text="西湖区紫金港" />
+                        tools:text="西湖区紫金港" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -611,7 +611,7 @@
                 android:textSize="@dimen/text_default"
                 android:textColor="@color/text_default"
                 android:background="@drawable/corner_solid_white_padding"
-                android:text="整体能打个9分吧，长得比我还高一点，估计有170以上，身材高挑，腿细长细长的，技术一般以上，综合性价比挺高的，喜欢身材好的可以约" />
+                tools:text="整体能打个9分吧，长得比我还高一点，估计有170以上，身材高挑，腿细长细长的，技术一般以上，综合性价比挺高的，喜欢身材好的可以约" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

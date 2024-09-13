@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jiyingcao.a51fengliu.api.RetrofitClient2
+import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.PageData
 import com.jiyingcao.a51fengliu.viewmodel.UiState.Error
 import com.jiyingcao.a51fengliu.viewmodel.UiState.Loading
@@ -13,7 +13,7 @@ import com.jiyingcao.a51fengliu.viewmodel.UiState.Success
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class MainViewModel2: ViewModel() {
+class MainViewModel: ViewModel() {
     private val _data = MutableLiveData<UiState<PageData>>()
     val data: LiveData<UiState<PageData>> = _data
 
@@ -29,7 +29,7 @@ class MainViewModel2: ViewModel() {
 
             try {
                 // sort=daily是热门，sort=publish是最新
-                val response = RetrofitClient2.apiService.getPageData(/*sort = "publish", */page = page)
+                val response = RetrofitClient.apiService.getPageData(/*sort = "publish", */page = page)
                 if (response.code != 0) {
                     _data.postValue(Error("API状态码 code=${response.code}, msg=${response.msg}"))
                     Log.w(TAG, "API状态码 code=${response.code}, msg=${response.msg}")

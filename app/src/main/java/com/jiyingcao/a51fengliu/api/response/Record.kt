@@ -35,7 +35,7 @@ data class Record(  // TODO 重命名为RecordItem，避免和java.lang.Record�
     val createdAt: String?, //Long,
     /** 列表页为null，详情页为true/false */ val isFavorite: Boolean?,
     /** 列表页为null，详情页为1（未登录态） */ val vipProfileStatus: Int?,
-    val publisher: String?,
+    val publisher: Publisher?,
     val userName: String?,
     val userReputation: String?,
     val userStatus: String?,
@@ -57,3 +57,72 @@ data class Record(  // TODO 重命名为RecordItem，避免和java.lang.Record�
         return picture?.split(",") ?: emptyList()
     }
 }
+
+/*
+"publisher": {
+    "id": 1294831,
+    "name": "369258111",
+    "email": "1379065592@qq.com",
+    "status": 0,
+    "isAdmin": false,
+    "isMuted": false,
+    "reputation": 0,
+    "agentId": null,
+    "score": 250,
+    "canAgent": false,
+    "agentRate": 0,
+    "source": 1,
+    "infoPrivate": true,
+    "comment": null,
+    "sign": null,
+    "certPics": null,
+    "infoPassCount": 1,
+    "infoRefuseCount": 0,
+    "expiredAt": null,
+    "forbiddenAt": null,
+    "lastLogin": 1725977385000,
+    "createdAt": 1725977385000,
+    "agentName": null,
+    "userType": 0,
+    "isFrozen": false,
+    "isForbidden": false,
+    "isVip": false,
+    "publishedInfoCount": 1,
+    "refusedInfoCount": 0
+}
+ */
+data class Publisher(
+    val id: String,
+    val name: String,
+
+    /* 剩下的用不到不解析了，字段越多解析失败的可能性就越大 */
+    /*
+    val email: String,
+    val status: String,
+    val isAdmin: Boolean,
+    val isMuted: Boolean,
+    val reputation: String,
+    val agentId: String?,
+    val score: String,
+    val canAgent: Boolean,
+    val agentRate: String,
+    val source: String,
+    val infoPrivate: Boolean,
+    val comment: String?,
+    val sign: String?,
+    val certPics: String?,
+    val infoPassCount: String,
+    val infoRefuseCount: String,
+    val expiredAt: String?,
+    val forbiddenAt: String?,
+    val lastLogin: String,
+    val createdAt: String,
+    val agentName: String?,
+    val userType: String,
+    val isFrozen: Boolean,
+    val isForbidden: Boolean,
+    val isVip: Boolean,
+    val publishedInfoCount: String,
+    val refusedInfoCount: String,
+     */
+)

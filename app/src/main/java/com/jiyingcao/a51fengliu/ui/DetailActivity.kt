@@ -144,7 +144,11 @@ class DetailActivity : BaseActivity() {
         wechat.text = itemData.wechat
         phone.text = itemData.phone
         address.text = itemData.address
-        publisher.text = itemData.publisher ?: "匿名"
+        publisher.text = when {
+            itemData.anonymous == true -> "匿名"
+            itemData.publisher != null -> itemData.publisher.name
+            else -> "匿名"
+        }
     }
 
     private fun displayImagesIfAnyV2(imgs: List<String>) {

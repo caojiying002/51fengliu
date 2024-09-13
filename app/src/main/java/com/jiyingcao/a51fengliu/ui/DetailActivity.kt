@@ -52,9 +52,6 @@ class DetailActivity : BaseActivity() {
         setContentView(binding.root)
         //setEdgeToEdgePaddings(binding.root)
 
-        val record = intent.getRecord()
-        record?.let { updateUi(it) }
-
         val recordId = intent.getRecordId()
         if (recordId == null) {
             showToast("缺少参数: recordId")
@@ -104,8 +101,6 @@ class DetailActivity : BaseActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        val record = intent.getRecord()
-        record?.let { updateUi(it) }
 
         val recordId = intent.getRecordId()
         recordId?.let { viewModel.fetchRecordById(id = it) }
@@ -202,17 +197,7 @@ class DetailActivity : BaseActivity() {
 
     companion object {
         private const val TAG = "DetailActivity"
-        private const val KEY_EXTRA_RECORD = "RECORD"
         private const val KEY_EXTRA_RECORD_ID = "RECORD_ID"
-
-        @JvmStatic
-        @Deprecated("Use start(context: Context, id: String) instead")
-        fun start(context: Context, record: Record) {
-            val intent = Intent(context, DetailActivity::class.java).apply {
-                putExtra(KEY_EXTRA_RECORD, record)
-            }
-            context.startActivity(intent)
-        }
 
         @JvmStatic
         fun start(context: Context, id: String) {
@@ -222,8 +207,6 @@ class DetailActivity : BaseActivity() {
             context.startActivity(intent)
         }
 
-        @Suppress("DEPRECATION")
-        private fun Intent.getRecord(): Record? = getParcelableExtra(KEY_EXTRA_RECORD)
         private fun Intent.getRecordId(): String? = getStringExtra(KEY_EXTRA_RECORD_ID)
     }
 }

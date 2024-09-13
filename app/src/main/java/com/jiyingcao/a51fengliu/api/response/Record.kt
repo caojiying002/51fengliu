@@ -1,15 +1,11 @@
 package com.jiyingcao.a51fengliu.api.response
 
-import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
-
 /**
  * 关于字段能否为空：
  * 1. 有些字段在详情页有，列表页没有，所以在Record中是可空的
  * 2. 有些字段在未登录态下不可见，所以在Record中是可空的
  * 3. 目前只假定id、title不可空（返回null会crash）
  */
-@Parcelize
 data class Record(  // TODO 重命名为RecordItem，避免和java.lang.Record重名
     val id: String, // Int,
     val userId: String?, // Int,
@@ -56,7 +52,7 @@ data class Record(  // TODO 重命名为RecordItem，避免和java.lang.Record�
     val yuni: String?,
     val phone: String?,
     val address: String?,
-) : Parcelable {
+) {
     fun getPictures(): List<String> {
         return picture?.split(",") ?: emptyList()
     }

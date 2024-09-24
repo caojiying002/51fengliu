@@ -1,142 +1,142 @@
 package com.jiyingcao.a51fengliu.ui
 
-import android.content.Context
+import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import android.widget.Toast
-import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.chad.library.adapter4.BaseSingleItemAdapter
+import android.widget.ImageView
+import androidx.activity.enableEdgeToEdge
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import android.widget.TextView
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import com.jiyingcao.a51fengliu.R
-import com.jiyingcao.a51fengliu.databinding.DefaultLayoutStatefulRecyclerViewBinding
-import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
-import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout
-import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout.State.*
-import com.jiyingcao.a51fengliu.viewmodel.MainViewModel
-import com.jiyingcao.a51fengliu.viewmodel.UiState
-import com.scwang.smart.refresh.footer.ClassicsFooter
-import com.scwang.smart.refresh.header.ClassicsHeader
-import com.scwang.smart.refresh.layout.SmartRefreshLayout
+import com.jiyingcao.a51fengliu.ui.tab.*
 
 class MainActivity : BaseActivity() {
-    private lateinit var binding: DefaultLayoutStatefulRecyclerViewBinding
-    private lateinit var statefulLayout: StatefulLayout
-    private lateinit var refreshLayout: SmartRefreshLayout
-    private lateinit var recyclerView: RecyclerView
 
-    private lateinit var viewModel: MainViewModel
+    private lateinit var tabHome: View
+    private lateinit var tabDashboard: View
+    private lateinit var tabNotifications: View
+    private lateinit var tabProfile: View
 
-    private lateinit var recordAdapter: RecordAdapter
+    private var homeFragment: Fragment? = null
+    private var dashboardFragment: Fragment? = null
+    private var notificationsFragment: Fragment? = null
+    private var profileFragment: Fragment? = null
 
-    /** 是否有数据已经加载 */
-    private var hasDataLoaded: Boolean = false
-    /** 当前已经加载成功的页数 */
-    private var currentPage: Int = 0
+    private var currentTabTag: String = TAG_HOME
+
+    companion object {
+        // Fragment tags
+        private const val TAG_PREFIX = "MAIN_ACTIVITY_TAB_"
+        private const val TAG_HOME = "${TAG_PREFIX}HOME"
+        private const val TAG_DASHBOARD = "${TAG_PREFIX}DASHBOARD"
+        private const val TAG_NOTIFICATIONS = "${TAG_PREFIX}NOTIFICATIONS"
+        private const val TAG_PROFILE = "${TAG_PREFIX}PROFILE"
+
+        // Saved instance state keys
+        private const val KEY_CURRENT_TAB = "CURRENT_TAB"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //enableEdgeToEdge()
-        binding = DefaultLayoutStatefulRecyclerViewBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        //setEdgeToEdgePaddings(binding.root)
-
-        statefulLayout = binding.statefulLayout // 简化代码调用
-        refreshLayout = findViewById(R.id.refreshLayout)
-        recyclerView = findViewById(R.id.recyclerView)
-
-        val fixedAreaAdapter = object : BaseSingleItemAdapter<Any, RecyclerView.ViewHolder>() {
-            override fun onBindViewHolder(holder: RecyclerView.ViewHolder, item: Any?) {}
-
-            override fun onCreateViewHolder(
-                context: Context,
-                parent: ViewGroup,
-                viewType: Int
-            ): RecyclerView.ViewHolder {
-                val itemView = LayoutInflater.from(context)
-                    .inflate(R.layout.main_fixed_area, parent, false)
-                return object : RecyclerView.ViewHolder(itemView) {}
-            }
-
-        }
-        recordAdapter = RecordAdapter().apply {
-            setOnItemClickListener { _, _, position ->
-                Log.d(TAG, "Record $position clicked")
-                recordAdapter.getItem(position)?.let {
-                    DetailActivity.start(context, it.id)
-                }
-            }
-        }
-        recyclerView.apply {
-            // 使用线性布局管理器
-            layoutManager = LinearLayoutManager(context)
-            // 指定适配器
-            adapter = recordAdapter
-        }
-        refreshLayout.apply {
-            setRefreshHeader(ClassicsHeader(context))
-            setRefreshFooter(ClassicsFooter(context))
-            setOnRefreshListener { viewModel.fetchByPage(false) }
-            setOnLoadMoreListener { viewModel.fetchByPage(false, currentPage+1) }
-            // setEnableLoadMore(false)  // 加载第一页成功前暂时禁用LoadMore
+        enableEdgeToEdge()
+        setContentView(R.layout.activity_main)
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
         }
 
-        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
-        viewModel.data.observe(this) { state ->
-            when (state) {
-                is UiState.Loading -> {
-                    // 显示加载动画
-                    if (!hasDataLoaded)
-                        statefulLayout.currentState = LOADING
-                }
-                is UiState.Success -> {
-                    hasDataLoaded = true
-                    refreshLayout.finishRefresh()
-                    refreshLayout.finishLoadMore()
-                    statefulLayout.currentState = CONTENT
+        tabHome = findViewById(R.id.tabHome)
+        tabDashboard = findViewById(R.id.tabDashboard)
+        tabNotifications = findViewById(R.id.tabNotifications)
+        tabProfile = findViewById(R.id.tabProfile)
 
-                    val pageData = state.data
-                    val page = pageData.current
-                    val data = pageData.records
+        setupTabs()
 
-                    // 记录页数
-                    currentPage = page
-                    // 显示数据
-                    if (page == 1) {
-                        recordAdapter.submitList(data)
-                        // refreshLayout.setEnableLoadMore(true)   // 第一页有数据了，可以启用LoadMore了
-                    }
-                    else
-                        recordAdapter.addAll(data)
-                    // TODO 如果列表为空需要显示空状态
-                }
-                is UiState.Empty -> {
-                    // 不再使用
-                    //refreshLayout.finishRefresh()
-                }
-                is UiState.Error -> {
-                    refreshLayout.finishRefresh()
-                    refreshLayout.finishLoadMore()
-                    // 显示错误信息
-                    if (!hasDataLoaded)
-                        statefulLayout.currentState = ERROR
-                    else
-                        Toast.makeText(this, state.message, Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-
-        viewModel.fetchByPage(true)
-
-        findViewById<View>(R.id.title_bar_menu)?.setOnClickListener { CityActivity.start(this) }
-        findViewById<View>(R.id.title_bar_profile)?.setOnClickListener { SearchActivity.start(this) }
+        // 从 savedInstanceState 恢复当前选中的 Tab，或使用默认值
+        currentTabTag = savedInstanceState?.getString(KEY_CURRENT_TAB) ?: TAG_HOME
+        // 加载相应的 Fragment 并更新 Tab 状态
+        loadFragment(currentTabTag)
+        updateTabStates(currentTabTag)
     }
 
-    companion object {
-        private const val TAG: String = "MainActivity"
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        // 保存当前选中的 Tab
+        outState.putString(KEY_CURRENT_TAB, currentTabTag)
+    }
+
+    private fun setupTabs() {
+        setupTab(tabHome, R.drawable.ic_home, "首页", TAG_HOME)
+        setupTab(tabDashboard, R.drawable.ic_search, "仪表盘", TAG_DASHBOARD)
+        setupTab(tabNotifications, R.drawable.ic_notification, "通知", TAG_NOTIFICATIONS)
+        setupTab(tabProfile, R.drawable.ic_profile, "个人", TAG_PROFILE)
+    }
+
+    private fun setupTab(tabView: View, iconResId: Int, text: String, tag: String) {
+        tabView.findViewById<ImageView>(R.id.tabIcon).setImageResource(iconResId)
+        tabView.findViewById<TextView>(R.id.tabText).text = text
+        tabView.setOnClickListener {
+            loadFragment(tag)
+            updateTabStates(tag)
+        }
+    }
+
+    private fun updateTabStates(selectedTag: String) {
+        updateTabState(tabHome, selectedTag == TAG_HOME)
+        updateTabState(tabDashboard, selectedTag == TAG_DASHBOARD)
+        updateTabState(tabNotifications, selectedTag == TAG_NOTIFICATIONS)
+        updateTabState(tabProfile, selectedTag == TAG_PROFILE)
+        currentTabTag = selectedTag
+    }
+
+    @SuppressLint("ResourceType")
+    private fun updateTabState(tabView: View, isSelected: Boolean) {
+        val colorStateList = ContextCompat.getColorStateList(this, R.drawable.tab_color_selector)
+        tabView.isSelected = isSelected
+        tabView.findViewById<ImageView>(R.id.tabIcon).imageTintList = colorStateList
+        tabView.findViewById<TextView>(R.id.tabText).setTextColor(colorStateList)
+    }
+
+    private fun loadFragment(tag: String) {
+        supportFragmentManager.beginTransaction().apply {
+            // 只隐藏和管理我们自己的 Fragment，避免影响第三方添加的 Fragment，例如权限请求库
+            supportFragmentManager.fragments.forEach { fragment ->
+                if (fragment.tag?.startsWith(TAG_PREFIX) == true) {
+                    hide(fragment)
+                    setMaxLifecycle(fragment, Lifecycle.State.STARTED)
+                }
+            }
+
+            // 获取或创建目标 Fragment
+            var targetFragment = supportFragmentManager.findFragmentByTag(tag)
+            if (targetFragment == null) {
+                targetFragment = when (tag) {
+                    TAG_HOME -> HomeFragment().also { homeFragment = it }
+                    TAG_DASHBOARD -> DashboardFragment().also { dashboardFragment = it }
+                    TAG_NOTIFICATIONS -> NotificationsFragment().also { notificationsFragment = it }
+                    TAG_PROFILE -> ProfileFragment().also { profileFragment = it }
+                    else -> throw IllegalArgumentException("Unknown fragment tag: $tag")
+                }
+                add(R.id.fragmentContainer, targetFragment, tag)
+            } else {
+                // 更新 Activity 持有的引用
+                when (tag) {
+                    TAG_HOME -> homeFragment = targetFragment
+                    TAG_DASHBOARD -> dashboardFragment = targetFragment
+                    TAG_NOTIFICATIONS -> notificationsFragment = targetFragment
+                    TAG_PROFILE -> profileFragment = targetFragment
+                }
+                show(targetFragment)
+            }
+
+            // 将所需的 Fragment 设置为 RESUMED 状态
+            setMaxLifecycle(targetFragment, Lifecycle.State.RESUMED)
+        }.commitNowAllowingStateLoss()
     }
 }

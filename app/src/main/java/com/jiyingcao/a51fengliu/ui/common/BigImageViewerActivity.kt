@@ -9,7 +9,11 @@ import android.view.ViewGroup
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.CustomViewTarget
+import com.bumptech.glide.request.target.Target
 import com.jiyingcao.a51fengliu.databinding.ActivityBigImageViewerBinding
 import com.jiyingcao.a51fengliu.glide.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.glide.GlideApp
@@ -28,7 +32,7 @@ class BigImageViewerActivity : BaseActivity() {
         binding = ActivityBigImageViewerBinding.inflate(layoutInflater)
         setContentViewWithSystemBarPaddings(binding.root)
 
-        // 确保启用了共享元素转场
+        // 延迟共享元素转场
         supportPostponeEnterTransition()
 
         displayImagesFromIntent(intent)
@@ -65,44 +69,41 @@ private class ImagePagerAdapter(
         )
         if (context is BigImageViewerActivity) {
             photoView.setOnViewTapListener { _, _, _ ->
-                context.finishAfterTransition()
+                context.supportStartPostponedEnterTransition()  // 避免转场动画没有启动过（如果启动过则no-op）
+                context.supportFinishAfterTransition()
             }
         }
         return ImageViewHolder(photoView)
     }
 
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
-        holder.photoView.transitionName = "image$position"
-
-        // TODO 无网络时转场动画会导致界面卡死
-        val customViewTarget = object : CustomViewTarget<PhotoView, Drawable>(holder.photoView) {
-            override fun onLoadFailed(errorDrawable: Drawable?) {
-                //holder.photoView.setImageDrawable(errorDrawable)
-            }
-
-            override fun onResourceCleared(placeholder: Drawable?) {
-                //holder.photoView.setImageDrawable(placeholder)
-            }
-
-            override fun onResourceReady(resource: Drawable, transition: com.bumptech.glide.request.transition.Transition<in Drawable>?) {
-                holder.photoView.setImageDrawable(resource)
-                if (context is BigImageViewerActivity) {
-                    context.supportStartPostponedEnterTransition() // 当图片加载完成时，开始转场动画
-                }
-            }
-        }
-
         val imageUrl = BASE_IMAGE_URL + imageUrls[position]
-        GlideApp
-            .with(context)
-            .load(imageUrl)
-            //.diskCacheStrategy(DiskCacheStrategy.NONE)
-            .into(customViewTarget)
+
+        holder.photoView.transitionName = "image$position"
         holder.photoView.setOnLongClickListener {
             vibrate(context)
             glideSaveImage(context, imageUrl)
             true
         }
+
+        GlideApp.with(context)
+            .load(imageUrl)
+            .listener(object : RequestListener<Drawable> {
+                override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
+                    if (context is BigImageViewerActivity) {
+                        context.supportStartPostponedEnterTransition() // 当图片加载失败时，也开始转场动画
+                    }
+                    return false
+                }
+
+                override fun onResourceReady(resource: Drawable, model: Any, target: Target<Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                    if (context is BigImageViewerActivity) {
+                        context.supportStartPostponedEnterTransition() // 当图片加载完成时，开始转场动画
+                    }
+                    return false
+                }
+            })
+            .into(holder.photoView)
     }
 
     override fun getItemCount(): Int = imageUrls.size

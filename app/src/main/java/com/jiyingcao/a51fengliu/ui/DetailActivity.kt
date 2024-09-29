@@ -2,6 +2,7 @@ package com.jiyingcao.a51fengliu.ui
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.View
 import android.view.View.GONE
@@ -13,8 +14,12 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.ActivityOptionsCompat
 import androidx.lifecycle.ViewModelProvider
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.databinding.ActivityStatefulDetailBinding
@@ -151,6 +156,8 @@ class DetailActivity : BaseActivity() {
         }
     }
 
+    private val imageLoadedMap: MutableMap<String, Boolean> = mutableMapOf()
+
     private fun displayImagesIfAnyV2(imgs: List<String>) {
         val imageContainer = realContentView.findViewById<ViewGroup>(R.id.image_container)
 
@@ -170,31 +177,63 @@ class DetailActivity : BaseActivity() {
                 else -> return
             }
             val subUrl = imgs.getOrNull(index)
-            if (subUrl == null) {
+            if (subUrl.isNullOrBlank()) {
                 imageView.visibility = INVISIBLE
                 continue
             }
 
+            val fullUrl = BASE_IMAGE_URL + subUrl
             imageView.visibility = VISIBLE
+            imageView.tag = fullUrl
+
             GlideApp.with(this)
-                .load(BASE_IMAGE_URL + subUrl)
+                .load(fullUrl)
                 .placeholder(R.drawable.placeholder)
                 .error(R.drawable.image_broken)
                 .transform(CenterCrop(), RoundedCorners(4.dp))
                 //.transition(DrawableTransitionOptions.withCrossFade())
+                .listener(object : RequestListener<Drawable> {
+                    override fun onLoadFailed(
+                        e: GlideException?,
+                        model: Any?,
+                        target: Target<Drawable>,
+                        isFirstResource: Boolean
+                    ): Boolean {
+                        if (model != null && model is String) { imageLoadedMap[model] = false }
+                        return false
+                    }
+
+                    override fun onResourceReady(
+                        resource: Drawable,
+                        model: Any,
+                        target: Target<Drawable>?,
+                        dataSource: DataSource,
+                        isFirstResource: Boolean
+                    ): Boolean {
+                        if (model is String) { imageLoadedMap[model] = true }
+                        return false
+                    }
+
+                })
                 .into(imageView)
-            imageView.setOnClickListener {
-                val intent = Intent(this, BigImageViewerActivity::class.java).apply {
-                    putStringArrayListExtra("IMAGES", ArrayList(imgs))
-                    putExtra("INDEX", index)
+            imageView.setOnClickListener { view ->
+                // 如果图片加载成功，才能点击查看大图
+                if (imageLoadedMap[view.tag as String] == true) {
+                    val intent = Intent(this, BigImageViewerActivity::class.java).apply {
+                        putStringArrayListExtra("IMAGES", ArrayList(imgs))
+                        putExtra("INDEX", index)
+                    }
+                    // 创建包含共享元素的ActivityOptions
+                    val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                        this,
+                        view, // 这是当前活动中的共享ImageView
+                        "image$index" // 与BigImageViewerActivity中的ImageView相同的transitionName
+                    )
+                    startActivity(intent, options.toBundle())
+                } else {
+                    // Debug only
+                    // showToast("图片加载中，请稍候")
                 }
-                // 创建包含共享元素的ActivityOptions
-                val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
-                    this,
-                    it, // 这是当前活动中的共享ImageView
-                    "image$index" // 与BigImageViewerActivity中的ImageView相同的transitionName
-                )
-                startActivity(intent, options.toBundle())
             }
         }
     }

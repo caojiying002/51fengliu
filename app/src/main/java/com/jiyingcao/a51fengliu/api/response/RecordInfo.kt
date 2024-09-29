@@ -53,9 +53,18 @@ data class RecordInfo(  // 2024.09.13重命名为RecordInfo，避免和java.lang
     val phone: String?,
     val address: String?,
 ) {
-    fun getPictures(): List<String> {
-        return picture?.split(",") ?: emptyList()
+    @Deprecated(message = "use getPictures() instead", replaceWith = ReplaceWith("getPictures()"))
+    fun getPicturesDeprecated(): List<String> {
+        return if (picture.isNullOrBlank()) {
+            emptyList()
+        } else {
+            picture.split(",")
+        }
     }
+    fun getPictures(): List<String> =
+        picture?.split(',')
+            ?.filter { it.isNotBlank() }
+            ?: emptyList()
 }
 
 /*

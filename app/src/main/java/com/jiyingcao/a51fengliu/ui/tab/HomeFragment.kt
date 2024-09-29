@@ -56,7 +56,7 @@ class HomeFragment : Fragment() {
 
         recordAdapter = RecordAdapter().apply {
             setOnItemClickListener { _, _, position ->
-                recordAdapter.getItem(position)?.let {
+                this@apply.getItem(position)?.let {
                     DetailActivity.start(context, it.id)
                 }
             }

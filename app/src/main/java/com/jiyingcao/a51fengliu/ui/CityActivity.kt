@@ -49,7 +49,7 @@ class CityActivity: BaseActivity() {
         recordAdapter = RecordAdapter().apply {
             setOnItemClickListener { _, _, position ->
                 Log.d(TAG, "Record $position clicked")
-                recordAdapter.getItem(position)?.let {
+                this@apply.getItem(position)?.let {
                     DetailActivity.start(context, it.id)
                 }
             }

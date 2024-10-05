@@ -13,21 +13,16 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import com.jiyingcao.a51fengliu.databinding.ActivityWebViewBinding
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
-import com.jiyingcao.a51fengliu.util.setContentViewWithSystemBarPaddings
 
 class WebViewActivity : BaseActivity() {
     private lateinit var binding: ActivityWebViewBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //enableEdgeToEdge()
         binding = ActivityWebViewBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        //setContentViewWithSystemBarPaddings(binding.root)
 
         setupWebView()
 

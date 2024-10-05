@@ -501,6 +501,9 @@ val administrativeDivisions = mapOf( // TODO 移除省直辖县，如：429004 �
     "659008" to "可克达拉市",
     "659009" to "昆玉市",
     "659010" to "胡杨河市",
+    "710000" to "台湾省",
+    "810000" to "香港特别行政区",
+    "820000" to "澳门特别行政区",
 )
 
 fun String?.to2LevelName(): String {

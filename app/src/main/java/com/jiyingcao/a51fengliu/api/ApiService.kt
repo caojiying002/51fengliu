@@ -5,19 +5,11 @@ import retrofit2.http.*
 
 interface ApiService {
 
-    /** 首页：热门 */
+    /** 首页：热门or最新 */
     @GET("/api/web/info/page.json")
-    suspend fun getHotRecords(
+    suspend fun getPageData(
         //@Query("perPage") perPage: Int = 30,
-        @Query("sort") sort: String = "daily",
-        @Query("page") page: Int = 1,
-    ): ApiResponse<PageData>
-
-    /** 首页：最新 */
-    @GET("/api/web/info/page.json")
-    suspend fun getLatestRecords(
-        //@Query("perPage") perPage: Int = 30,
-        @Query("sort") sort: String = "publish",
+        @Query("sort") sort: String = "daily",  // "publish"表示最新
         @Query("page") page: Int = 1,
     ): ApiResponse<PageData>
 

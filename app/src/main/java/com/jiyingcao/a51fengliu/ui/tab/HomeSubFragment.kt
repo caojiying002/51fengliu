@@ -1,31 +1,32 @@
-package com.jiyingcao.a51fengliu.ui
+package com.jiyingcao.a51fengliu.ui.tab
 
-import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.chad.library.adapter4.BaseSingleItemAdapter
 import com.jiyingcao.a51fengliu.R
-import com.jiyingcao.a51fengliu.databinding.DefaultLayoutStatefulRecyclerViewBinding
+import com.jiyingcao.a51fengliu.ui.CityActivity
+import com.jiyingcao.a51fengliu.ui.DetailActivity
+import com.jiyingcao.a51fengliu.ui.SearchActivity
 import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
-import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout
-import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout.State.*
+import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout.State.CONTENT
+import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout.State.ERROR
+import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout.State.LOADING
+import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.MainViewModel
 import com.jiyingcao.a51fengliu.viewmodel.UiState
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
 
-@Deprecated("代码逻辑移到HomeFragment了")
-class MainActivity2 : BaseActivity() {
-    private lateinit var binding: DefaultLayoutStatefulRecyclerViewBinding
+class HomeSubFragment : Fragment() {
+
     private lateinit var statefulLayout: StatefulLayout
     private lateinit var refreshLayout: SmartRefreshLayout
     private lateinit var recyclerView: RecyclerView
@@ -34,6 +35,8 @@ class MainActivity2 : BaseActivity() {
 
     private lateinit var recordAdapter: RecordAdapter
 
+    /** daily热门，publish最新 */
+    private lateinit var sort: String
     /** 是否有数据已经加载 */
     private var hasDataLoaded: Boolean = false
     /** 当前已经加载成功的页数 */
@@ -41,33 +44,22 @@ class MainActivity2 : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //enableEdgeToEdge()
-        binding = DefaultLayoutStatefulRecyclerViewBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        //setEdgeToEdgePaddings(binding.root)
+        sort = arguments?.getString(ARG_SORT) ?: "daily"
+    }
 
-        statefulLayout = binding.statefulLayout // 简化代码调用
-        refreshLayout = findViewById(R.id.refreshLayout)
-        recyclerView = findViewById(R.id.recyclerView)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        return inflater.inflate(R.layout.default_layout_stateful_recycler_view, container, false)
+    }
 
-        val fixedAreaAdapter = object : BaseSingleItemAdapter<Any, RecyclerView.ViewHolder>() {
-            override fun onBindViewHolder(holder: RecyclerView.ViewHolder, item: Any?) {}
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        statefulLayout = view.findViewById(R.id.stateful_layout)
+        refreshLayout = view.findViewById(R.id.refreshLayout)
+        recyclerView = view.findViewById(R.id.recyclerView)
 
-            override fun onCreateViewHolder(
-                context: Context,
-                parent: ViewGroup,
-                viewType: Int
-            ): RecyclerView.ViewHolder {
-                val itemView = LayoutInflater.from(context)
-                    .inflate(R.layout.main_fixed_area, parent, false)
-                return object : RecyclerView.ViewHolder(itemView) {}
-            }
-
-        }
         recordAdapter = RecordAdapter().apply {
             setOnItemClickListener { _, _, position ->
-                Log.d(TAG, "Record $position clicked")
-                recordAdapter.getItem(position)?.let {
+                this@apply.getItem(position)?.let {
                     DetailActivity.start(context, it.id)
                 }
             }
@@ -81,13 +73,13 @@ class MainActivity2 : BaseActivity() {
         refreshLayout.apply {
             setRefreshHeader(ClassicsHeader(context))
             setRefreshFooter(ClassicsFooter(context))
-            setOnRefreshListener { viewModel.fetchByPage(false) }
-            setOnLoadMoreListener { viewModel.fetchByPage(false, "daily", currentPage+1) }
+            setOnRefreshListener { viewModel.fetchByPage(showFullScreenLoading = false, sort = sort) }
+            setOnLoadMoreListener { viewModel.fetchByPage(false, sort, currentPage+1) }
             // setEnableLoadMore(false)  // 加载第一页成功前暂时禁用LoadMore
         }
 
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
-        viewModel.data.observe(this) { state ->
+        viewModel.data.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is UiState.Loading -> {
                     // 显示加载动画
@@ -126,18 +118,46 @@ class MainActivity2 : BaseActivity() {
                     if (!hasDataLoaded)
                         statefulLayout.currentState = ERROR
                     else
-                        Toast.makeText(this, state.message, Toast.LENGTH_SHORT).show()
+                        view.context.showToast(state.message)
                 }
             }
         }
 
-        viewModel.fetchByPage(true)
+        viewModel.fetchByPage(showFullScreenLoading = true, sort = sort)
 
-        findViewById<View>(R.id.title_bar_menu)?.setOnClickListener { CityActivity.start(this) }
-        findViewById<View>(R.id.title_bar_profile)?.setOnClickListener { SearchActivity.start(this) }
+        // TODO 使用fragment.startActivity()
+        view.findViewById<View>(R.id.title_bar_menu)?.setOnClickListener { CityActivity.start(view.context) }
+        view.findViewById<View>(R.id.title_bar_profile)?.setOnClickListener { SearchActivity.start(view.context) }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        onFragmentVisible()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        onFragmentInvisible()
+    }
+
+    private fun onFragmentVisible() {
+        // Fragment 变为可见时的逻辑
+        Log.d("HomeSubFragment", "${arguments?.getString(ARG_SORT)} is now visible")
+    }
+
+    private fun onFragmentInvisible() {
+        // Fragment 变为不可见时的逻辑
+        Log.d("HomeSubFragment", "${arguments?.getString(ARG_SORT)} is now invisible")
     }
 
     companion object {
-        private const val TAG: String = "MainActivity2"
+        private const val ARG_SORT = "sort"
+        fun newInstance(sort: String): HomeSubFragment {
+            return HomeSubFragment().apply {
+                arguments = Bundle().apply {
+                    putString(ARG_SORT, sort)
+                }
+            }
+        }
     }
 }

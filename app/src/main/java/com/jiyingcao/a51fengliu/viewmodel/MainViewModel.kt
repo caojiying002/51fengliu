@@ -13,12 +13,14 @@ import com.jiyingcao.a51fengliu.viewmodel.UiState.Success
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+// TODO 重命名为HomeSubViewModel
 class MainViewModel: ViewModel() {
     private val _data = MutableLiveData<UiState<PageData>>()
     val data: LiveData<UiState<PageData>> = _data
 
     fun fetchByPage(
         showFullScreenLoading: Boolean = false,
+        sort: String = "daily",
         page: Int = 1
     ) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -29,7 +31,7 @@ class MainViewModel: ViewModel() {
 
             try {
                 // sort=daily是热门，sort=publish是最新
-                val response = RetrofitClient.apiService.getHotRecords(/*sort = "publish", */page = page)
+                val response = RetrofitClient.apiService.getPageData(sort = sort, page = page)
                 if (response.code != 0) {
                     _data.postValue(Error("API状态码 code=${response.code}, msg=${response.msg}"))
                     Log.w(TAG, "API状态码 code=${response.code}, msg=${response.msg}")

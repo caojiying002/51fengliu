@@ -16,13 +16,17 @@ class CityViewModel: ViewModel() {
     private val _data = MutableLiveData<UiState<PageData>>()
     val data: LiveData<UiState<PageData>> = _data
 
-    fun fetchCityDataByPage(cityCode: String = "330100", page: Int = 1) {
+    fun fetchCityDataByPage(
+        cityCode: String = "330100",
+        sort: String = "publish",
+        page: Int = 1
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             val loadingState =
                 if (page == 1) Loading.fullScreen() else Loading.pullRefresh()
             _data.postValue(loadingState)
             try {
-                val response = RetrofitClient.apiService.getCityData2(cityCode = cityCode, page = page)
+                val response = RetrofitClient.apiService.getCityData2(cityCode = cityCode, sort = sort, page = page)
                 if (response.code != 0) {
                     _data.postValue(Error("API状态码 code=${response.code}, msg=${response.msg}"))
                     Log.w(TAG, "API状态码 code=${response.code}, msg=${response.msg}")

@@ -30,4 +30,8 @@ interface ApiService {
     suspend fun getDetail(
         @Query("infoId") id: String
     ): ApiResponse<RecordInfo>
+
+    /** 个人中心：用户信息（需登录） */
+    @GET("/api/web/authUser/detail.json")
+    suspend fun getProfile(): ApiResponse<Profile>
 }

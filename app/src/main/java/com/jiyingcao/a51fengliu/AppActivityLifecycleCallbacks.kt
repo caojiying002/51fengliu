@@ -53,7 +53,7 @@ object EdgeToEdgeWindowInsetsCallbacks : DefaultActivityLifecycleCallbacks() {
 
             // 设置状态栏图标和文字为浅色
             val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
-            windowInsetsController.isAppearanceLightStatusBars = false
+            windowInsetsController.isAppearanceLightStatusBars = true
 
             // 把状态栏高度设置给我们的布局作为padding
             val rootView = window.decorView.findViewById<View>(ANDROID_R_ID_CONTENT)

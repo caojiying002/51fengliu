@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -18,6 +19,7 @@ import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout
 import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout.State.CONTENT
 import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout.State.ERROR
 import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout.State.LOADING
+import com.jiyingcao.a51fengliu.util.FirstResumeLifecycleObserver
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.MainViewModel
 import com.jiyingcao.a51fengliu.viewmodel.UiState
@@ -25,13 +27,14 @@ import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
 
-class HomeSubFragment : Fragment() {
+class HomeSubFragment : Fragment(),
+    FirstResumeLifecycleObserver.FirstResumeListener {
 
     private lateinit var statefulLayout: StatefulLayout
     private lateinit var refreshLayout: SmartRefreshLayout
     private lateinit var recyclerView: RecyclerView
 
-    private lateinit var viewModel: MainViewModel
+    private val viewModel: MainViewModel by viewModels()
 
     private lateinit var recordAdapter: RecordAdapter
 
@@ -44,11 +47,13 @@ class HomeSubFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // 添加监听器实现第一次 onResume 事件
+        lifecycle.addObserver(FirstResumeLifecycleObserver(this))
         sort = arguments?.getString(ARG_SORT) ?: "daily"
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.default_layout_stateful_recycler_view, container, false)
+        return inflater.inflate(R.layout.common_stateful_refresh_recycler_view, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -65,6 +70,8 @@ class HomeSubFragment : Fragment() {
             }
         }
         recyclerView.apply {
+            // 设置固定大小
+            setHasFixedSize(true)
             // 使用线性布局管理器
             layoutManager = LinearLayoutManager(context)
             // 指定适配器
@@ -78,7 +85,7 @@ class HomeSubFragment : Fragment() {
             // setEnableLoadMore(false)  // 加载第一页成功前暂时禁用LoadMore
         }
 
-        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
+        //viewModel = ViewModelProvider(this)[MainViewModel::class.java]
         viewModel.data.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is UiState.Loading -> {
@@ -123,11 +130,17 @@ class HomeSubFragment : Fragment() {
             }
         }
 
-        viewModel.fetchByPage(showFullScreenLoading = true, sort = sort)
-
         // TODO 使用fragment.startActivity()
         view.findViewById<View>(R.id.title_bar_menu)?.setOnClickListener { CityActivity.start(view.context) }
         view.findViewById<View>(R.id.title_bar_profile)?.setOnClickListener { SearchActivity.start(view.context) }
+    }
+
+    override fun onFirstResume(isRecreate: Boolean) {
+        // 重新创建时不加载数据
+        if (!isRecreate) {
+            // 第一次 onResume 事件发生时加载数据
+            viewModel.fetchByPage(showFullScreenLoading = true, sort = sort)
+        }
     }
 
     override fun onResume() {

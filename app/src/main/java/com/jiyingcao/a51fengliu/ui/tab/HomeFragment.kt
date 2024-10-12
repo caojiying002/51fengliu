@@ -12,6 +12,7 @@ import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.jiyingcao.a51fengliu.R
+import com.jiyingcao.a51fengliu.ui.SearchActivity
 
 class HomeFragment : Fragment() {
 
@@ -20,7 +21,7 @@ class HomeFragment : Fragment() {
     private val tabTitles = listOf("热门", "最新")
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.common_pager_with_tabs, container, false)
+        return inflater.inflate(R.layout.fragment_home, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -30,6 +31,10 @@ class HomeFragment : Fragment() {
 
         setupViewPager()
         setupTabLayout()
+
+        view.findViewById<View>(R.id.title_bar_search)?.setOnClickListener { v ->
+            startActivity(SearchActivity.createIntent(v.context))
+        }
     }
 
     private fun setupViewPager() {

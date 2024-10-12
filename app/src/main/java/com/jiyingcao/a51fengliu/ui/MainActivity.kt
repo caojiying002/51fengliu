@@ -67,9 +67,9 @@ class MainActivity : BaseActivity() {
 
     private fun setupTabs() {
         setupTab(tabHome, R.drawable.ic_home, "首页", TAG_HOME)
-        setupTab(tabDashboard, R.drawable.ic_search, "仪表盘", TAG_DASHBOARD)
-        setupTab(tabNotifications, R.drawable.ic_notification, "通知", TAG_NOTIFICATIONS)
-        setupTab(tabProfile, R.drawable.ic_profile, "个人", TAG_PROFILE)
+        setupTab(tabDashboard, R.drawable.ic_search, "信息", TAG_DASHBOARD)
+        setupTab(tabNotifications, R.drawable.ic_notification, "商家", TAG_NOTIFICATIONS)
+        setupTab(tabProfile, R.drawable.ic_profile, "我的", TAG_PROFILE)
     }
 
     private fun setupTab(tabView: View, iconResId: Int, text: String, tag: String) {

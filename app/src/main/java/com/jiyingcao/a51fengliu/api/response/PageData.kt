@@ -12,6 +12,7 @@ data class PageData(
     val maxLimit: Any?,
     val pages: Int,
 ) {
-    val hasNextPage: Boolean
-        get() = (current < pages)
+    fun isFirstPage() = (current == 1)
+
+    fun hasNextPage() = (current < pages)
 }

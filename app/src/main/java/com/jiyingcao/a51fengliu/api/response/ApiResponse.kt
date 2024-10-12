@@ -5,5 +5,5 @@ data class ApiResponse<T>(
     val msg: String?,
     val data: T?
 ) {
-    fun isSuccess() = (code == 0)
+    fun isSuccessful() = (code == 0)
 }

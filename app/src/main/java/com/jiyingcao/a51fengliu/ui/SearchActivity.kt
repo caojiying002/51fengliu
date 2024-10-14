@@ -6,26 +6,23 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.EditText
 import androidx.activity.viewModels
+import androidx.core.view.isGone
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.chad.library.adapter4.BaseSingleItemAdapter
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.response.PageData
+import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.databinding.DefaultLayoutStatefulRecyclerViewBinding
 import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout
 import com.jiyingcao.a51fengliu.viewmodel.LoadingType.*
-import com.jiyingcao.a51fengliu.viewmodel.SearchViewModel
 import com.jiyingcao.a51fengliu.viewmodel.SearchViewModel2
 import com.jiyingcao.a51fengliu.viewmodel.SearchViewModel2.UiState
 import com.jiyingcao.a51fengliu.viewmodel.UiState2
@@ -51,99 +48,15 @@ class SearchActivity: BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //enableEdgeToEdge()
         binding = DefaultLayoutStatefulRecyclerViewBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        //setEdgeToEdgePaddings(binding.root)
 
-        statefulLayout = binding.statefulLayout // 简化代码调用
-        refreshLayout = findViewById(R.id.refreshLayout)
-        recyclerView = findViewById(R.id.recyclerView)
+        setupSearchBar()
+        setupStatefulLayout()
+        setupSmartRefreshLayout()
+        setupRecyclerView()
 
-        val fixedAreaAdapter = object : BaseSingleItemAdapter<Any, RecyclerView.ViewHolder>() {
-            override fun onBindViewHolder(holder: RecyclerView.ViewHolder, item: Any?) {}
-
-            override fun onCreateViewHolder(
-                context: Context,
-                parent: ViewGroup,
-                viewType: Int
-            ): RecyclerView.ViewHolder {
-                val itemView = LayoutInflater.from(context)
-                    .inflate(R.layout.search_fixed_area, parent, false)
-                val searchEditText = itemView.findViewById<EditText>(R.id.search_edit_text)
-                val searchIcon = itemView.findViewById<View>(R.id.search_icon)
-
-                // 初始时隐藏搜索图标
-                searchIcon.visibility = View.GONE
-                searchEditText.addTextChangedListener(object : TextWatcher {
-                    override fun afterTextChanged(s: Editable?) {
-                        // 根据输入框是否为空显示或隐藏搜索图标
-                        searchIcon.visibility = if (s.isNullOrEmpty()) View.GONE else View.VISIBLE
-                    }
-
-                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-                })
-
-                searchIcon.setOnClickListener {
-                    val keywords = searchEditText.text.toString()
-                    //if (keywords.isNotEmpty()) {
-                        Log.d(TAG, "Search keywords=$keywords")
-                        viewModel.setKeywords(keywords)
-                    //}
-                }
-                return object : RecyclerView.ViewHolder(itemView) {}
-            }
-
-        }
-        recordAdapter = RecordAdapter().apply {
-            setOnItemClickListener { _, _, position ->
-                Log.d(TAG, "Record $position clicked")
-                recordAdapter.getItem(position)?.let {
-                    DetailActivity.start(context, it.id)
-                }
-            }
-        }
-        recyclerView.apply {
-            // 使用线性布局管理器
-            layoutManager = LinearLayoutManager(context)
-            // 指定适配器
-            adapter = ConcatAdapter(fixedAreaAdapter, recordAdapter)
-        }
-
-        refreshLayout.setRefreshHeader(ClassicsHeader(this))
-        refreshLayout.setRefreshFooter(ClassicsFooter(this))
-        refreshLayout.setOnRefreshListener { viewModel.refresh() }
-        refreshLayout.setOnLoadMoreListener { viewModel.loadNextPage() }
-        // refreshLayout.setEnableLoadMore(false)  // 加载第一页成功前暂时禁用LoadMore
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                launch {
-                    viewModel.searchResults.collect { pageData ->
-                        if (pageData == null) {
-                            // 应该不会为null
-                            return@collect
-                        }
-
-                        val recordList = pageData.records
-                        refreshLayout.setNoMoreData(!pageData.hasNextPage())
-
-                        if (pageData.isFirstPage()) {
-                            recordAdapter.submitList(recordList)
-                        } else {
-                            recordAdapter.addAll(recordList)
-                        }
-                    }
-                }
-                launch {
-                    viewModel.uiState.collectLatest { state ->
-                        handleUiState(state)
-                    }
-                }
-            }
-        }
-
+        setupFlowCollectors()
 
         /*viewModel.uiState.observe(this) { state ->
             handleLoadingState(state)
@@ -183,6 +96,39 @@ class SearchActivity: BaseActivity() {
         }*/
 
         //viewModel.search(page = 1)
+    }
+
+    private fun setupFlowCollectors() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                launch {
+                    viewModel.searchResults.collect {
+                        // it: PagedData { records: List<RecordInfo> }
+                        if (it == null) {
+                            Log.d(TAG, "No data loaded yet")
+                            return@collect
+                        }
+
+                        // 根据是否第1页来决定清空列表还是追加数据
+                        recordAdapter.let { adapter ->
+                            if (it.isFirstPage()) {
+                                adapter.submitList(it.records)
+                            } else {
+                                adapter.addAll(it.records)
+                            }
+                        }
+
+                        // 是否还有下一页可以加载
+                        refreshLayout.setNoMoreData(!it.hasNextPage())
+                    }
+                }
+                launch {
+                    viewModel.uiState.collectLatest { state ->
+                        handleUiState(state)
+                    }
+                }
+            }
+        }
     }
 
     private fun handleUiState(state: UiState) {
@@ -252,6 +198,65 @@ class SearchActivity: BaseActivity() {
                 NONE -> {}
             }
         }
+    }
+
+    private fun setupSearchBar() {
+        val searchBar =
+            layoutInflater.inflate(R.layout.search_fixed_area, binding.topFixedLayoutContainer, true)
+        val searchEditText = searchBar.findViewById<EditText>(R.id.search_edit_text)
+        val searchIcon = searchBar.findViewById<View>(R.id.search_icon)
+
+        // 初始时隐藏搜索图标
+        searchIcon.isGone = true
+        searchEditText.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                // 根据输入框是否为空显示或隐藏搜索图标
+                searchIcon.isGone = s.isNullOrEmpty()
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
+        })
+
+        searchIcon.setOnClickListener {
+            val keywords = searchEditText.text.toString()
+            //if (keywords.isNotEmpty()) {
+            Log.d(TAG, "Search keywords=$keywords")
+            viewModel.setKeywords(keywords)
+            //}
+        }
+    }
+
+    private fun setupStatefulLayout() {
+        /* binding.statefulLayout被多次引用，所以用一个变量简化它 */
+        statefulLayout = binding.statefulLayout
+    }
+
+    private fun setupSmartRefreshLayout() {
+        refreshLayout = statefulLayout.getContentView().findViewById<SmartRefreshLayout>(R.id.refreshLayout)
+            .apply {
+                setRefreshHeader(ClassicsHeader(context))
+                setRefreshFooter(ClassicsFooter(context))
+                setOnRefreshListener { viewModel.refresh() }
+                setOnLoadMoreListener { viewModel.loadNextPage() }
+                // setEnableLoadMore(false)  // 加载第一页成功前暂时禁用LoadMore
+            }
+    }
+
+    private fun setupRecyclerView() {
+        recordAdapter = RecordAdapter().apply {
+            setOnItemClickListener { _, _, position ->
+                this.getItem(position)?.let {
+                    DetailActivity.start(context, it.id)
+                }
+            }
+        }
+        recyclerView = statefulLayout.getContentView().findViewById<RecyclerView>(R.id.recyclerView)
+            .apply {
+                setHasFixedSize(true)
+                layoutManager = LinearLayoutManager(context)
+                adapter = recordAdapter
+            }
     }
 
     companion object {

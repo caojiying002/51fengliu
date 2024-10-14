@@ -8,7 +8,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 private val DEBUG_HTTP: Boolean = (true)
 
-const val BASE_URL = "https://309.16dress.xyz/" //"https://903.16duty.xyz/"
+const val BASE_URL = "https://910.da576.xyz/"   //"https://309.16dress.xyz/" //"https://903.16duty.xyz/"
 
 object RetrofitClient {
 

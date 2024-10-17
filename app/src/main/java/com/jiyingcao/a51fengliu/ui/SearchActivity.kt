@@ -17,8 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.response.PageData
-import com.jiyingcao.a51fengliu.api.response.RecordInfo
-import com.jiyingcao.a51fengliu.databinding.DefaultLayoutStatefulRecyclerViewBinding
+import com.jiyingcao.a51fengliu.databinding.ActivitySearchBinding
 import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout
@@ -34,7 +33,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class SearchActivity: BaseActivity() {
-    private lateinit var binding: DefaultLayoutStatefulRecyclerViewBinding
+    private lateinit var binding: ActivitySearchBinding
     private lateinit var statefulLayout: StatefulLayout
     private lateinit var refreshLayout: SmartRefreshLayout
     private lateinit var recyclerView: RecyclerView
@@ -48,9 +47,10 @@ class SearchActivity: BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = DefaultLayoutStatefulRecyclerViewBinding.inflate(layoutInflater)
+        binding = ActivitySearchBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        binding.titleBar.titleBarBack.setOnClickListener{ finish() }
         setupSearchBar()
         setupStatefulLayout()
         setupSmartRefreshLayout()

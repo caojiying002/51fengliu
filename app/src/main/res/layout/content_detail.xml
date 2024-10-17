@@ -10,7 +10,7 @@
         android:id="@+id/content_without_title_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingVertical="8dp"
+        android:paddingVertical="0dp"
         android:orientation="vertical">
 
         <androidx.constraintlayout.widget.ConstraintLayout

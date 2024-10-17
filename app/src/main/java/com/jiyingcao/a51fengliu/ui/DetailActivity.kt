@@ -102,6 +102,8 @@ class DetailActivity : BaseActivity() {
         }
 
         viewModel.fetchRecordById(id = recordId)
+
+        findViewById<View>(R.id.title_bar_back).setOnClickListener { finish() }
     }
 
     override fun onNewIntent(intent: Intent) {

@@ -4,9 +4,6 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
-import androidx.activity.enableEdgeToEdge
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -18,12 +15,12 @@ import com.jiyingcao.a51fengliu.ui.tab.*
 class MainActivity : BaseActivity() {
 
     private lateinit var tabHome: View
-    private lateinit var tabDashboard: View
+    private lateinit var tabCityRecords: View
     private lateinit var tabNotifications: View
     private lateinit var tabProfile: View
 
     private var homeFragment: Fragment? = null
-    private var dashboardFragment: Fragment? = null
+    private var cityRecordsFragment: Fragment? = null
     private var notificationsFragment: Fragment? = null
     private var profileFragment: Fragment? = null
 
@@ -33,7 +30,7 @@ class MainActivity : BaseActivity() {
         // Fragment tags
         private const val TAG_PREFIX = "MAIN_ACTIVITY_TAB_"
         private const val TAG_HOME = "${TAG_PREFIX}HOME"
-        private const val TAG_DASHBOARD = "${TAG_PREFIX}DASHBOARD"
+        private const val TAG_CITY_RECORDS = "${TAG_PREFIX}CITY_RECORDS"
         private const val TAG_NOTIFICATIONS = "${TAG_PREFIX}NOTIFICATIONS"
         private const val TAG_PROFILE = "${TAG_PREFIX}PROFILE"
 
@@ -46,7 +43,7 @@ class MainActivity : BaseActivity() {
         setContentView(R.layout.activity_main)
 
         tabHome = findViewById(R.id.tabHome)
-        tabDashboard = findViewById(R.id.tabDashboard)
+        tabCityRecords = findViewById(R.id.tabCityRecords)
         tabNotifications = findViewById(R.id.tabNotifications)
         tabProfile = findViewById(R.id.tabProfile)
 
@@ -67,7 +64,7 @@ class MainActivity : BaseActivity() {
 
     private fun setupTabs() {
         setupTab(tabHome, R.drawable.ic_home, "首页", TAG_HOME)
-        setupTab(tabDashboard, R.drawable.ic_search, "信息", TAG_DASHBOARD)
+        setupTab(tabCityRecords, R.drawable.ic_search, "信息", TAG_CITY_RECORDS)
         setupTab(tabNotifications, R.drawable.ic_notification, "商家", TAG_NOTIFICATIONS)
         setupTab(tabProfile, R.drawable.ic_profile, "我的", TAG_PROFILE)
     }
@@ -83,7 +80,7 @@ class MainActivity : BaseActivity() {
 
     private fun updateTabStates(selectedTag: String) {
         updateTabState(tabHome, selectedTag == TAG_HOME)
-        updateTabState(tabDashboard, selectedTag == TAG_DASHBOARD)
+        updateTabState(tabCityRecords, selectedTag == TAG_CITY_RECORDS)
         updateTabState(tabNotifications, selectedTag == TAG_NOTIFICATIONS)
         updateTabState(tabProfile, selectedTag == TAG_PROFILE)
         currentTabTag = selectedTag
@@ -112,7 +109,7 @@ class MainActivity : BaseActivity() {
             if (targetFragment == null) {
                 targetFragment = when (tag) {
                     TAG_HOME -> HomeFragment().also { homeFragment = it }
-                    TAG_DASHBOARD -> DashboardFragment().also { dashboardFragment = it }
+                    TAG_CITY_RECORDS -> CityRecordsFragment().also { cityRecordsFragment = it }
                     TAG_NOTIFICATIONS -> NotificationsFragment().also { notificationsFragment = it }
                     TAG_PROFILE -> ProfileFragment().also { profileFragment = it }
                     else -> throw IllegalArgumentException("Unknown fragment tag: $tag")
@@ -122,7 +119,7 @@ class MainActivity : BaseActivity() {
                 // 更新 Activity 持有的引用
                 when (tag) {
                     TAG_HOME -> homeFragment = targetFragment
-                    TAG_DASHBOARD -> dashboardFragment = targetFragment
+                    TAG_CITY_RECORDS -> cityRecordsFragment = targetFragment
                     TAG_NOTIFICATIONS -> notificationsFragment = targetFragment
                     TAG_PROFILE -> profileFragment = targetFragment
                 }

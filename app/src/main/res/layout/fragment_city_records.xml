@@ -10,35 +10,26 @@
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="64dp"
+        android:layout_height="@dimen/toolbar_height"
         android:paddingHorizontal="16dp">
 
         <ImageView
-            android:id="@+id/title_bar_app_icon"
+            android:id="@+id/title_bar_choose_city"
             android:layout_width="28dp"
             android:layout_height="28dp"
             android:layout_gravity="start|center_vertical"
             android:contentDescription="Home Top Left Icon"
             android:src="@drawable/ic_51" />
 
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tabLayout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            app:tabTextColor="@color/text_strong"
-            android:background="@android:color/transparent" />
-
-        <ImageView
-            android:id="@+id/title_bar_search"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:layout_gravity="end|center_vertical"
-            android:contentDescription="Click to Search"
-            app:tint="@color/primary"
-            android:src="@drawable/ic_search" />
-
     </FrameLayout>
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        app:tabTextColor="@color/text_strong"
+        android:background="@android:color/white" />
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"

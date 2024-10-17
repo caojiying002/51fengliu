@@ -19,13 +19,13 @@ import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.ui.ChooseCityActivity
 import com.jiyingcao.a51fengliu.util.showToast
 
-class DashboardFragment : Fragment() {
+class CityRecordsFragment : Fragment() {
     private lateinit var viewPager: ViewPager2
     private lateinit var tabLayout: TabLayout
     private val tabTitles = listOf("最新发布", "一周热门", "本月热门", "上月热门")
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_dashboard, container, false)
+        return inflater.inflate(R.layout.fragment_city_records, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

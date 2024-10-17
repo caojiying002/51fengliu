@@ -40,7 +40,7 @@
                 android:layout_weight="1" />
 
             <include
-                android:id="@+id/tabDashboard"
+                android:id="@+id/tabCityRecords"
                 layout="@layout/item_tab"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"

@@ -7,8 +7,9 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.chad.library.adapter4.BaseQuickAdapter
+import com.jiyingcao.a51fengliu.util.City
 
-class CityAdapter : BaseQuickAdapter<Map.Entry<String, String>, CityAdapter.CityViewHolder>() {
+class CityAdapter : BaseQuickAdapter<City, CityAdapter.CityViewHolder>() {
     class CityViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val text1: TextView = itemView.findViewById(android.R.id.text1)
         //val text2: TextView = itemView.findViewById(android.R.id.text2)
@@ -17,11 +18,11 @@ class CityAdapter : BaseQuickAdapter<Map.Entry<String, String>, CityAdapter.City
     override fun onBindViewHolder(
         holder: CityViewHolder,
         position: Int,
-        item: Map.Entry<String, String>?
+        item: City?
     ) {
-        requireNotNull(item) { "Map.Entry<String, String> is null" }
+        requireNotNull(item) { "item: City is null" }
 
-        holder.text1.text = item.value
+        holder.text1.text = item.name
     }
 
     override fun onCreateViewHolder(

@@ -1,8 +1,11 @@
 package com.jiyingcao.a51fengliu.api
 
+import com.google.net.cronet.okhttptransport.CronetInterceptor
+import com.jiyingcao.a51fengliu.App
 import java.util.concurrent.TimeUnit.SECONDS
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import org.chromium.net.CronetEngine
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -11,6 +14,13 @@ private val DEBUG_HTTP: Boolean = (true)
 const val BASE_URL = "https://910.da576.xyz/"   //"https://309.16dress.xyz/" //"https://903.16duty.xyz/"
 
 object RetrofitClient {
+
+    private val cronetEngine by lazy {
+        CronetEngine.Builder(App.INSTANCE)
+            .enableHttp2(true)
+            .enableQuic(true)
+            .build()
+    }
 
     private val okHttpClient by lazy {
         OkHttpClient.Builder()
@@ -34,6 +44,12 @@ object RetrofitClient {
                 }
                 chain.proceed(originalRequest)
             }
+            // Cronet
+            .addInterceptor(
+                CronetInterceptor
+                    .newBuilder(cronetEngine)
+                    .build()
+            )
             .connectTimeout(15, SECONDS)
             .readTimeout(15, SECONDS)
             .writeTimeout(15, SECONDS)

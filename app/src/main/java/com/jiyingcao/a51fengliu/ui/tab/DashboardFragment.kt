@@ -1,6 +1,9 @@
 package com.jiyingcao.a51fengliu.ui.tab
 
+import android.app.Activity.RESULT_OK
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,7 +14,10 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.R
+import com.jiyingcao.a51fengliu.ui.ChooseCityActivity
+import com.jiyingcao.a51fengliu.util.showToast
 
 class DashboardFragment : Fragment() {
     private lateinit var viewPager: ViewPager2
@@ -19,7 +25,7 @@ class DashboardFragment : Fragment() {
     private val tabTitles = listOf("最新发布", "一周热门", "本月热门", "上月热门")
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.common_pager_with_tabs, container, false)
+        return inflater.inflate(R.layout.fragment_dashboard, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -29,19 +35,37 @@ class DashboardFragment : Fragment() {
 
         setupViewPager()
         setupTabLayout()
+        setupClickListeners(view)
     }
 
-    private fun setupViewPager() {
-        val adapter = CityRecordsTabAdapter(this)
-        viewPager.adapter = adapter
-        viewPager.offscreenPageLimit = 3
+    override fun onResume() {
+        super.onResume()
+        updateChildFragmentLifecycle(viewPager.currentItem)
+    }
 
-        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                super.onPageSelected(position)
-                updateChildFragmentLifecycle(position)
-            }
-        })
+    override fun onPause() {
+        super.onPause()
+        updateChildFragmentLifecycle(-1) // 传入一个无效的位置，确保所有子Fragment都处于STARTED状态
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 42 && resultCode == RESULT_OK) {
+            val cityCode = data?.getStringExtra("CITY_CODE")
+            Log.d("CityRecordsTabAdapter", "City code selected: $cityCode")
+            App.INSTANCE.showToast("City code selected: $cityCode")
+            /*cityCode?.let {
+                if (it == this.cityCode) return
+
+                // 清空数据
+                recordAdapter.submitList(emptyList())
+                hasDataLoaded = false
+                currentPage = 0
+
+                this.cityCode = it
+                viewModel.fetchCityDataByPage(it, "publish", 1)
+            }*/
+        }
     }
 
     private fun updateChildFragmentLifecycle(position: Int) {
@@ -58,20 +82,29 @@ class DashboardFragment : Fragment() {
         fragmentTransaction?.commitNowAllowingStateLoss()
     }
 
+    private fun setupViewPager() {
+        val adapter = CityRecordsTabAdapter(this)
+        viewPager.adapter = adapter
+        viewPager.offscreenPageLimit = 3
+
+        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                updateChildFragmentLifecycle(position)
+            }
+        })
+    }
+
     private fun setupTabLayout() {
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             tab.text = tabTitles[position]
         }.attach()
     }
 
-    override fun onResume() {
-        super.onResume()
-        updateChildFragmentLifecycle(viewPager.currentItem)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        updateChildFragmentLifecycle(-1) // 传入一个无效的位置，确保所有子Fragment都处于STARTED状态
+    private fun setupClickListeners(view: View) {
+        view.findViewById<View>(R.id.title_bar_choose_city)?.setOnClickListener { v ->
+            startActivityForResult(ChooseCityActivity.createIntent(v.context), 42)  // TODO 管理requestCode和bundle key
+        }
     }
 
     inner class CityRecordsTabAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {

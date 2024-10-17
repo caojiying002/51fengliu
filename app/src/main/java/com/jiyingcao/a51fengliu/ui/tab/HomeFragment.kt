@@ -31,23 +31,17 @@ class HomeFragment : Fragment() {
 
         setupViewPager()
         setupTabLayout()
-
-        view.findViewById<View>(R.id.title_bar_search)?.setOnClickListener { v ->
-            startActivity(SearchActivity.createIntent(v.context))
-        }
+        setupClickListeners(view)
     }
 
-    private fun setupViewPager() {
-        val adapter = HomeTabAdapter(this)
-        viewPager.adapter = adapter
-        viewPager.offscreenPageLimit = 1
+    override fun onResume() {
+        super.onResume()
+        updateChildFragmentLifecycle(viewPager.currentItem)
+    }
 
-        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                super.onPageSelected(position)
-                updateChildFragmentLifecycle(position)
-            }
-        })
+    override fun onPause() {
+        super.onPause()
+        updateChildFragmentLifecycle(-1) // 传入一个无效的位置，确保所有子Fragment都处于STARTED状态
     }
 
     private fun updateChildFragmentLifecycle(position: Int) {
@@ -64,20 +58,29 @@ class HomeFragment : Fragment() {
         fragmentTransaction?.commitNowAllowingStateLoss()
     }
 
+    private fun setupViewPager() {
+        val adapter = HomeTabAdapter(this)
+        viewPager.adapter = adapter
+        viewPager.offscreenPageLimit = 1
+
+        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                updateChildFragmentLifecycle(position)
+            }
+        })
+    }
+
     private fun setupTabLayout() {
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             tab.text = tabTitles[position]
         }.attach()
     }
 
-    override fun onResume() {
-        super.onResume()
-        updateChildFragmentLifecycle(viewPager.currentItem)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        updateChildFragmentLifecycle(-1) // 传入一个无效的位置，确保所有子Fragment都处于STARTED状态
+    private fun setupClickListeners(view: View) {
+        view.findViewById<View>(R.id.title_bar_search)?.setOnClickListener { v ->
+            startActivity(SearchActivity.createIntent(v.context))
+        }
     }
 
     inner class HomeTabAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {

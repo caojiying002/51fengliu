@@ -9,7 +9,7 @@
     tools:viewBindingIgnore="true">
 
     <Space
-        android:id="@+id/system_top_bar_space"
+        android:id="@id/system_top_bar_space"
         android:layout_width="match_parent"
         android:layout_height="0dp" />
 
@@ -63,7 +63,7 @@
         </LinearLayout>
 
         <Space
-            android:id="@+id/system_bottom_bar_space"
+            android:id="@id/system_bottom_bar_space"
             android:layout_width="match_parent"
             android:layout_height="0dp" />
     </LinearLayout>

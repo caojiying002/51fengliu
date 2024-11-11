@@ -111,7 +111,7 @@
                 android:layout_marginHorizontal="8dp"
                 android:lines="1"
                 tools:text="吴中小朵儿"
-                android:textColor="@color/text_dark_gray"
+                android:textColor="@color/text_title"
                 android:textSize="18dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -126,9 +126,10 @@
                 android:drawablePadding="4dp"
                 android:lines="1"
                 tools:text="2024-07-21"
-                android:textColor="@color/text_light_gray"
+                android:textColor="@color/text_light"
                 android:textSize="11dp"
                 app:drawableLeftCompat="@drawable/icon_time"
+                app:tint="@color/text_light"
                 app:layout_constraintStart_toStartOf="@+id/title"
                 app:layout_constraintTop_toBottomOf="@+id/title"
                 tools:ignore="SpUsage" />
@@ -141,9 +142,10 @@
                 android:drawablePadding="4dp"
                 android:lines="1"
                 tools:text="7320"
-                android:textColor="@color/text_light_gray"
+                android:textColor="@color/text_light"
                 android:textSize="11dp"
                 app:drawableLeftCompat="@drawable/icon_browse"
+                app:tint="@color/text_light"
                 app:layout_constraintStart_toEndOf="@+id/createTime"
                 app:layout_constraintTop_toTopOf="@+id/createTime"
                 tools:ignore="SpUsage" />
@@ -156,9 +158,10 @@
                 android:drawablePadding="4dp"
                 android:lines="1"
                 tools:text="匿名"
-                android:textColor="@color/text_light_gray"
+                android:textColor="@color/text_light"
                 android:textSize="11dp"
                 app:drawableLeftCompat="@drawable/icon_author"
+                app:tint="@color/text_light"
                 app:layout_constraintStart_toEndOf="@+id/browse"
                 app:layout_constraintTop_toTopOf="@+id/createTime"
                 tools:ignore="SpUsage" />
@@ -180,10 +183,9 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="8dp"
-                    android:text="所属地区："
-                    android:textStyle="bold"
+                    android:text="地区："
                     android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_default"
+                    android:textColor="@color/text_content"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -193,10 +195,9 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="8dp"
-                    android:text="小姐年龄："
-                    android:textStyle="bold"
+                    android:text="年龄："
                     android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_default"
+                    android:textColor="@color/text_content"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/introDz" />
 
@@ -206,10 +207,9 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="8dp"
-                    android:text="小姐颜值："
-                    android:textStyle="bold"
+                    android:text="颜值："
                     android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_default"
+                    android:textColor="@color/text_content"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/introAge" />
 
@@ -219,10 +219,9 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="8dp"
-                    android:text="消费水平："
-                    android:textStyle="bold"
+                    android:text="价格："
                     android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_default"
+                    android:textColor="@color/text_price"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/introFaceValue" />
 
@@ -232,10 +231,9 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="8dp"
-                    android:text="服务项目："
-                    android:textStyle="bold"
+                    android:text="服务："
                     android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_default"
+                    android:textColor="@color/text_content"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/introPrice" />
 
@@ -260,7 +258,7 @@
                     android:layout_height="wrap_content"
                     android:lines="1"
                     android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_default"
+                    android:textColor="@color/text_content"
                     app:layout_constraintStart_toEndOf="@id/vertical_barrier_space"
                     app:layout_constraintBottom_toBottomOf="@+id/introDz"
                     tools:text="江苏-苏州市" />
@@ -271,7 +269,7 @@
                     android:layout_height="wrap_content"
                     android:lines="1"
                     android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_default"
+                    android:textColor="@color/text_content"
                     app:layout_constraintStart_toEndOf="@id/vertical_barrier_space"
                     app:layout_constraintBottom_toBottomOf="@+id/introAge"
                     tools:text="20～25" />
@@ -282,7 +280,7 @@
                     android:layout_height="wrap_content"
                     android:lines="1"
                     android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_default"
+                    android:textColor="@color/text_content"
                     app:layout_constraintStart_toEndOf="@id/vertical_barrier_space"
                     app:layout_constraintBottom_toBottomOf="@+id/introFaceValue"
                     tools:text="7" />
@@ -293,7 +291,7 @@
                     android:layout_height="wrap_content"
                     android:lines="1"
                     android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_default"
+                    android:textColor="@color/text_price"
                     app:layout_constraintStart_toEndOf="@id/vertical_barrier_space"
                     app:layout_constraintBottom_toBottomOf="@+id/introPrice"
                     tools:text="800～1200 (不要先给钱)" />
@@ -304,7 +302,7 @@
                     android:layout_height="wrap_content"
                     android:maxLines="3"
                     android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_default"
+                    android:textColor="@color/text_content"
                     app:layout_constraintStart_toEndOf="@id/vertical_barrier_space"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="@+id/introProject"
@@ -321,7 +319,7 @@
                 android:paddingVertical="7dp"
                 android:background="@drawable/selector_jubao_button_background"
                 android:textSize="@dimen/text_default"
-                android:textColor="@drawable/selector_jubao_button_text"
+                android:textColor="@color/selector_jubao_button_text"
                 android:clickable="true"
                 android:focusable="true"
                 android:drawablePadding="4dp"
@@ -341,7 +339,7 @@
                 android:paddingVertical="7dp"
                 android:background="@drawable/selector_jubao_button_background"
                 android:textSize="@dimen/text_default"
-                android:textColor="@drawable/selector_jubao_button_text"
+                android:textColor="@color/selector_jubao_button_text"
                 android:clickable="true"
                 android:focusable="true"
                 android:drawablePadding="4dp"
@@ -429,9 +427,8 @@
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="8dp"
                     android:text="QQ："
-                    android:textStyle="bold"
                     android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_default"
+                    android:textColor="@color/text_content"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -442,9 +439,8 @@
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="8dp"
                     android:text="微信："
-                    android:textStyle="bold"
                     android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_default"
+                    android:textColor="@color/text_content"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/introQQ" />
 
@@ -454,10 +450,9 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="8dp"
-                    android:text="电话："
-                    android:textStyle="bold"
+                    android:text="手机："
                     android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_default"
+                    android:textColor="@color/text_content"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/introWechat" />
 
@@ -468,9 +463,8 @@
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="8dp"
                     android:text="地址："
-                    android:textStyle="bold"
                     android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_default"
+                    android:textColor="@color/text_content"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/introPhone" />
 
@@ -495,7 +489,7 @@
                     android:layout_height="wrap_content"
                     android:lines="1"
                     android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_default"
+                    android:textColor="@color/text_content"
                     app:layout_constraintStart_toEndOf="@id/vertical_barrier_space_in_contact_info"
                     app:layout_constraintBottom_toBottomOf="@+id/introQQ"
                     tools:text="1090011279" />
@@ -506,7 +500,7 @@
                     android:layout_height="wrap_content"
                     android:lines="1"
                     android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_default"
+                    android:textColor="@color/text_content"
                     app:layout_constraintStart_toEndOf="@id/vertical_barrier_space_in_contact_info"
                     app:layout_constraintBottom_toBottomOf="@+id/introWechat"
                     tools:text="fcc67896" />
@@ -517,7 +511,7 @@
                     android:layout_height="wrap_content"
                     android:lines="1"
                     android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_default"
+                    android:textColor="@color/text_content"
                     app:layout_constraintStart_toEndOf="@id/vertical_barrier_space_in_contact_info"
                     app:layout_constraintBottom_toBottomOf="@+id/introPhone"
                     tools:text="15183570655" />
@@ -528,7 +522,7 @@
                     android:layout_height="wrap_content"
                     android:lines="1"
                     android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_default"
+                    android:textColor="@color/text_content"
                     app:layout_constraintStart_toEndOf="@id/vertical_barrier_space_in_contact_info"
                     app:layout_constraintBottom_toBottomOf="@+id/introAddress"
                     tools:text="西湖区紫金港" />
@@ -543,7 +537,7 @@
                 android:layout_marginTop="4dp"
                 android:layout_marginBottom="16dp"
                 android:textSize="@dimen/text_default"
-                android:textColor="@color/text_default"
+                android:textColor="@color/text_content"
                 app:layout_constraintTop_toBottomOf="@+id/contactInfoContainer"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -559,7 +553,7 @@
                 android:paddingVertical="7dp"
                 android:background="@drawable/selector_jubao_button_background"
                 android:textSize="@dimen/text_default"
-                android:textColor="@drawable/selector_jubao_button_text"
+                android:textColor="@color/selector_jubao_button_text"
                 android:clickable="true"
                 android:focusable="true"
                 android:drawablePadding="4dp"
@@ -579,7 +573,7 @@
                 android:paddingVertical="7dp"
                 android:background="@drawable/selector_jubao_button_background"
                 android:textSize="@dimen/text_default"
-                android:textColor="@drawable/selector_jubao_button_text"
+                android:textColor="@color/selector_jubao_button_text"
                 android:clickable="true"
                 android:focusable="true"
                 android:drawablePadding="4dp"
@@ -597,7 +591,7 @@
             android:layout_marginHorizontal="@dimen/home_horizontal_space"
             android:layout_marginVertical="8dp"
             android:textSize="@dimen/text_default"
-            android:textColor="@color/text_default"
+            android:textColor="@color/text_content"
             android:background="@drawable/corner_solid_white_padding"
             tools:text="整体能打个9分吧，长得比我还高一点，估计有170以上，身材高挑，腿细长细长的，技术一般以上，综合性价比挺高的，喜欢身材好的可以约" />
     </LinearLayout>

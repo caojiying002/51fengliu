@@ -1,6 +1,5 @@
 package com.jiyingcao.a51fengliu.ui
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
@@ -86,9 +85,8 @@ class MainActivity : BaseActivity() {
         currentTabTag = selectedTag
     }
 
-    @SuppressLint("ResourceType")
     private fun updateTabState(tabView: View, isSelected: Boolean) {
-        val colorStateList = ContextCompat.getColorStateList(this, R.drawable.tab_color_selector)
+        val colorStateList = ContextCompat.getColorStateList(this, R.color.selector_main_tab_color)
         tabView.isSelected = isSelected
         tabView.findViewById<ImageView>(R.id.tabIcon).imageTintList = colorStateList
         tabView.findViewById<TextView>(R.id.tabText).setTextColor(colorStateList)

@@ -22,8 +22,9 @@ import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout
 import com.jiyingcao.a51fengliu.viewmodel.LoadingType.*
-import com.jiyingcao.a51fengliu.viewmodel.SearchViewModel2
+import com.jiyingcao.a51fengliu.viewmodel.LoadingType4
 import com.jiyingcao.a51fengliu.viewmodel.SearchViewModel2.UiState
+import com.jiyingcao.a51fengliu.viewmodel.SearchViewModel4
 import com.jiyingcao.a51fengliu.viewmodel.UiState2
 import com.jiyingcao.a51fengliu.viewmodel.UiState2.*
 import com.scwang.smart.refresh.footer.ClassicsFooter
@@ -38,7 +39,7 @@ class SearchActivity: BaseActivity() {
     private lateinit var refreshLayout: SmartRefreshLayout
     private lateinit var recyclerView: RecyclerView
 
-    private val viewModel: SearchViewModel2 by viewModels()
+    private val viewModel: SearchViewModel4 by viewModels()
 
     private lateinit var recordAdapter: RecordAdapter
 
@@ -56,7 +57,7 @@ class SearchActivity: BaseActivity() {
         setupSmartRefreshLayout()
         setupRecyclerView()
 
-        setupFlowCollectors()
+        setupFlowCollectors4()
 
         /*viewModel.uiState.observe(this) { state ->
             handleLoadingState(state)
@@ -98,7 +99,48 @@ class SearchActivity: BaseActivity() {
         //viewModel.search(page = 1)
     }
 
-    private fun setupFlowCollectors() {
+    private fun setupFlowCollectors4() {
+        lifecycleScope.launch {
+            viewModel.searchState.collect { state ->
+                when (state.loadingType) {
+                    LoadingType4.FULL_SCREEN -> showFullScreenLoading()
+                    LoadingType4.PULL_TO_REFRESH -> showPullToRefreshLoading()
+                    LoadingType4.PAGINATION -> showPaginationLoading()
+                    LoadingType4.DIALOG -> showLoadingDialog()
+                    LoadingType4.NONE -> hideAllLoadingIndicators()
+                }
+
+                state.error?.let { showError(it) }
+
+                state.results?.let {    // it: PageData
+                    if (state.shouldClearList) {
+                        recordAdapter.submitList(it.records)
+                    } else {
+                        recordAdapter.addAll(it.records)
+                    }
+                    refreshLayout.setNoMoreData(!it.hasNextPage())
+                }
+                if (state.results != null) {
+                    if (state.shouldClearList) {
+                        recordAdapter.submitList(state.results.records)
+                    } else {
+                        recordAdapter.addAll(state.results.records)
+                    }
+                    // 是否还有下一页可以加载
+                    refreshLayout.setNoMoreData(!state.results.hasNextPage())
+                }
+            }
+        }
+    }
+
+    private fun showFullScreenLoading() { /* 实现全屏加载 */ }
+    private fun showPullToRefreshLoading() { /* 实现下拉刷新加载 */ }
+    private fun showPaginationLoading() { /* 实现分页加载 */ }
+    private fun showLoadingDialog() { /* 实现加载对话框 */ }
+    private fun hideAllLoadingIndicators() { /* 隐藏所有加载指示器 */ }
+    private fun showError(error: String) { /* 显示错误信息 */ }
+
+    /*private fun setupFlowCollectors2() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
                 launch {
@@ -129,7 +171,7 @@ class SearchActivity: BaseActivity() {
                 }
             }
         }
-    }
+    }*/
 
     private fun handleUiState(state: UiState) {
         when (state) {
@@ -206,7 +248,7 @@ class SearchActivity: BaseActivity() {
         val searchEditText = searchBar.findViewById<EditText>(R.id.search_edit_text)
         val searchIcon = searchBar.findViewById<View>(R.id.search_icon)
 
-        // 初始时隐藏搜索图标
+        /*// 初始时隐藏搜索图标
         searchIcon.isGone = true
         searchEditText.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
@@ -216,13 +258,13 @@ class SearchActivity: BaseActivity() {
 
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
-        })
+        })*/
 
         searchIcon.setOnClickListener {
-            val keywords = searchEditText.text.toString()
+            val keywords = searchEditText.text.toString().trim()
             //if (keywords.isNotEmpty()) {
             Log.d(TAG, "Search keywords=$keywords")
-            viewModel.setKeywords(keywords)
+            viewModel.updateKeywords(keywords)
             //}
         }
     }
@@ -237,8 +279,8 @@ class SearchActivity: BaseActivity() {
             .apply {
                 setRefreshHeader(ClassicsHeader(context))
                 setRefreshFooter(ClassicsFooter(context))
-                setOnRefreshListener { viewModel.refresh() }
-                setOnLoadMoreListener { viewModel.loadNextPage() }
+                setOnRefreshListener { viewModel.refreshList() }
+                setOnLoadMoreListener { viewModel.nextPage() }
                 // setEnableLoadMore(false)  // 加载第一页成功前暂时禁用LoadMore
             }
     }

@@ -8,9 +8,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.databinding.DefaultLayoutStatefulRecyclerViewBinding
 import com.jiyingcao.a51fengliu.ui.ChooseCityActivity
@@ -21,12 +26,15 @@ import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout.State.CONTENT
 import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout.State.ERROR
 import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout.State.LOADING
 import com.jiyingcao.a51fengliu.util.FirstResumeLifecycleObserver
+import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.showToast
+import com.jiyingcao.a51fengliu.viewmodel.CityRecordsViewModel
 import com.jiyingcao.a51fengliu.viewmodel.CityViewModel
 import com.jiyingcao.a51fengliu.viewmodel.UiState
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
+import kotlinx.coroutines.launch
 
 class CityRecordsSubFragment : Fragment(),
     FirstResumeLifecycleObserver.FirstResumeListener {
@@ -34,7 +42,21 @@ class CityRecordsSubFragment : Fragment(),
     private lateinit var refreshLayout: SmartRefreshLayout
     private lateinit var recyclerView: RecyclerView
 
+    /**
+     * The ViewModel for this fragment.
+     *
+     * 用于保存当前城市的Records列表数据。
+     */
     private val viewModel: CityViewModel by viewModels()
+
+    /**
+     * Saving selected city, shared with other [CityRecordsSubFragment] instances.
+     *
+     * 保存选中的城市，与其他 [CityRecordsSubFragment] 实例共享。
+     */
+    private val selectedCityViewModel: CityRecordsViewModel by activityViewModels {
+        CityRecordsViewModel.Factory(App.INSTANCE.dataStore)
+    }
 
     private lateinit var recordAdapter: RecordAdapter
 
@@ -131,30 +153,26 @@ class CityRecordsSubFragment : Fragment(),
                 }
             }
         }
-
-        view.findViewById<View>(R.id.title_bar_menu)?.setOnClickListener { v ->
-            val intent = ChooseCityActivity.createIntent(v.context)
-            startActivityForResult(intent, 42)  // TODO 管理requestCode和bundle key
-        }
     }
 
-    @Deprecated("This method has been deprecated in favor of using the Activity Result API\n      which brings increased type safety via an {@link ActivityResultContract} and the prebuilt\n      contracts for common intents available in\n      {@link androidx.activity.result.contract.ActivityResultContracts}, provides hooks for\n      testing, and allow receiving results in separate, testable classes independent from your\n      activity. Use\n      {@link #registerForActivityResult(ActivityResultContract, ActivityResultCallback)}\n      with the appropriate {@link ActivityResultContract} and handling the result in the\n      {@link ActivityResultCallback#onActivityResult(Object) callback}.")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 42 && resultCode == RESULT_OK) {
-            val cityCode = data?.getStringExtra("CITY_CODE")
-            Log.d("CityRecordsSubFragment", "City code selected: $cityCode")
-            cityCode?.let {
-                if (it == this.cityCode) return
+    private fun setupFlowCollectors() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            //viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                selectedCityViewModel.selectedCity.collect { cityCode ->
+                    Log.d("CityRecordsSubFragment", "City code selected: $cityCode")
+                    cityCode?.let {
+                        // if (it == this@CityRecordsSubFragment.cityCode) return@let
 
-                // 清空数据
-                recordAdapter.submitList(emptyList())
-                hasDataLoaded = false
-                currentPage = 0
+                        // 清空数据
+                        recordAdapter.submitList(emptyList())
+                        hasDataLoaded = false
+                        currentPage = 0
 
-                this.cityCode = it
-                viewModel.fetchCityDataByPage(it, sort, 1)
-            }
+                        this@CityRecordsSubFragment.cityCode = it
+                        viewModel.fetchCityDataByPage(it, sort, 1)
+                    }
+                }
+            //}
         }
     }
 
@@ -162,7 +180,8 @@ class CityRecordsSubFragment : Fragment(),
         // 重新创建时不加载数据
         if (!isRecreate) {
             // 第一次 onResume 事件发生时加载数据
-            viewModel.fetchCityDataByPage(cityCode, sort, 1)
+            //viewModel.fetchCityDataByPage(cityCode, sort, 1)
+            setupFlowCollectors()
         }
     }
 

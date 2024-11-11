@@ -1,13 +1,11 @@
 package com.jiyingcao.a51fengliu.util
 
 import android.content.Context
-import android.content.Context.MODE_PRIVATE
-import android.content.SharedPreferences
-import com.jiyingcao.a51fengliu.App
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 
-const val PREFS_NAME = "91kuaihuo_prefs"
-const val PREFS_KEY_LAST_SUCCESS_URL = "last_success_url"
+const val PREFS_NAME = "51fengliu_prefs"
+const val PREFS_KEY_SELECTED_CITY = "selected_city"
 
-fun getPrefs(context: Context = App.INSTANCE): SharedPreferences {
-    return context.getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-}
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = PREFS_NAME)

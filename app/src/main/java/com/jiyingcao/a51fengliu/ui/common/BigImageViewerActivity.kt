@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.ViewPager2.OFFSCREEN_PAGE_LIMIT_DEFAULT
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
@@ -22,6 +23,7 @@ import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.util.setContentViewWithSystemBarPaddings
 import com.jiyingcao.a51fengliu.util.vibrate
 import io.getstream.photoview.PhotoView
+import kotlin.math.min
 
 class BigImageViewerActivity : BaseActivity() {
     private lateinit var binding: ActivityBigImageViewerBinding
@@ -49,6 +51,9 @@ class BigImageViewerActivity : BaseActivity() {
         val currentIndex = intent.getIntExtra("INDEX", 0)
         binding.viewPager.adapter = ImagePagerAdapter(images, this)
         binding.viewPager.setCurrentItem(currentIndex, false)
+        // 设置预加载的图片数量，最多不超过3
+        binding.viewPager.offscreenPageLimit =
+            if (images.size > 1) min(images.size - 1, 3) else OFFSCREEN_PAGE_LIMIT_DEFAULT
     }
 }
 

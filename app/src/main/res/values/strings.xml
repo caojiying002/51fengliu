@@ -18,4 +18,7 @@ Phasellus in leo massa. Aliquam malesuada, enim nec auctor posuere, quam sem mal
     <string name="shouji_app">手机APP</string>
     <string name="jifen_guize">积分规则</string>
 
+    <string name="intro_price">价格：</string>
+    <string name="price_all_night">%1$s\t包夜：\t%2$s</string>
+
 </resources>

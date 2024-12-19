@@ -141,7 +141,7 @@ class DetailActivity : BaseActivity() {
 
         title.text = record.title
         age.text = record.girlAge
-        price.text = record.consumeLv
+        displayPrices(price, record)
         process.text = record.desc
         project.text = record.serveList
         dz.text = record.cityCode.to2LevelName()
@@ -155,6 +155,22 @@ class DetailActivity : BaseActivity() {
             record.anonymous == true -> "匿名"
             record.publisher != null -> record.publisher.name
             else -> "匿名"
+        }
+    }
+
+    /**
+     * 显示价格信息，如果有包夜价格则显示
+     *
+     * @param textView 显示价格的TextView，不包含“价格：”前缀
+     */
+    private fun displayPrices(
+        textView: TextView,
+        record: RecordInfo
+    ) {
+        textView.text = if (record.consumeAllNight.isNullOrBlank()) {
+            record.consumeLv
+        } else {
+            getString(R.string.price_all_night, record.consumeLv, record.consumeAllNight)
         }
     }
 

@@ -13,6 +13,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.ActivityOptionsCompat
+import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
@@ -121,6 +122,8 @@ class DetailActivity : BaseActivity() {
         val dz = realContentView.findViewById<TextView>(R.id.dz)
         val qq = realContentView.findViewById<TextView>(R.id.qq)
         val wechat = realContentView.findViewById<TextView>(R.id.wechat)
+        val telegram = realContentView.findViewById<TextView>(R.id.telegram)
+        val yuni = realContentView.findViewById<TextView>(R.id.yuni)
         val phone = realContentView.findViewById<TextView>(R.id.phone)
         val address = realContentView.findViewById<TextView>(R.id.address)
 
@@ -128,10 +131,13 @@ class DetailActivity : BaseActivity() {
         dz.copyOnLongClick()
         qq.copyOnLongClick()
         wechat.copyOnLongClick()
+        telegram.copyOnLongClick()
+        yuni.copyOnLongClick()
         phone.copyOnLongClick()
         address.copyOnLongClick()
 
         val age = realContentView.findViewById<TextView>(R.id.age)
+        val faceValue = realContentView.findViewById<TextView>(R.id.faceValue)
         val price = realContentView.findViewById<TextView>(R.id.price)
         val process = realContentView.findViewById<TextView>(R.id.process)
         val project = realContentView.findViewById<TextView>(R.id.project)
@@ -141,16 +147,27 @@ class DetailActivity : BaseActivity() {
 
         title.text = record.title
         age.text = record.girlAge
+        faceValue.text = record.girlBeauty
         displayPrices(price, record)
         process.text = record.desc
         project.text = record.serveList
         dz.text = record.cityCode.to2LevelName()
         createTime.text = timestampToDay(record.publishedAt)
         browse.text = record.viewCount
-        qq.text = record.qq
-        wechat.text = record.wechat
-        phone.text = record.phone
-        address.text = record.address
+
+        qq.isVisible = !record.qq.isNullOrBlank()
+        qq.text = getString(R.string.qq_format, record.qq)
+        wechat.isVisible = !record.wechat.isNullOrBlank()
+        wechat.text = getString(R.string.wechat_format, record.wechat)
+        telegram.isVisible = !record.telegram.isNullOrBlank()
+        telegram.text = getString(R.string.telegram_format, record.telegram)
+        yuni.isVisible = !record.yuni.isNullOrBlank()
+        yuni.text = getString(R.string.yuni_format, record.yuni)
+        phone.isVisible = !record.phone.isNullOrBlank()
+        phone.text = getString(R.string.phone_format, record.phone)
+        address.isVisible = !record.address.isNullOrBlank()
+        address.text = getString(R.string.address_format, record.address)
+
         publisher.text = when {
             record.anonymous == true -> "匿名"
             record.publisher != null -> record.publisher.name
@@ -170,7 +187,7 @@ class DetailActivity : BaseActivity() {
         textView.text = if (record.consumeAllNight.isNullOrBlank()) {
             record.consumeLv
         } else {
-            getString(R.string.price_all_night, record.consumeLv, record.consumeAllNight)
+            getString(R.string.price_all_night_format, record.consumeLv, record.consumeAllNight)
         }
     }
 

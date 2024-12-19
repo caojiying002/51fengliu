@@ -19,6 +19,12 @@ Phasellus in leo massa. Aliquam malesuada, enim nec auctor posuere, quam sem mal
     <string name="jifen_guize">积分规则</string>
 
     <string name="intro_price">价格：</string>
-    <string name="price_all_night">%1$s\t包夜：\t%2$s</string>
+    <string name="price_all_night_format">%1$s\t包夜：\t%2$s</string>
+    <string name="qq_format">QQ：\t%1$s</string>
+    <string name="wechat_format">微信：\t%1$s</string>
+    <string name="telegram_format">Telegram：\t%1$s</string>
+    <string name="yuni_format">与你号：\t%1$s</string>
+    <string name="phone_format">手机：\t%1$s</string>
+    <string name="address_format">地址：\t%1$s</string>
 
 </resources>

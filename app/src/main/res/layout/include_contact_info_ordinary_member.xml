@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/corner_solid_white_no_padding"
+    android:paddingHorizontal="8dp"
+    android:paddingVertical="8dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="本信息将会扣除20积分，你积分不足或者VIP已经过期，你可以通过发布信息赚取积分或者升级VIP无限制查看联系方式。"
+        android:textSize="@dimen/text_default"
+        android:textStyle="bold"
+        android:textColor="@color/text_content" />
+
+    <com.google.android.flexbox.FlexboxLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="16dp"
+        app:justifyContent="space_around"
+        app:alignItems="center" >
+
+        <TextView
+            android:id="@+id/click_publish"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:background="@drawable/selector_button_background"
+            android:text="发布信息"
+            android:textSize="@dimen/button_text_default"
+            android:textStyle="bold"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/click_buy_vip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:background="@drawable/selector_button_background"
+            android:text="升级VIP"
+            android:textSize="@dimen/button_text_default"
+            android:textStyle="bold"
+            android:textColor="@color/white" />
+
+    </com.google.android.flexbox.FlexboxLayout>
+
+</LinearLayout>
+
+            

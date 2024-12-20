@@ -22,4 +22,8 @@
     <color name="text_light">#A3A3A3</color><!-- 用于发布时间等次要信息 -->
     <color name="text_price">@color/black</color><!-- 价格使用纯黑色 -->
     <color name="text_warning_yellow">#de983f</color>
+
+    <!-- 按钮颜色 -->
+    <color name="button_default">@color/primary</color>
+    <color name="button_pressed">#f495c4</color>
 </resources>

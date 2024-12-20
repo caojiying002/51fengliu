@@ -24,6 +24,7 @@ glide = "4.16.0"
 smartrefresh = "2.1.0"
 brvah = "4.1.4"
 photoview = "1.0.1"
+flexbox = "3.0.0"
 jsoup = "1.17.2"
 
 [libraries]
@@ -69,6 +70,7 @@ smartrefreshlayout-header = { group = "io.github.scwang90", name = "refresh-head
 smartrefreshlayout-footer = { group = "io.github.scwang90", name = "refresh-footer-classics", version.ref = "smartrefresh" }
 brvah = { group = "io.github.cymchad", name = "BaseRecyclerViewAdapterHelper4", version.ref = "brvah" }
 photoview = { group = "io.getstream", name = "photoview", version.ref = "photoview" }
+flexbox = { group = "com.google.android.flexbox", name = "flexbox", version.ref = "flexbox" }
 
 # Others
 jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }

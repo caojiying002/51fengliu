@@ -45,6 +45,10 @@ class DetailActivity : BaseActivity() {
     private lateinit var statefulLayout: StatefulLayout
     private lateinit var refreshLayout: SmartRefreshLayout
     private lateinit var realContentView: View
+    private lateinit var contactInfoContainer: ViewGroup
+    private lateinit var contactInfoVIP: View
+    private lateinit var contactInfoOrdinaryMember: View
+    private lateinit var contactInfoNotLogin: View
 
     private lateinit var viewModel: DetailViewModel
 
@@ -67,6 +71,11 @@ class DetailActivity : BaseActivity() {
 
         statefulLayout = binding.statefulLayout // 简化代码调用
         realContentView = binding.statefulLayout.getContentView()
+        contactInfoContainer = realContentView.findViewById(R.id.contactInfoContainer)
+        contactInfoVIP = contactInfoContainer.findViewById(R.id.contact_info_vip)
+        contactInfoOrdinaryMember = contactInfoContainer.findViewById(R.id.contact_info_ordinary_member)
+        contactInfoNotLogin = contactInfoContainer.findViewById(R.id.contact_info_not_login)
+
         refreshLayout = realContentView.findViewById(R.id.refreshLayout)
         refreshLayout.apply {
             setRefreshHeader(ClassicsHeader(context))
@@ -120,21 +129,9 @@ class DetailActivity : BaseActivity() {
 
         val title = realContentView.findViewById<TextView>(R.id.title)
         val dz = realContentView.findViewById<TextView>(R.id.dz)
-        val qq = realContentView.findViewById<TextView>(R.id.qq)
-        val wechat = realContentView.findViewById<TextView>(R.id.wechat)
-        val telegram = realContentView.findViewById<TextView>(R.id.telegram)
-        val yuni = realContentView.findViewById<TextView>(R.id.yuni)
-        val phone = realContentView.findViewById<TextView>(R.id.phone)
-        val address = realContentView.findViewById<TextView>(R.id.address)
 
         title.copyOnLongClick()
         dz.copyOnLongClick()
-        qq.copyOnLongClick()
-        wechat.copyOnLongClick()
-        telegram.copyOnLongClick()
-        yuni.copyOnLongClick()
-        phone.copyOnLongClick()
-        address.copyOnLongClick()
 
         val age = realContentView.findViewById<TextView>(R.id.age)
         val faceValue = realContentView.findViewById<TextView>(R.id.faceValue)
@@ -155,23 +152,72 @@ class DetailActivity : BaseActivity() {
         createTime.text = timestampToDay(record.publishedAt)
         browse.text = record.viewCount
 
-        qq.isVisible = !record.qq.isNullOrBlank()
-        qq.text = getString(R.string.qq_format, record.qq)
-        wechat.isVisible = !record.wechat.isNullOrBlank()
-        wechat.text = getString(R.string.wechat_format, record.wechat)
-        telegram.isVisible = !record.telegram.isNullOrBlank()
-        telegram.text = getString(R.string.telegram_format, record.telegram)
-        yuni.isVisible = !record.yuni.isNullOrBlank()
-        yuni.text = getString(R.string.yuni_format, record.yuni)
-        phone.isVisible = !record.phone.isNullOrBlank()
-        phone.text = getString(R.string.phone_format, record.phone)
-        address.isVisible = !record.address.isNullOrBlank()
-        address.text = getString(R.string.address_format, record.address)
-
         publisher.text = when {
             record.anonymous == true -> "匿名"
             record.publisher != null -> record.publisher.name
             else -> "匿名"
+        }
+
+        displayContactInfoByMemberState(record)
+    }
+
+    /**
+     * 根据用户的会员状态显示联系方式
+     */
+    private fun displayContactInfoByMemberState(record: RecordInfo) {
+        // 情况1：当前用户是VIP会员，显示联系方式
+        if (!record.vipView.isNullOrBlank()
+            /*&& record.vipProfileStatus!!.toInt() >= 4*/) {
+            contactInfoVIP.isVisible = true
+            contactInfoOrdinaryMember.isVisible = false
+            contactInfoNotLogin.isVisible = false
+
+            val qq = realContentView.findViewById<TextView>(R.id.qq)
+            val wechat = realContentView.findViewById<TextView>(R.id.wechat)
+            val telegram = realContentView.findViewById<TextView>(R.id.telegram)
+            val yuni = realContentView.findViewById<TextView>(R.id.yuni)
+            val phone = realContentView.findViewById<TextView>(R.id.phone)
+            val address = realContentView.findViewById<TextView>(R.id.address)
+
+            qq.copyOnLongClick()
+            wechat.copyOnLongClick()
+            telegram.copyOnLongClick()
+            yuni.copyOnLongClick()
+            phone.copyOnLongClick()
+            address.copyOnLongClick()
+
+            qq.isVisible = !record.qq.isNullOrBlank()
+            qq.text = getString(R.string.qq_format, record.qq)
+            wechat.isVisible = !record.wechat.isNullOrBlank()
+            wechat.text = getString(R.string.wechat_format, record.wechat)
+            telegram.isVisible = !record.telegram.isNullOrBlank()
+            telegram.text = getString(R.string.telegram_format, record.telegram)
+            yuni.isVisible = !record.yuni.isNullOrBlank()
+            yuni.text = getString(R.string.yuni_format, record.yuni)
+            phone.isVisible = !record.phone.isNullOrBlank()
+            phone.text = getString(R.string.phone_format, record.phone)
+            address.isVisible = !record.address.isNullOrBlank()
+            address.text = getString(R.string.address_format, record.address)
+            return
+        }
+
+        // 情况2：当前用户是注册用户，显示“发布信息”“升级VIP”按钮
+        if (record.vipProfileStatus?.toInt() == 3) {
+            contactInfoVIP.isVisible = false
+            contactInfoOrdinaryMember.isVisible = true
+            contactInfoNotLogin.isVisible = false
+            return
+        }
+
+        // 其实还有一种情况2.5：当前用户积分大于20，可以扣除积分查看联系方式。我没有这种账号，不知道UI应该如何呈现。
+
+        // 情况3：当前用户未登录，显示“立即登录”按钮
+        if (/*TODO token为空 ||*/
+            record.vipProfileStatus?.toInt() == 1) {
+            contactInfoVIP.isVisible = false
+            contactInfoOrdinaryMember.isVisible = false
+            contactInfoNotLogin.isVisible = true
+            return
         }
     }
 

@@ -33,17 +33,29 @@ data class RecordInfo(  // 2024.09.13重命名为RecordInfo，避免和java.lang
     val anonymous: Boolean?,
     val publishedAt: String?, //Long,
     val createdAt: String?, //Long,
-    /** 列表页为null，详情页为true/false */ val isFavorite: Boolean?,
-    /** 列表页为null，详情页为1（未登录态） */ val vipProfileStatus: Int?,
+    /** 列表页为null，详情页为true/false */
+    val isFavorite: Boolean?,
+    /**
+     * 列表页：null
+     * 详情页（未登录态）：1
+     * 详情页（登录态无会员）：3
+     * 详情页（登录态永久会员）：4
+     */
+    val vipProfileStatus: Int?,
     val publisher: Publisher?,
     val userName: String?,
     val userReputation: String?,
     val userStatus: String?,
     val style: String?,
-    val guestView: String?,
 
-    // 列表页无，详情页有
+    /** 列表页无，详情页仅VIP会员有"only vip have" */
+    val vipView: String?,
+
+    /** 列表页无，详情页"only user have" */
     val userView: String?,
+
+    /** 列表页详情页都是"only guest have" */
+    val guestView: String?,
 
     // 登录后可见（列表页无，详情页有）
     val qq: String?,

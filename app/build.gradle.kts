@@ -69,6 +69,7 @@ dependencies {
     implementation(libs.smartrefreshlayout.footer)
     implementation(libs.brvah)
     implementation(libs.photoview)
+    implementation(libs.flexbox)
     kapt(libs.bumptech.glide.compiler)
     kapt(libs.androidx.room.compiler)
     testImplementation(libs.junit)

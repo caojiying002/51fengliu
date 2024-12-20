@@ -315,9 +315,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:lines="1"
-                android:paddingHorizontal="18dp"
-                android:paddingVertical="7dp"
-                android:background="@drawable/selector_jubao_button_background"
                 android:textSize="@dimen/text_default"
                 android:textColor="@color/selector_jubao_button_text"
                 android:clickable="true"
@@ -335,9 +332,6 @@
                 android:layout_height="wrap_content"
                 android:lines="1"
                 android:layout_marginLeft="16dp"
-                android:paddingHorizontal="18dp"
-                android:paddingVertical="7dp"
-                android:background="@drawable/selector_jubao_button_background"
                 android:textSize="@dimen/text_default"
                 android:textColor="@color/selector_jubao_button_text"
                 android:clickable="true"
@@ -361,7 +355,9 @@
             android:lineSpacingExtra="0dp"
             android:textSize="@dimen/text_default"
             android:textColor="@color/text_warning_yellow"
-            android:text="@string/intro_anti_fraud" />
+            android:text="@string/intro_anti_fraud"
+            android:drawablePadding="16dp"
+            app:drawableLeftCompat="@drawable/ic_warning_yellow" />
 
         <FrameLayout
             android:id="@+id/contactInfoContainer"

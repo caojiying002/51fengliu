@@ -5,7 +5,13 @@ import retrofit2.http.*
 
 interface ApiService {
 
+    @GET("/api/web/info/page.json")
+    suspend fun getRecords(
+        @QueryMap map: Map<String, String>
+    ) : ApiResponse<PageData>
+
     /** 首页：热门or最新 */
+    @Deprecated("Use getRecords instead")
     @GET("/api/web/info/page.json")
     suspend fun getPageData(
         //@Query("perPage") perPage: Int = 30,
@@ -13,6 +19,7 @@ interface ApiService {
         @Query("page") page: Int = 1,
     ): ApiResponse<PageData>
 
+    @Deprecated("Use getRecords instead")
     @GET("/api/web/info/page.json")
     suspend fun getCityData2(
         @Query("cityCode") cityCode: String,
@@ -20,12 +27,14 @@ interface ApiService {
         @Query("page") page: Int = 1,
     ): ApiResponse<PageData>
 
+    @Deprecated("Use getRecords instead")
     @GET("/api/web/info/page.json")
     suspend fun search2(
         @Query("keywords") keywords: String,
         @Query("page") page: Int = 1,
     ): ApiResponse<PageData>
 
+    // TODO @Deprecated("Use getRecords instead")
     @GET("/api/web/info/page.json")
     suspend fun search4(
         @Query("keywords") keywords: String,

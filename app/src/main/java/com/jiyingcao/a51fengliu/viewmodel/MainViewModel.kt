@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.api.RetrofitClient
+import com.jiyingcao.a51fengliu.api.request.RecordsRequest
 import com.jiyingcao.a51fengliu.api.response.PageData
 import com.jiyingcao.a51fengliu.viewmodel.UiState.Error
 import com.jiyingcao.a51fengliu.viewmodel.UiState.Loading
@@ -31,7 +32,10 @@ class MainViewModel: ViewModel() {
 
             try {
                 // sort=daily是热门，sort=publish是最新
-                val response = RetrofitClient.apiService.getPageData(sort = sort, page = page)
+                val queryMap = RecordsRequest
+                    .forHome(sort, page)
+                    .toMap()
+                val response = RetrofitClient.apiService.getRecords(queryMap)
                 if (response.code != 0) {
                     _data.postValue(Error("API状态码 code=${response.code}, msg=${response.msg}"))
                     Log.w(TAG, "API状态码 code=${response.code}, msg=${response.msg}")

@@ -15,6 +15,7 @@ enum class LoadingType4 {
     DIALOG
 }
 
+// TODO 用[RecordsRequest]代替
 data class SearchRequest(
     val keywords: String,
     val city: String,

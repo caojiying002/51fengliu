@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.api.RetrofitClient
+import com.jiyingcao.a51fengliu.api.request.RecordsRequest
 import com.jiyingcao.a51fengliu.api.response.*
 import com.jiyingcao.a51fengliu.viewmodel.UiState.*
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +27,10 @@ class CityViewModel: ViewModel() {
                 if (page == 1) Loading.fullScreen() else Loading.pullRefresh()
             _data.postValue(loadingState)
             try {
-                val response = RetrofitClient.apiService.getCityData2(cityCode = cityCode, sort = sort, page = page)
+                val queryMap = RecordsRequest
+                    .forCity(cityCode, sort, page)
+                    .toMap()
+                val response = RetrofitClient.apiService.getRecords(queryMap)
                 if (response.code != 0) {
                     _data.postValue(Error("API状态码 code=${response.code}, msg=${response.msg}"))
                     Log.w(TAG, "API状态码 code=${response.code}, msg=${response.msg}")

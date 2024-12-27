@@ -114,6 +114,10 @@ class DetailActivity : BaseActivity() {
         viewModel.fetchRecordById(id = recordId)
 
         findViewById<View>(R.id.title_bar_back).setOnClickListener { finish() }
+        findViewById<View>(R.id.contactWarning).setOnLongClickListener { v ->
+            v.isVisible = false
+            true
+        }
     }
 
     override fun onNewIntent(intent: Intent) {

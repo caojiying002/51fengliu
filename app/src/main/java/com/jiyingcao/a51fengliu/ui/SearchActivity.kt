@@ -7,7 +7,9 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import android.widget.EditText
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.view.isGone
 import androidx.lifecycle.Lifecycle
@@ -15,12 +17,15 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.response.PageData
 import com.jiyingcao.a51fengliu.databinding.ActivitySearchBinding
 import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout
+import com.jiyingcao.a51fengliu.util.showToast
+import com.jiyingcao.a51fengliu.util.to2LevelName
 import com.jiyingcao.a51fengliu.viewmodel.LoadingType.*
 import com.jiyingcao.a51fengliu.viewmodel.LoadingType4
 import com.jiyingcao.a51fengliu.viewmodel.SearchViewModel2.UiState
@@ -51,8 +56,7 @@ class SearchActivity: BaseActivity() {
         binding = ActivitySearchBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.titleBar.titleBarBack.setOnClickListener{ finish() }
-        setupSearchBar()
+        setupClickListeners()
         setupStatefulLayout()
         setupSmartRefreshLayout()
         setupRecyclerView()
@@ -242,26 +246,32 @@ class SearchActivity: BaseActivity() {
         }
     }
 
-    private fun setupSearchBar() {
-        val searchBar =
-            layoutInflater.inflate(R.layout.search_fixed_area, binding.topFixedLayoutContainer, true)
-        val searchEditText = searchBar.findViewById<EditText>(R.id.search_edit_text)
-        val searchIcon = searchBar.findViewById<View>(R.id.search_icon)
+    private val chooseCityLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val cityCode = result.data?.getStringExtra("CITY_CODE")
+            Log.d("registerForActivityResult", "City code selected: $cityCode")
 
-        /*// 初始时隐藏搜索图标
-        searchIcon.isGone = true
-        searchEditText.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                // 根据输入框是否为空显示或隐藏搜索图标
-                searchIcon.isGone = s.isNullOrEmpty()
+            displayCity(cityCode)
+            cityCode?.let {
+                App.INSTANCE.showToast("City code selected: $cityCode")
+                viewModel.updateCity(it)
             }
+        }
+    }
 
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
-        })*/
+    private fun displayCity(cityCode: String?) {
+        binding.clickChooseCity.text = cityCode?.to2LevelName() ?: "选择地区"
+    }
 
-        searchIcon.setOnClickListener {
-            val keywords = searchEditText.text.toString().trim()
+    private fun setupClickListeners() {
+        binding.titleBarBack.setOnClickListener { finish() }
+        binding.clickChooseCity.setOnClickListener {
+            chooseCityLauncher.launch(ChooseCityActivity.createIntent(this@SearchActivity))
+        }
+        binding.clickSearch.setOnClickListener {
+            val keywords = binding.searchEditText.text.toString().trim()
             //if (keywords.isNotEmpty()) {
             Log.d(TAG, "Search keywords=$keywords")
             viewModel.updateKeywords(keywords)

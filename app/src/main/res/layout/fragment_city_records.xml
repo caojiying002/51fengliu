@@ -24,8 +24,7 @@
             android:textColor="@color/text_strong"
             android:drawablePadding="10dp"
             android:drawableEnd="@drawable/expand_down"
-            android:drawableTint="@color/text_strong"
-            android:src="@drawable/ic_51" />
+            android:drawableTint="@color/text_strong" />
 
     </FrameLayout>
 

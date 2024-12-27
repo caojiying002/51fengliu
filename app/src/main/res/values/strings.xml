@@ -27,4 +27,6 @@ Phasellus in leo massa. Aliquam malesuada, enim nec auctor posuere, quam sem mal
     <string name="phone_format">手机：\t%1$s</string>
     <string name="address_format">地址：\t%1$s</string>
 
+    <string name="intro_search_result_format">\"%1$s\"的搜索结果</string>
+
 </resources>

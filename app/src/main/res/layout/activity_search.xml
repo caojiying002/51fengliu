@@ -8,18 +8,117 @@
     android:layout_height="match_parent"
     tools:context=".ui.SearchActivity">
 
-    <include
-        android:id="@+id/title_bar"
+    <!-- 标题栏（含系统标题栏高度） -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        layout="@layout/widget_title_bar_back" />
+        android:orientation="vertical">
 
-    <!-- 有些页面需要显示一些固定布局在列表上方，例如搜索栏、排序方式等等 -->
+        <Space
+            android:id="@id/system_top_bar_space"
+            android:layout_width="match_parent"
+            android:layout_height="0dp" />
+
+        <LinearLayout
+            android:id="@+id/title_bar"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:orientation="horizontal">
+
+            <FrameLayout
+                android:id="@+id/title_bar_left_container"
+                android:layout_width="80dp"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:id="@+id/title_bar_back"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start|center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="8dp"
+                    android:src="@drawable/ic_back"
+                    app:tint="@color/text_strong" />
+
+            </FrameLayout>
+
+            <EditText
+                android:id="@+id/search_edit_text"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_gravity="center_vertical"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:background="@drawable/selector_search_input_background"
+                android:hint="关键词"
+                android:lines="1"
+                android:textColorHint="@color/text_default"
+                android:textSize="18dp"
+                android:textColor="@color/text_item_title"
+                android:drawableStart="@drawable/ic_search_input"
+                android:drawablePadding="8dp"
+                android:drawableTint="@drawable/selector_search_input_icon_color"
+                android:textCursorDrawable="@drawable/cursor_strong" />
+
+            <FrameLayout
+                android:id="@+id/title_bar_right_container"
+                android:layout_width="80dp"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:id="@+id/click_search"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end|center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="8dp"
+                    android:text="搜索"
+                    android:textSize="18dp"
+                    android:textColor="@color/text_strong" />
+
+            </FrameLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 选择地区 -->
     <FrameLayout
-        android:id="@+id/top_fixed_layout_container"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginVertical="@dimen/divider_height_half"
+        android:paddingHorizontal="16dp"
+        android:background="@drawable/corner_solid_white_no_padding" >
+
+        <TextView
+            android:id="@+id/click_choose_city"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|center_vertical"
+            android:gravity="center_vertical"
+            android:text="选择地区"
+            android:textSize="@dimen/text_default"
+            android:textColor="@color/text_content"
+            android:drawablePadding="10dp"
+            android:drawableEnd="@drawable/expand_down"
+            android:drawableTint="@color/text_content" />
+    </FrameLayout>
+
+    <!-- "XX"的搜索结果 -->
+    <TextView
+        android:id="@+id/intro_search_result"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:ignore="UselessLeaf" />
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginVertical="@dimen/divider_height_half"
+        android:background="@drawable/corner_solid_white_no_padding"
+        android:gravity="center"
+        android:paddingVertical="16dp"
+        android:paddingHorizontal="8dp"
+        android:text="@string/intro_search_result_format"
+        android:textSize="@dimen/text_default"
+        android:textColor="@color/text_content"
+        android:visibility="gone" />
 
     <com.jiyingcao.a51fengliu.ui.widget.StatefulLayout
         android:id="@+id/stateful_layout"

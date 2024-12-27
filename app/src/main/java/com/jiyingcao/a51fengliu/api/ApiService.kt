@@ -26,6 +26,13 @@ interface ApiService {
         @Query("page") page: Int = 1,
     ): ApiResponse<PageData>
 
+    @GET("/api/web/info/page.json")
+    suspend fun search4(
+        @Query("keywords") keywords: String,
+        @Query("cityCode") cityCode: String,
+        @Query("page") page: Int = 1,
+    ): ApiResponse<PageData>
+
     @GET("/api/web/info/detail.json")
     suspend fun getDetail(
         @Query("infoId") id: String

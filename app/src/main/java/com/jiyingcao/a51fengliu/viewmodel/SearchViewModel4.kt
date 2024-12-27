@@ -32,7 +32,7 @@ data class SearchState(
 
 class SearchViewModel4 : ViewModel() {
     private val _searchRequest = MutableStateFlow(
-        SearchRequest("", "330100", 1, false, LoadingType4.NONE)    // TODO 城市选择
+        SearchRequest("", "", 1, false, LoadingType4.NONE)
     )
 
     private val _searchState = MutableStateFlow(SearchState())
@@ -45,7 +45,7 @@ class SearchViewModel4 : ViewModel() {
                 flow {
                     emit(SearchState(loadingType = request.loadingType, shouldClearList = request.shouldClearList))
                     try {
-                        val response = RetrofitClient.apiService.search2(request.keywords, /*request.city, */request.page)
+                        val response = RetrofitClient.apiService.search4(request.keywords, request.city, request.page)
                         if (response.isSuccessful()) {
                             emit(SearchState(results = response.data, shouldClearList = request.shouldClearList))
                         } else {

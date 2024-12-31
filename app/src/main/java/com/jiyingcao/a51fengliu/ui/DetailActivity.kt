@@ -36,6 +36,7 @@ import com.jiyingcao.a51fengliu.util.dp
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.timestampToDay
 import com.jiyingcao.a51fengliu.util.to2LevelName
+import com.jiyingcao.a51fengliu.viewmodel.DetailIntent
 import com.jiyingcao.a51fengliu.viewmodel.DetailViewModel
 import com.jiyingcao.a51fengliu.viewmodel.UiState
 import com.scwang.smart.refresh.header.ClassicsHeader
@@ -133,9 +134,6 @@ class DetailActivity : BaseActivity() {
             true
         }
         findViewById<View>(R.id.click_report).setOnClickListener {}
-        findViewById<View>(R.id.click_favorite).setOnClickListener { v ->
-            // TODO v.isSelected = !v.isSelected
-        }
     }
     
     private fun updateUi(record: RecordInfo) {
@@ -167,12 +165,17 @@ class DetailActivity : BaseActivity() {
         dz.text = record.cityCode.to2LevelName()
         createTime.text = timestampToDay(record.publishedAt)
         browse.text = record.viewCount
-        favorite.isSelected = record.isFavorite==true
 
         publisher.text = when {
             record.anonymous == true -> "匿名"
             record.publisher != null -> record.publisher.name
             else -> "匿名"
+        }
+
+        val isFavorite = record.isFavorite==true
+        favorite.isSelected = isFavorite
+        favorite.setOnClickListener { v ->
+            viewModel.processIntent(if (isFavorite) DetailIntent.Unfavorite else DetailIntent.Favorite)
         }
 
         displayContactInfoByMemberState(record)

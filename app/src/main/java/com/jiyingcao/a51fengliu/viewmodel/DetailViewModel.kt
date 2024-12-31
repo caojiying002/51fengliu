@@ -13,9 +13,27 @@ import com.jiyingcao.a51fengliu.viewmodel.UiState.Success
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+sealed class DetailIntent {
+    object LoadDetail : DetailIntent()
+    object Favorite : DetailIntent()
+    object Unfavorite : DetailIntent()
+}
+
 class DetailViewModel: ViewModel() {
     private val _data = MutableLiveData<UiState<RecordInfo>>()
     val data: LiveData<UiState<RecordInfo>> = _data
+
+    fun processIntent(intent: DetailIntent) {
+        when (intent) {
+            is DetailIntent.LoadDetail -> loadDetail()
+            is DetailIntent.Favorite -> favorite()
+            is DetailIntent.Unfavorite -> unfavorite()
+        }
+    }
+
+    private fun loadDetail() {}
+    private fun favorite() {}
+    private fun unfavorite() {}
 
     fun fetchRecordById(
         showFullScreenLoading: Boolean = false,

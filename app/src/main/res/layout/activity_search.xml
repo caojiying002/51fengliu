@@ -58,7 +58,7 @@
                 android:textColor="@color/text_item_title"
                 android:drawableStart="@drawable/ic_search_input"
                 android:drawablePadding="8dp"
-                android:drawableTint="@drawable/selector_search_input_icon_color"
+                android:drawableTint="@color/selector_search_input_icon_color"
                 android:textCursorDrawable="@drawable/cursor_strong" />
 
             <FrameLayout

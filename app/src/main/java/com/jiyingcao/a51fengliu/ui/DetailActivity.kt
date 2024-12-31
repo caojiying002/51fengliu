@@ -28,6 +28,7 @@ import com.jiyingcao.a51fengliu.glide.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.glide.GlideApp
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.common.BigImageViewerActivity
+import com.jiyingcao.a51fengliu.ui.dialog.LoadingDialog
 import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout
 import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout.State.*
 import com.jiyingcao.a51fengliu.util.copyOnLongClick
@@ -54,6 +55,8 @@ class DetailActivity : BaseActivity() {
 
     /** 是否有数据已经加载 */
     private var hasDataLoaded: Boolean = false
+
+    private var loadingDialog: LoadingDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -331,6 +334,19 @@ class DetailActivity : BaseActivity() {
                 }
             }
         }
+    }
+
+    private fun showLoadingDialog() {
+        if (loadingDialog == null) {
+            loadingDialog = LoadingDialog()
+        }
+        if (loadingDialog?.isVisible != true) {
+            loadingDialog?.showNow(supportFragmentManager, LoadingDialog.TAG)
+        }
+    }
+
+    private fun dismissLoadingDialog() {
+        loadingDialog?.dismissAllowingStateLoss()
     }
 
     companion object {

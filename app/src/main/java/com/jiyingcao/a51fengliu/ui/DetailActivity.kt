@@ -82,6 +82,8 @@ class DetailActivity : BaseActivity() {
             setOnRefreshListener { viewModel.fetchRecordById(id = recordId) }
         }
 
+        setupClickListeners()
+
         viewModel = ViewModelProvider(this)[DetailViewModel::class.java]
         viewModel.data.observe(this) { state ->
             when (state) {
@@ -112,12 +114,6 @@ class DetailActivity : BaseActivity() {
         }
 
         viewModel.fetchRecordById(id = recordId)
-
-        findViewById<View>(R.id.title_bar_back).setOnClickListener { finish() }
-        findViewById<View>(R.id.contactWarning).setOnLongClickListener { v ->
-            v.isVisible = false
-            true
-        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -125,6 +121,18 @@ class DetailActivity : BaseActivity() {
 
         val recordId = intent.getRecordId()
         recordId?.let { viewModel.fetchRecordById(id = it) }
+    }
+
+    private fun setupClickListeners() {
+        findViewById<View>(R.id.title_bar_back).setOnClickListener { finish() }
+        findViewById<View>(R.id.contactWarning).setOnLongClickListener { v ->
+            v.isVisible = false
+            true
+        }
+        findViewById<View>(R.id.click_report).setOnClickListener {}
+        findViewById<View>(R.id.click_favorite).setOnClickListener { v ->
+            // TODO v.isSelected = !v.isSelected
+        }
     }
     
     private fun updateUi(record: RecordInfo) {
@@ -145,6 +153,7 @@ class DetailActivity : BaseActivity() {
         val createTime = realContentView.findViewById<TextView>(R.id.createTime)
         val browse = realContentView.findViewById<TextView>(R.id.browse)
         val publisher = realContentView.findViewById<TextView>(R.id.publisher)
+        val favorite = realContentView.findViewById<TextView>(R.id.click_favorite)
 
         title.text = record.title
         age.text = record.girlAge
@@ -155,6 +164,7 @@ class DetailActivity : BaseActivity() {
         dz.text = record.cityCode.to2LevelName()
         createTime.text = timestampToDay(record.publishedAt)
         browse.text = record.viewCount
+        favorite.isSelected = record.isFavorite==true
 
         publisher.text = when {
             record.anonymous == true -> "匿名"

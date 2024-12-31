@@ -313,36 +313,36 @@
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <TextView
-                android:id="@+id/jubao"
+                android:id="@+id/click_report"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:lines="1"
                 android:textSize="@dimen/text_default"
-                android:textColor="@color/selector_jubao_button_text"
+                android:textColor="@color/text_strong"
                 android:clickable="true"
                 android:focusable="true"
                 android:drawablePadding="4dp"
-                android:drawableLeft="@drawable/icon_jubao"
+                android:drawableLeft="@drawable/icon_report"
                 android:text="我要举报"
                 app:layout_constraintStart_toStartOf="@+id/infoContainer"
                 app:layout_constraintTop_toBottomOf="@+id/infoContainer"
                 tools:ignore="HardcodedText" />
 
             <TextView
-                android:id="@+id/shoucang"
+                android:id="@+id/click_favorite"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:lines="1"
                 android:layout_marginLeft="16dp"
                 android:textSize="@dimen/text_default"
-                android:textColor="@color/selector_jubao_button_text"
+                android:textColor="@color/text_strong"
                 android:clickable="true"
                 android:focusable="true"
                 android:drawablePadding="4dp"
-                android:drawableLeft="@drawable/icon_shoucang"
+                android:drawableLeft="@drawable/selector_icon_favorite"
                 android:text="我要收藏"
-                app:layout_constraintStart_toEndOf="@+id/jubao"
-                app:layout_constraintTop_toTopOf="@+id/jubao"
+                app:layout_constraintStart_toEndOf="@+id/click_report"
+                app:layout_constraintTop_toTopOf="@+id/click_report"
                 tools:ignore="HardcodedText" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>

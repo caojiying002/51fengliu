@@ -28,7 +28,11 @@
         </activity>
         <activity
             android:name=".ui.DetailActivity"
-            android:exported="false" />
+            android:exported="false" >
+            <meta-data
+                android:name="android.app.activity.enable_content_transitions"
+                android:value="true" />
+        </activity>
         <activity
             android:name=".ui.CityActivity"
             android:exported="false" />

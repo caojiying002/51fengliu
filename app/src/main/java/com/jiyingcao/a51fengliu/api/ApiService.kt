@@ -1,5 +1,6 @@
 package com.jiyingcao.a51fengliu.api
 
+import com.jiyingcao.a51fengliu.api.request.InfoIdRequest
 import com.jiyingcao.a51fengliu.api.response.*
 import retrofit2.http.*
 
@@ -50,4 +51,16 @@ interface ApiService {
     /** 个人中心：用户信息（需登录） */
     @GET("/api/web/authUser/detail.json")
     suspend fun getProfile(): ApiResponse<Profile>
+
+    /** 收藏(需登录)：已收藏会报错，code=-2 */
+    @POST("/api/web/info/favorite.json")
+    suspend fun postFavorite(
+        @Body body: InfoIdRequest
+    ): ApiResponse<Nothing>     // TODO 使用DualWrapper。{"code":0,"msg":"Ok","data":""}
+
+    /** 取消收藏(需登录)：未收藏会报错，code=-2 */
+    @POST("/api/web/info/unfavorite.json")
+    suspend fun postUnfavorite(
+        @Body body: InfoIdRequest
+    ): ApiResponse<Nothing>     // TODO 使用DualWrapper。{"code":0,"msg":"Ok","data":""}
 }

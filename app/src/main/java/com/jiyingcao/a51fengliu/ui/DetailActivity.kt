@@ -12,7 +12,9 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityOptionsCompat
+import androidx.core.app.SharedElementCallback
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.load.DataSource
@@ -59,6 +61,27 @@ class DetailActivity : BaseActivity() {
 
     private var loadingDialog: LoadingDialog? = null
 
+    private val mySharedElementCallback = object : SharedElementCallback() {
+        var returnIndex = 0
+
+        override fun onMapSharedElements(
+            names: List<String>,
+            sharedElements: MutableMap<String, View>
+        ) {
+            val imageContainer = realContentView.findViewById<ViewGroup>(R.id.image_container)
+            // 获取对应位置的缩略图ImageView
+            val imageView: ImageView = when (returnIndex) {
+                0 -> imageContainer.findViewById(R.id.image_0)
+                1 -> imageContainer.findViewById(R.id.image_1)
+                2 -> imageContainer.findViewById(R.id.image_2)
+                3 -> imageContainer.findViewById(R.id.image_3)
+                else -> return
+            }
+            sharedElements.clear()
+            sharedElements["image$returnIndex"] = imageView
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //enableEdgeToEdge()
@@ -87,6 +110,8 @@ class DetailActivity : BaseActivity() {
         }
 
         setupClickListeners()
+
+        setExitSharedElementCallback(mySharedElementCallback)
 
         viewModel = ViewModelProvider(this)[DetailViewModel::class.java]
         viewModel.data.observe(this) { state ->
@@ -125,6 +150,22 @@ class DetailActivity : BaseActivity() {
 
         val recordId = intent.getRecordId()
         recordId?.let { viewModel.fetchRecordById(id = it) }
+    }
+
+    override fun onActivityReenter(resultCode: Int, data: Intent?) {
+        super.onActivityReenter(resultCode, data)
+
+        if (resultCode == RESULT_OK) {
+            val returnIndex = data?.getIntExtra("RESULT_INDEX", 0) ?: 0
+
+            mySharedElementCallback.returnIndex = returnIndex
+
+            // 延迟执行以确保视图已更新
+            supportPostponeEnterTransition()
+
+            // 开始延迟的过渡
+            supportStartPostponedEnterTransition()
+        }
     }
 
     private fun setupClickListeners() {
@@ -175,7 +216,7 @@ class DetailActivity : BaseActivity() {
         val isFavorite = record.isFavorite==true
         favorite.isSelected = isFavorite
         favorite.setOnClickListener { v ->
-            viewModel.processIntent(if (isFavorite) DetailIntent.Unfavorite else DetailIntent.Favorite)
+            // TODO viewModel.processIntent(if (isFavorite) DetailIntent.Unfavorite else DetailIntent.Favorite)
         }
 
         displayContactInfoByMemberState(record)
@@ -330,7 +371,7 @@ class DetailActivity : BaseActivity() {
                         view, // 这是当前活动中的共享ImageView
                         "image$index" // 与BigImageViewerActivity中的ImageView相同的transitionName
                     )
-                    startActivity(intent, options.toBundle())
+                    ActivityCompat.startActivityForResult(this, intent, 42, options.toBundle())
                 } else {
                     // Debug only
                     // showToast("图片加载中，请稍候")

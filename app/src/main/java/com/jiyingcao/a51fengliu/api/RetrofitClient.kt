@@ -25,8 +25,17 @@ object RetrofitClient {
                 val originalRequest = chain.request()
                 val urlEncodedPath = originalRequest.url.encodedPath
 
-                val token = "eyJhbGciOiJIUzI1NiJ9.eyJsYXN0TG9naW4iOjE3MjgxOTg2MjIsInN1YiI6ImppeWluZ2NhbyIsImV4cCI6MTczMDg3NzAyMiwiaWF0IjoxNzI4MTk4NjIyLCJqdGkiOiIxMjQ4NDEzIn0.TMJOVRxfQiwmx_hLNAr1AExRxk4Pj8EKmmO3EI9QO6k"    // TODO 开发期间手动添加token
-                if (urlEncodedPath == "/api/web/authUser/detail.json") {
+                /* jiyingcao */
+                //val token = "eyJhbGciOiJIUzI1NiJ9.eyJsYXN0TG9naW4iOjE3MzQ2Nzc5NTEsInN1YiI6ImppeWluZ2NhbyIsImV4cCI6MTczNzM1NjM1MSwiaWF0IjoxNzM0Njc3OTUxLCJqdGkiOiIxMjQ4NDEzIn0.NOf3T_sXfOGXxJ1ZJMM02NBVpF2cLdqwzbHd9nckGlc"
+                /* caojiying */
+                val token = "eyJhbGciOiJIUzI1NiJ9.eyJsYXN0TG9naW4iOjE3MzU2MjEyNTksInN1YiI6ImNhb2ppeWluZyIsImV4cCI6MTczODI5OTY1OSwiaWF0IjoxNzM1NjIxMjU5LCJqdGkiOiI4NzExMDQifQ.cyFkrQHDkppna_XTmmEh7A-UXPsTD6lR0fjdzR6GJyk"
+
+                if (urlEncodedPath == "/api/web/authUser/detail.json"
+                    || urlEncodedPath == "/api/web/info/favorite.json"
+                    || urlEncodedPath == "/api/web/info/unfavorite.json"
+                    /* 开发期间的测试条件：详情页带上Token，如不需要Token可以注释掉 */
+//                    || urlEncodedPath == "/api/web/info/detail.json"
+                    ) {
                     val request = originalRequest.newBuilder()
                         .addHeader("Authorization", "Bearer $token")
                         .build()

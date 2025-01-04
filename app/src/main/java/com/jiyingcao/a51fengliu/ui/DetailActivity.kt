@@ -16,7 +16,10 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityOptionsCompat
 import androidx.core.app.SharedElementCallback
 import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
@@ -24,10 +27,12 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.jiyingcao.a51fengliu.R
+import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.databinding.ActivityStatefulDetailBinding
 import com.jiyingcao.a51fengliu.glide.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.glide.GlideApp
+import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.common.BigImageViewerActivity
 import com.jiyingcao.a51fengliu.ui.dialog.LoadingDialog
@@ -38,11 +43,15 @@ import com.jiyingcao.a51fengliu.util.dp
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.timestampToDay
 import com.jiyingcao.a51fengliu.util.to2LevelName
+import com.jiyingcao.a51fengliu.viewmodel.DetailEffect
 import com.jiyingcao.a51fengliu.viewmodel.DetailIntent
-import com.jiyingcao.a51fengliu.viewmodel.DetailViewModel
+import com.jiyingcao.a51fengliu.viewmodel.DetailState
+import com.jiyingcao.a51fengliu.viewmodel.DetailViewModel2
+import com.jiyingcao.a51fengliu.viewmodel.DetailViewModel2Factory
 import com.jiyingcao.a51fengliu.viewmodel.UiState
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
+import kotlinx.coroutines.launch
 
 class DetailActivity : BaseActivity() {
     private lateinit var binding: ActivityStatefulDetailBinding
@@ -54,7 +63,7 @@ class DetailActivity : BaseActivity() {
     private lateinit var contactInfoOrdinaryMember: View
     private lateinit var contactInfoNotLogin: View
 
-    private lateinit var viewModel: DetailViewModel
+    private lateinit var viewModel: DetailViewModel2
 
     /** 是否有数据已经加载 */
     private var hasDataLoaded: Boolean = false
@@ -106,50 +115,31 @@ class DetailActivity : BaseActivity() {
         refreshLayout = realContentView.findViewById(R.id.refreshLayout)
         refreshLayout.apply {
             setRefreshHeader(ClassicsHeader(context))
-            setOnRefreshListener { viewModel.fetchRecordById(id = recordId) }
+            setOnRefreshListener { viewModel.processIntent(DetailIntent.Refresh) }
         }
 
         setupClickListeners()
 
         setExitSharedElementCallback(mySharedElementCallback)
 
-        viewModel = ViewModelProvider(this)[DetailViewModel::class.java]
-        viewModel.data.observe(this) { state ->
-            when (state) {
-                is UiState.Loading -> {
-                    // 显示加载动画
-                    if (!hasDataLoaded) statefulLayout.currentState = LOADING
-                }
-                is UiState.Success -> {
-                    hasDataLoaded = true
-                    refreshLayout.finishRefresh()
-                    statefulLayout.currentState = CONTENT
-                    // 显示数据
-                    updateUi(state.data)
-                }
-                is UiState.Empty -> {
-                    // 不再使用
-                    //refreshLayout.finishRefresh()
-                }
-                is UiState.Error -> {
-                    refreshLayout.finishRefresh()
-                    // 显示错误信息
-                    if (!hasDataLoaded)
-                        statefulLayout.currentState = ERROR
-                    else
-                        Toast.makeText(this, state.message, Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
+        viewModel = ViewModelProvider(
+            this,
+            DetailViewModel2Factory(
+                recordId,
+                RecordRepository.getInstance(RetrofitClient.apiService)
+            )
+        )[DetailViewModel2::class.java]
 
-        viewModel.fetchRecordById(id = recordId)
+        setupFlowCollectors()
+
+        viewModel.processIntent(DetailIntent.LoadDetail)
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
 
         val recordId = intent.getRecordId()
-        recordId?.let { viewModel.fetchRecordById(id = it) }
+        if (recordId != null) viewModel.processIntent(DetailIntent.LoadDetail)
     }
 
     override fun onActivityReenter(resultCode: Int, data: Intent?) {
@@ -168,6 +158,52 @@ class DetailActivity : BaseActivity() {
         }
     }
 
+    private fun setupFlowCollectors() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    when (state) {
+                        is DetailState.Init -> {
+                            showContentView()
+                        }
+                        is DetailState.Loading -> {
+                            // Initial loading state
+                            showLoadingView()
+                        }
+                        is DetailState.Success -> {
+                            showContentView()
+                            updateUI(state.record)
+                        }
+                        is DetailState.Error -> {
+                            showErrorView(state.message)
+                        }
+                    }
+                }
+            }
+        }
+
+        // Collect side effects
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.effect.collect { effect ->
+                    when (effect) {
+                        is DetailEffect.ShowLoadingDialog -> showLoadingDialog()
+                        is DetailEffect.DismissLoadingDialog -> dismissLoadingDialog()
+                        is DetailEffect.FinishRefresh -> refreshLayout.finishRefresh()
+                        is DetailEffect.ShowToast -> showToast(effect.message)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun showLoadingView() {statefulLayout.currentState = LOADING}
+    private fun showContentView() {statefulLayout.currentState = CONTENT}
+    private fun showErrorView(message: String = "加载失败") { // TODO 显示[message]到UI，以及点击重试
+        statefulLayout.currentState = ERROR
+        statefulLayout.getErrorView().findViewById<TextView>(R.id.stateful_default_error_text_view)?.text = message
+    }
+
     private fun setupClickListeners() {
         findViewById<View>(R.id.title_bar_back).setOnClickListener { finish() }
         findViewById<View>(R.id.contactWarning).setOnLongClickListener { v ->
@@ -177,7 +213,7 @@ class DetailActivity : BaseActivity() {
         findViewById<View>(R.id.click_report).setOnClickListener {}
     }
     
-    private fun updateUi(record: RecordInfo) {
+    private fun updateUI(record: RecordInfo) {
         //displayImagesIfAny(itemData.file)
         displayImagesIfAnyV2(record.getPictures())
 

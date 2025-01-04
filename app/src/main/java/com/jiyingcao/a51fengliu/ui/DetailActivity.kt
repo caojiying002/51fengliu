@@ -46,8 +46,8 @@ import com.jiyingcao.a51fengliu.util.to2LevelName
 import com.jiyingcao.a51fengliu.viewmodel.DetailEffect
 import com.jiyingcao.a51fengliu.viewmodel.DetailIntent
 import com.jiyingcao.a51fengliu.viewmodel.DetailState
-import com.jiyingcao.a51fengliu.viewmodel.DetailViewModel2
-import com.jiyingcao.a51fengliu.viewmodel.DetailViewModel2Factory
+import com.jiyingcao.a51fengliu.viewmodel.DetailViewModel
+import com.jiyingcao.a51fengliu.viewmodel.DetailViewModelFactory
 import com.jiyingcao.a51fengliu.viewmodel.UiState
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
@@ -63,7 +63,7 @@ class DetailActivity : BaseActivity() {
     private lateinit var contactInfoOrdinaryMember: View
     private lateinit var contactInfoNotLogin: View
 
-    private lateinit var viewModel: DetailViewModel2
+    private lateinit var viewModel: DetailViewModel
 
     /** 是否有数据已经加载 */
     private var hasDataLoaded: Boolean = false
@@ -124,11 +124,11 @@ class DetailActivity : BaseActivity() {
 
         viewModel = ViewModelProvider(
             this,
-            DetailViewModel2Factory(
+            DetailViewModelFactory(
                 recordId,
                 RecordRepository.getInstance(RetrofitClient.apiService)
             )
-        )[DetailViewModel2::class.java]
+        )[DetailViewModel::class.java]
 
         setupFlowCollectors()
 

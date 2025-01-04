@@ -1,49 +1,106 @@
 package com.jiyingcao.a51fengliu.viewmodel
 
-import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
-import com.jiyingcao.a51fengliu.viewmodel.UiState.Error
-import com.jiyingcao.a51fengliu.viewmodel.UiState.Loading
-import com.jiyingcao.a51fengliu.viewmodel.UiState.Success
-import kotlinx.coroutines.Dispatchers
+import com.jiyingcao.a51fengliu.domain.exception.BusinessException
+import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
+import com.jiyingcao.a51fengliu.repository.RecordRepository
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
-class DetailViewModel: ViewModel() {
-    private val _data = MutableLiveData<UiState<RecordInfo>>()
-    val data: LiveData<UiState<RecordInfo>> = _data
+sealed class DetailState {
+    object Init : DetailState()
+    object Loading : DetailState()
+    data class Success(val record: RecordInfo) : DetailState()
+    data class Error(val message: String) : DetailState()
+}
 
-    fun fetchRecordById(
-        showFullScreenLoading: Boolean = false,
-        id: String
-    ) {
-        viewModelScope.launch(Dispatchers.IO) {
-            // TODO showFullScreenLoading不再使用, 待移除
-            val loadingState =
-                if (showFullScreenLoading) Loading.fullScreen() else Loading.pullRefresh()
-            _data.postValue(loadingState)
+sealed class DetailIntent {
+    object LoadDetail : DetailIntent()
+    object Refresh : DetailIntent()
+    object Favorite : DetailIntent()
+    object Unfavorite : DetailIntent()
+}
 
-            try {
-                val response = RetrofitClient.apiService.getDetail(id)
-                if (response.code != 0) {
-                    _data.postValue(Error("API状态码 code=${response.code}, msg=${response.msg}"))
-                    Log.w(TAG, "API状态码 code=${response.code}, msg=${response.msg}")
-                    return@launch
-                }
-                _data.postValue(Success(response.data!!))
-            } catch (e: Exception) {
-                // 处理错误
-                _data.postValue(Error("网络请求失败"))
-                Log.w(TAG, "网络请求失败: ", e)
-            }
+sealed class DetailEffect {
+    object ShowLoadingDialog : DetailEffect()
+    object DismissLoadingDialog : DetailEffect()
+    object FinishRefresh : DetailEffect()
+    data class ShowToast(val message: String) : DetailEffect()
+}
+
+class DetailViewModel(
+    private val infoId: String,
+    private val repository: RecordRepository
+) : ViewModel() {
+
+    private val _state = MutableStateFlow<DetailState>(DetailState.Init)
+    val state: StateFlow<DetailState> = _state.asStateFlow()
+
+    private val _effect = Channel<DetailEffect>()
+    val effect = _effect.receiveAsFlow()
+
+    fun processIntent(intent: DetailIntent) {
+        when (intent) {
+            is DetailIntent.LoadDetail -> loadDetail()
+            is DetailIntent.Refresh -> refresh()
+            is DetailIntent.Favorite -> favorite()
+            is DetailIntent.Unfavorite -> unfavorite()
         }
     }
 
-    companion object {
-        private const val TAG: String = "DetailViewModel"
+    private fun loadDetail() {
+        viewModelScope.launch {
+            _state.value = DetailState.Loading
+            repository.getDetail(infoId)
+                .collect { result ->
+                    result.onSuccess { record ->
+                        // 处理成功情况
+                        _state.value = DetailState.Success(record)
+                    }.onFailure { e ->
+                        // 处理错误情况
+                        var errMsg = e.toUserFriendlyMessage()
+                        _state.value = DetailState.Error(errMsg)
+                    }
+                }
+        }
+    }
+
+    private fun refresh() {
+        viewModelScope.launch {
+            repository.getDetail(infoId)
+                .collect { result ->
+                    result.onSuccess { record ->
+                        _state.value = DetailState.Success(record)
+                        _effect.send(DetailEffect.FinishRefresh)
+                    }.onFailure { e ->
+                        var errMsg = e.toUserFriendlyMessage()
+                        _effect.send(DetailEffect.FinishRefresh)
+                        _effect.send(DetailEffect.ShowToast(errMsg))
+                    }
+                }
+        }
+    }
+
+    private fun favorite() {}
+    private fun unfavorite() {}
+}
+
+class DetailViewModelFactory(
+    private val infoId: String,
+    private val repository: RecordRepository
+): ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(DetailViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return DetailViewModel(infoId, repository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

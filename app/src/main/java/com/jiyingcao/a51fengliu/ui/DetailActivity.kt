@@ -262,12 +262,17 @@ class DetailActivity : BaseActivity() {
      * 根据用户的会员状态显示联系方式
      */
     private fun displayContactInfoByMemberState(record: RecordInfo) {
+        val contactWarning = realContentView.findViewById<View>(R.id.contactWarning)
+
         // 情况1：当前用户是VIP会员，显示联系方式
         if (!record.vipView.isNullOrBlank()
             /*&& record.vipProfileStatus!!.toInt() >= 4*/) {
             contactInfoVIP.isVisible = true
             contactInfoOrdinaryMember.isVisible = false
             contactInfoNotLogin.isVisible = false
+
+            // 显示警告信息，避免诈骗
+            contactWarning.isVisible = true
 
             val qq = realContentView.findViewById<TextView>(R.id.qq)
             val wechat = realContentView.findViewById<TextView>(R.id.wechat)
@@ -303,6 +308,9 @@ class DetailActivity : BaseActivity() {
             contactInfoVIP.isVisible = false
             contactInfoOrdinaryMember.isVisible = true
             contactInfoNotLogin.isVisible = false
+
+            // 没有联系方式时不需要显示警告信息
+            contactWarning.isVisible = false
             return
         }
 
@@ -314,6 +322,8 @@ class DetailActivity : BaseActivity() {
             contactInfoVIP.isVisible = false
             contactInfoOrdinaryMember.isVisible = false
             contactInfoNotLogin.isVisible = true
+            // 同上，未登录时不需要显示警告信息
+            contactWarning.isVisible = false
             return
         }
     }

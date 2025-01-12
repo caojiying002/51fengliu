@@ -1,6 +1,5 @@
 package com.jiyingcao.a51fengliu.ui
 
-import android.graphics.Color
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.TextPaint

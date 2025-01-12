@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 错误态：Material Design用state_selected表示错误状态 -->
+    <item android:color="?attr/colorError" android:state_selected="true"/>
+    <!-- 选中态 -->
+    <item android:color="?attr/colorPrimary" android:state_focused="true"/>
+    <!-- 禁用态 -->
+    <item android:color="?attr/colorOutlineVariant" android:state_enabled="false"/>
+    <!-- 默认态 -->
+    <item android:color="?attr/colorOutlineVariant"/>
+</selector>

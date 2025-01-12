@@ -3,7 +3,24 @@
     <style name="Base.Theme.App" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <item name="android:windowBackground">@color/background</item>
-        <item name="colorPrimary">@color/light_primary</item>
+
+        <!-- 自定义 Material 3 颜色 -->
+        <item name="colorPrimary">@color/md_theme_primary</item>
+        <item name="colorError">@color/md_theme_error</item>
+        <item name="colorOutline">@color/md_theme_outline</item>
+
+        <!-- 输入框错误文本样式 -->
+        <item name="textInputStyle">@style/Widget.App.TextInputLayout</item>
+    </style>
+
+    <style name="Widget.App.TextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <!-- 自定义错误文本外观 -->
+        <item name="errorTextAppearance">@style/TextAppearance.App.Error</item>
+    </style>
+
+    <style name="TextAppearance.App.Error" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textColor">?attr/colorError</item>
+        <item name="android:textSize">14dp</item>
     </style>
 
     <style name="Theme.App" parent="Base.Theme.App" />
@@ -13,6 +30,7 @@
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowNoTitle">true</item>
     </style>
+
     <style name="Theme.App.BigImageViewer" parent="Theme.App.Fullscreen">
         <item name="android:windowBackground">@android:color/black</item>
     </style>

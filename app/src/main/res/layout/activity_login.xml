@@ -25,15 +25,26 @@
             android:orientation="vertical"
             android:padding="16dp">
 
+            <TextView
+                android:id="@+id/tv_random_tip"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="48dp"
+                android:gravity="center"
+                android:maxLines="2"
+                android:textSize="22dp"
+                android:textColor="@color/text_light"
+                tools:text="玉体偎人情何厚。轻惜轻怜转唧口留。"/>
+
             <!-- Logo -->
             <ImageView
                 android:id="@+id/iv_logo"
-                android:layout_width="120dp"
-                android:layout_height="120dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="60dp"
-                android:layout_marginBottom="40dp"
-                android:src="@drawable/ic_launcher_foreground" />
+                android:layout_marginTop="40dp"
+                android:layout_marginBottom="60dp"
+                android:src="@drawable/ic_logo_login_screen" />
 
             <!-- 用户名输入框 - Material3 -->
             <com.google.android.material.textfield.TextInputLayout
@@ -42,7 +53,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="请输入用户名">
+                android:hint="请输入用户名"
+                app:boxStrokeColor="@color/selector_text_input_box_stroke"
+                app:boxStrokeWidth="1dp"
+                app:boxStrokeWidthFocused="2dp"
+                app:endIconMode="clear_text"
+                app:endIconTint="@color/selector_text_input_box_stroke"
+                app:errorEnabled="true"
+                app:hintTextColor="@color/selector_text_input_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/et_username"
@@ -60,7 +78,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
                 android:hint="请输入密码"
-                app:endIconMode="password_toggle">
+                app:boxStrokeColor="@color/selector_text_input_box_stroke"
+                app:boxStrokeWidth="1dp"
+                app:boxStrokeWidthFocused="2dp"
+                app:endIconMode="password_toggle"
+                app:endIconTint="@color/selector_text_input_box_stroke"
+                app:errorEnabled="true">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/et_password"
@@ -75,8 +98,9 @@
                 android:id="@+id/btn_login"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="32dp"
                 style="@style/ButtonStyle"
+                android:paddingVertical="20dp"
                 android:text="登录" />
 
             <!-- 注册提示文本 -->
@@ -101,6 +125,10 @@
                 android:textColorLink="@color/text_strong"
                 android:textColorHighlight="@android:color/transparent"
                 tools:text="忘记密码，点此找回" />
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="100dp" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

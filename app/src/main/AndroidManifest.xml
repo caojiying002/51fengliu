@@ -44,7 +44,8 @@
             android:exported="false" />
         <activity
             android:name=".ui.LoginActivity"
-            android:exported="true" /><!-- 为了方便测试，暂时设置为true -->
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:exported="false" />
         <activity
             android:name=".ui.RegisterActivity"
             android:exported="false" />

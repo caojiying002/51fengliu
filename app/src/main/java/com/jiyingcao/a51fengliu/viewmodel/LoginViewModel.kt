@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.api.response.LoginErrorData
+import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.domain.exception.LoginException
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.UserRepository
@@ -71,6 +72,7 @@ class LoginViewModel(
             repository.login(username, password)
                 .collect { result ->
                     result.onSuccess { token ->
+                        TokenManager.getInstance().saveToken(token)
                         _state.value = LoginState.Success(token)
                         _effect.send(LoginEffect.DismissLoadingDialog)
                         _effect.send(LoginEffect.NavigateToMain)

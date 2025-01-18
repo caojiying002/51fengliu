@@ -15,11 +15,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.RetrofitClient
+import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.databinding.ActivityLoginBinding
 import com.jiyingcao.a51fengliu.repository.UserRepository
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.util.showToast
-import com.jiyingcao.a51fengliu.viewmodel.DetailEffect
 import com.jiyingcao.a51fengliu.viewmodel.LoginEffect
 import com.jiyingcao.a51fengliu.viewmodel.LoginErrorType
 import com.jiyingcao.a51fengliu.viewmodel.LoginIntent
@@ -82,7 +82,7 @@ class LoginActivity: BaseActivity() {
                             showToast(effect.message)
                         }
                         is LoginEffect.NavigateToMain -> {
-                            startMainActivity()
+                            navigateToMainActivity()
                         }
                     }
                 }
@@ -117,7 +117,12 @@ class LoginActivity: BaseActivity() {
         binding.tilPassword.error = null
     }
 
-    private fun startMainActivity() {}
+    private fun navigateToMainActivity() {
+        lifecycleScope.launch {
+            val savedToken = TokenManager.getInstance().getToken()
+            showToast("登录成功，Token已保存: $savedToken")
+        }
+    }
     private fun showLoadingDialog() {}
     private fun dismissLoadingDialog() {}
 

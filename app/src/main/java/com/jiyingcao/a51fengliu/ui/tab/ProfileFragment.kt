@@ -9,7 +9,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.jiyingcao.a51fengliu.R
-import com.jiyingcao.a51fengliu.data.TokenManager
+import com.jiyingcao.a51fengliu.data.MockTokenManager
 import com.jiyingcao.a51fengliu.databinding.FragmentProfileBinding
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -38,7 +38,7 @@ class ProfileFragment : Fragment() {
         setupFlowCollectors()
         setupClickListeners()
 
-        if (TokenManager.isLoggedIn) {
+        if (MockTokenManager.isLoggedIn) {
             viewModel.fetchProfile()
         } else {
             showLoginState()
@@ -75,7 +75,7 @@ class ProfileFragment : Fragment() {
     private fun setupClickListeners() {
         binding.btnLogin.setOnClickListener {
             // Handle login click
-            TokenManager.isLoggedIn = true
+            MockTokenManager.isLoggedIn = true
             viewModel.fetchProfile()
         }
 
@@ -84,7 +84,7 @@ class ProfileFragment : Fragment() {
         }
 
         binding.btnLogout.setOnClickListener {
-            TokenManager.isLoggedIn = false
+            MockTokenManager.isLoggedIn = false
             showLoginState()
         }
     }

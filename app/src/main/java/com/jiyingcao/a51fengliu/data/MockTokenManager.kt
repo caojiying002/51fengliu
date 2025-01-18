@@ -1,5 +1,5 @@
 package com.jiyingcao.a51fengliu.data
 
-object TokenManager {
+object MockTokenManager {
     var isLoggedIn: Boolean = false
 }

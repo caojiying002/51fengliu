@@ -8,21 +8,118 @@ import android.text.style.ClickableSpan
 import android.text.style.ForegroundColorSpan
 import android.view.View
 import android.widget.TextView
+import androidx.core.widget.doOnTextChanged
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.jiyingcao.a51fengliu.R
+import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.databinding.ActivityLoginBinding
+import com.jiyingcao.a51fengliu.repository.UserRepository
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
-
+import com.jiyingcao.a51fengliu.util.showToast
+import com.jiyingcao.a51fengliu.viewmodel.DetailEffect
+import com.jiyingcao.a51fengliu.viewmodel.LoginEffect
+import com.jiyingcao.a51fengliu.viewmodel.LoginErrorType
+import com.jiyingcao.a51fengliu.viewmodel.LoginIntent
+import com.jiyingcao.a51fengliu.viewmodel.LoginState
+import com.jiyingcao.a51fengliu.viewmodel.LoginViewModel
+import com.jiyingcao.a51fengliu.viewmodel.LoginViewModelFactory
+import kotlinx.coroutines.launch
 
 class LoginActivity: BaseActivity() {
     private lateinit var binding: ActivityLoginBinding
+
+    private lateinit var viewModel: LoginViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        setupClickListeners()
         setupTextViewSpans()
+        setupViewModel()
+        setupFlowCollectors()
     }
+
+    private fun setupViewModel() {
+        viewModel = ViewModelProvider(
+            this,
+            LoginViewModelFactory(
+                UserRepository.getInstance(RetrofitClient.apiService)
+            )
+        )[LoginViewModel::class.java]
+    }
+
+    private fun setupFlowCollectors() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    when (state) {
+                        is LoginState.Init -> {
+                            clearErrorMessage()
+                        }
+                        is LoginState.Success -> {
+                            clearErrorMessage()
+                        }
+                        is LoginState.Error -> {
+                            showError(state.errorType, state.code)
+                        }
+                    }
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.effect.collect { effect ->
+                    when (effect) {
+                        is LoginEffect.ShowLoadingDialog -> showLoadingDialog()
+                        is LoginEffect.DismissLoadingDialog -> dismissLoadingDialog()
+                        is LoginEffect.ShowToast -> {
+                            showToast(effect.message)
+                        }
+                        is LoginEffect.NavigateToMain -> {
+                            startMainActivity()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun setupClickListeners() {
+        binding.btnLogin.setOnClickListener {
+            val username = binding.etUsername.text.toString().trim()
+            val password = binding.etPassword.text.toString().trim()
+
+            viewModel.processIntent(LoginIntent.Login(username, password))
+        }
+    }
+
+    private fun showError(errorType: LoginErrorType, code: Int) {
+        clearErrorMessage()
+        when (errorType) {
+            is LoginErrorType.NamePassword -> {
+                binding.tilUsername.error = errorType.name
+                binding.tilPassword.error = errorType.password
+            }
+            is LoginErrorType.UnknownError -> {
+                showToast(errorType.message)
+            }
+        }
+    }
+
+    private fun clearErrorMessage() {
+        binding.tilUsername.error = null
+        binding.tilPassword.error = null
+    }
+
+    private fun startMainActivity() {}
+    private fun showLoadingDialog() {}
+    private fun dismissLoadingDialog() {}
 
     /**
      * 设置"立即注册"和"点此找回"两个文本的点击事件

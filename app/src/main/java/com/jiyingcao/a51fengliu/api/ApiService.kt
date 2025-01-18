@@ -1,6 +1,7 @@
 package com.jiyingcao.a51fengliu.api
 
 import com.jiyingcao.a51fengliu.api.request.InfoIdRequest
+import com.jiyingcao.a51fengliu.api.request.LoginRequest
 import com.jiyingcao.a51fengliu.api.response.*
 import retrofit2.http.*
 
@@ -47,6 +48,12 @@ interface ApiService {
     suspend fun getDetail(
         @Query("infoId") id: String
     ): ApiResponse<RecordInfo>
+
+    /** 登录 */
+    @POST("/api/web/auth/login.json")
+    suspend fun postLogin(
+        @Body body: LoginRequest
+    ): ApiResponse<ApiResult<String, LoginErrorData>>
 
     /** 个人中心：用户信息（需登录） */
     @GET("/api/web/authUser/detail.json")

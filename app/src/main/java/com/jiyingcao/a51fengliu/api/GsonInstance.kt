@@ -4,6 +4,9 @@ import android.util.Log
 import com.google.gson.*
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.*
+import com.jiyingcao.a51fengliu.api.response.ApiResponse
+import com.jiyingcao.a51fengliu.api.response.ApiResult
+import com.jiyingcao.a51fengliu.api.response.LoginErrorData
 import java.lang.reflect.Type
 
 private const val TAG = "GsonInstance"
@@ -11,11 +14,59 @@ private const val TAG = "GsonInstance"
 object GsonInstance {
     val gson: Gson by lazy {
         GsonBuilder()
+            .registerApiResponseType<String, LoginErrorData>()
             //.registerTypeAdapterFactory(NullStringToEmptyAdapterFactory())
             //.registerTypeAdapter(String::class.java, NullStringDeserializer())
             //.registerTypeAdapter(ItemData::class.java, NullObjectDeserializer(ItemData::class.java))
             .create()
     }
+}
+
+class ApiResponseDeserializer<T, E>(
+    private val successType: Type,
+    private val errorType: Type
+) : JsonDeserializer<ApiResponse<ApiResult<T, E>>> {
+
+    override fun deserialize(
+        json: JsonElement,
+        typeOfT: Type,
+        context: JsonDeserializationContext
+    ): ApiResponse<ApiResult<T, E>> {
+        val jsonObject = json.asJsonObject
+        val code = jsonObject.get("code").asInt
+        val msg = jsonObject.get("msg")?.asString
+        val data = jsonObject.get("data")
+
+        val result = when {
+            code == 0 && !data.isJsonNull -> {
+                val successData = context.deserialize<T>(data, successType)
+                ApiResult.Success(successData)
+            }
+            data.isJsonNull -> {
+                ApiResult.Error(code, msg, null)
+            }
+            else -> {
+                val errorData = context.deserialize<E>(data, errorType)
+                ApiResult.Error(code, msg, errorData)
+            }
+        }
+
+        return ApiResponse(code, msg, result)
+    }
+}
+
+inline fun <reified S, reified E> GsonBuilder.registerApiResponseType(): GsonBuilder = apply {
+    registerTypeAdapter(
+        TypeToken.getParameterized(
+            ApiResponse::class.java,
+            TypeToken.getParameterized(
+                ApiResult::class.java,
+                S::class.java,
+                E::class.java
+            ).type
+        ).type,
+        ApiResponseDeserializer<S, E>(S::class.java, E::class.java)
+    )
 }
 
 /**

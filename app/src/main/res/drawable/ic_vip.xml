@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="16dp"
+    android:height="16dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- 头部 -->
+    <path
+        android:fillColor="?android:attr/textColorPrimary"
+        android:pathData="M12 3.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7z"/>
+    <!-- 身体轮廓 -->
+    <path
+        android:fillColor="?android:attr/textColorPrimary"
+        android:pathData="M12 11.5c4 0 7 2 7 5v4H5v-4c0-3 3-5 7-5z"/>
+    <!-- 领带 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M10.5 11.7v1.3l1.5.5 1.5-.5v-1.3c-.5.1-1 .2-1.5.2s-1-.1-1.5-.2z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12 13.5l-1.5 5h3l-1.5-5z"/>
+</vector>

@@ -160,7 +160,7 @@ class DetailActivity : BaseActivity() {
 
     private fun setupFlowCollectors() {
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
+//            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { state ->
                     when (state) {
                         is DetailState.Init -> {
@@ -179,12 +179,12 @@ class DetailActivity : BaseActivity() {
                         }
                     }
                 }
-            }
+//            }
         }
 
         // Collect side effects
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
+//            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.effect.collect { effect ->
                     when (effect) {
                         is DetailEffect.ShowLoadingDialog -> showLoadingDialog()
@@ -193,7 +193,7 @@ class DetailActivity : BaseActivity() {
                         is DetailEffect.ShowToast -> showToast(effect.message)
                     }
                 }
-            }
+//            }
         }
     }
 

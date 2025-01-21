@@ -19,8 +19,8 @@ open class ApiException(
  */
 fun Throwable.toUserFriendlyMessage(): String {
     return when (this) {
-        is ApiException -> "API错误码${code}：${message}"
-        is HttpException -> "${message}\r\n" + this.response()?.errorBody()?.string()
+        is ApiException -> "API错误码${code}：${messageTaggedByType()}"
+        is HttpException -> "${messageTaggedByType()}\r\n" + this.response()?.errorBody()?.string()
         is MalformedJsonException, is JsonParseException -> "数据解析错误：${messageTaggedByType()}"
         is IOException -> "网络错误：${messageTaggedByType()}"
         else -> "未知错误：${messageTaggedByType()}"

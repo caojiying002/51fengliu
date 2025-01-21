@@ -28,5 +28,10 @@ Phasellus in leo massa. Aliquam malesuada, enim nec auctor posuere, quam sem mal
     <string name="address_format">地址：\t%1$s</string>
 
     <string name="intro_search_result_format">\"%1$s\"的搜索结果</string>
+    <string name="vip_welcome">尊敬的VIP，欢迎登录</string>
+    <string name="normal_welcome">欢迎登录</string>
+    <string name="permanent">永久</string>
+    <string name="upgrade_prompt">立即升级，轻松风流 >>></string>
+    <string name="refresh_prompt">[已经升级？点击刷新]</string>
 
 </resources>

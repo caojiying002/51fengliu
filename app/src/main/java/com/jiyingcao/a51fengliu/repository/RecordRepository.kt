@@ -10,7 +10,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.withContext
 
 class RecordRepository(
     private val apiService: ApiService,
@@ -21,7 +20,7 @@ class RecordRepository(
      * 获取记录列表，带分页功能
      * @param request 请求参数
      */
-    suspend fun getRecords(
+    fun getRecords(
         request: RecordsRequest
     ): Flow<Result<PageData>> = flow {
         try {

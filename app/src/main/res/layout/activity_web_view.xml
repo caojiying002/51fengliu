@@ -31,10 +31,11 @@
 
         <ProgressBar
             android:id="@+id/progressBar"
-            style="?android:attr/progressBarStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            style="?android:attr/progressBarStyle"
+            android:indeterminateTint="?attr/colorPrimary"
             android:visibility="invisible" />
     </FrameLayout>
 </LinearLayout>

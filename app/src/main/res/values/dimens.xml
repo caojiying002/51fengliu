@@ -2,12 +2,14 @@
 <resources>
     <dimen name="toolbar_height">64dp</dimen>
 
+    <!-- 页面默认的边距，也就是每个页面内容区域到屏幕边缘的距离 -->
+    <dimen name="default_horizontal_space">8dp</dimen>
+
     <dimen name="text_default">14dp</dimen>
     <dimen name="button_text_default">15dp</dimen>
     <dimen name="home_icon_size">32dp</dimen>
     <dimen name="home_icon_drawable_padding">8dp</dimen>
     <dimen name="home_icon_vertical_padding">8dp</dimen>
-    <dimen name="home_horizontal_space">8dp</dimen><!-- TODO 重命名 -->
     <dimen name="divider_height">4dp</dimen>
     <dimen name="divider_height_half">2dp</dimen>
 </resources>

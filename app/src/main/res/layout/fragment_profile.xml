@@ -37,7 +37,7 @@
         android:id="@+id/profile_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/home_horizontal_space"
+        android:layout_marginHorizontal="@dimen/default_horizontal_space"
         android:layout_marginVertical="@dimen/divider_height_half">
 
         <include

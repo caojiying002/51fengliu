@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.api.response.Profile
+import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.repository.UserRepository
@@ -24,10 +25,28 @@ sealed class ProfileIntent {
 }
 
 class ProfileViewModel(
-    private val repository: UserRepository
+    private val repository: UserRepository,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
     private val _state = MutableStateFlow<ProfileState>(ProfileState.Init)
     val state: StateFlow<ProfileState> = _state.asStateFlow()
+
+    private val _isLoggedIn = MutableStateFlow<Boolean?>(null)
+    val isLoggedIn: StateFlow<Boolean?> = _isLoggedIn.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            tokenManager.token
+                .map { token -> !token.isNullOrBlank() }
+                .distinctUntilChanged()
+                .collect { isLoggedIn ->
+                    _isLoggedIn.value = isLoggedIn
+                    if (isLoggedIn) {
+                        processIntent(ProfileIntent.LoadProfile)
+                    }
+                }
+        }
+    }
 
     fun processIntent(intent: ProfileIntent) {
         when (intent) {
@@ -52,12 +71,13 @@ class ProfileViewModel(
 }
 
 class ProfileViewModelFactory(
-    private val repository: UserRepository
+    private val repository: UserRepository,
+    private val tokenManager: TokenManager
 ): ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ProfileViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return ProfileViewModel(repository) as T
+            return ProfileViewModel(repository, tokenManager) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

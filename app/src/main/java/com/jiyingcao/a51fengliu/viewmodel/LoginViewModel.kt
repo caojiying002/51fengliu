@@ -46,7 +46,7 @@ sealed class LoginEffect {
     object ShowLoadingDialog : LoginEffect()
     object DismissLoadingDialog : LoginEffect()
     data class ShowToast(val message: String) : LoginEffect()
-    object NavigateToMain : LoginEffect()
+    object NavigateToMain : LoginEffect()   // TODO 不一定要跳转到 MainActivity，是否应该由调用方决定？
 }
 
 class LoginViewModel(

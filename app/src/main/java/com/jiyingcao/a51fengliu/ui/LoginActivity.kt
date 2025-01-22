@@ -1,5 +1,7 @@
 package com.jiyingcao.a51fengliu.ui
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.TextPaint
@@ -91,6 +93,9 @@ class LoginActivity: BaseActivity() {
     }
 
     private fun setupClickListeners() {
+        binding.titleBar.titleBarBack.setOnClickListener {
+            finish()
+        }
         binding.btnLogin.setOnClickListener {
             val username = binding.etUsername.text.toString().trim()
             val password = binding.etPassword.text.toString().trim()
@@ -121,6 +126,7 @@ class LoginActivity: BaseActivity() {
         lifecycleScope.launch {
             val savedToken = TokenManager.getInstance().getToken()
             showToast("登录成功，Token已保存: $savedToken")
+            finish()
         }
     }
     private fun showLoadingDialog() {}
@@ -192,6 +198,18 @@ class LoginActivity: BaseActivity() {
         textView.apply {
             text = spannableString
             movementMethod = LinkMovementMethod.getInstance()
+        }
+    }
+
+    companion object {
+        private const val TAG = "LoginActivity"
+
+        @JvmStatic
+        fun createIntent(context: Context) = Intent(context, LoginActivity::class.java)
+
+        @JvmStatic
+        fun start(context: Context) {
+            context.startActivity(createIntent(context))
         }
     }
 }

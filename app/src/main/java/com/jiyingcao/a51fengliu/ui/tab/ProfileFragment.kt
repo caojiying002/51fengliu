@@ -10,18 +10,20 @@ import androidx.lifecycle.lifecycleScope
 import com.jiyingcao.a51fengliu.databinding.FragmentProfileBinding
 import kotlinx.coroutines.launch
 import androidx.lifecycle.ViewModelProvider
+import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.Profile
 import com.jiyingcao.a51fengliu.repository.UserRepository
-import com.jiyingcao.a51fengliu.util.FirstResumeLifecycleObserver
 import com.jiyingcao.a51fengliu.viewmodel.ProfileIntent
 import com.jiyingcao.a51fengliu.viewmodel.ProfileState
 import com.jiyingcao.a51fengliu.viewmodel.ProfileViewModel
 import com.jiyingcao.a51fengliu.viewmodel.ProfileViewModelFactory
 import com.jiyingcao.a51fengliu.R
+import com.jiyingcao.a51fengliu.data.TokenManager
+import com.jiyingcao.a51fengliu.ui.LoginActivity
+import com.jiyingcao.a51fengliu.util.dataStore
 
-class ProfileFragment : Fragment(),
-    FirstResumeLifecycleObserver.FirstResumeListener {
+class ProfileFragment : Fragment() {
     private var _binding: FragmentProfileBinding? = null
     // This property is only valid between onCreateView and onDestroyView.
     private val binding get() = _binding!!
@@ -37,8 +39,6 @@ class ProfileFragment : Fragment(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // 添加第一次 onResume 事件监听器
-        lifecycle.addObserver(FirstResumeLifecycleObserver(this))
         setupViewModel()
     }
 
@@ -54,31 +54,34 @@ class ProfileFragment : Fragment(),
         setupClickListeners()
     }
 
-    override fun onFirstResume(isRecreate: Boolean) {
-        // 重新创建时不加载数据
-        if (!isRecreate) {
-            // 第一次 onResume 事件发生时加载数据
-            viewModel.processIntent(ProfileIntent.LoadProfile)
-        }
-    }
-
     private fun setupViewModel() {
         viewModel = ViewModelProvider(
             this,
             ProfileViewModelFactory(
-                UserRepository.getInstance(RetrofitClient.apiService)
+                UserRepository.getInstance(RetrofitClient.apiService),
+                TokenManager.getInstance(App.INSTANCE.dataStore)
             )
         )[ProfileViewModel::class.java]
     }
 
     private fun setupFlowCollectors() {
+        // 观察登录状态
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.isLoggedIn.collect { isLoggedIn ->
+                when (isLoggedIn) {
+                    true -> showLoggedInUI()
+                    false -> showLoggedOutUI()
+                    null -> { /* 初始状态，可以显示加载中 */ }
+                }
+            }
+        }
+
+        // 观察个人信息状态
         lifecycleScope.launch {
 //            repeatOnLifecycle(Lifecycle.State.STARTED) {
             viewModel.state.collect { state ->
                 when (state) {
-                    is ProfileState.Init -> {
-                        // 初始化应该显示什么内容，还是什么都不显示？
-                    }
+                    is ProfileState.Init -> { /* 初始状态，可以显示加载中 */ }
                     is ProfileState.Loading -> {
                         showLoadingView()
                     }
@@ -108,14 +111,27 @@ class ProfileFragment : Fragment(),
         binding.profileInfo.refreshPrompt.setOnClickListener {
             viewModel.processIntent(ProfileIntent.Refresh)
         }
+        binding.profileNotLogin.clickLogin.setOnClickListener {
+            startActivity(LoginActivity.createIntent(requireContext()))
+        }
     }
 
-    private fun showLoginState() {
+    private fun showLoggedOutUI() {
+        binding.profileNotLogin.root.isVisible = true
+        binding.profileInfoContainer.isVisible = false
 
+        // 虽然隐藏了，最好也清除一下之前的个人信息显示
+        binding.profileInfo.apply {
+            usernameText.text = ""
+            tvPoints.text = "0"
+            tvMessages.text = "0"
+            membershipStatus.text = "普通会员"
+        }
     }
 
-    private fun showProfileState() {
-
+    private fun showLoggedInUI() {
+        binding.profileInfoContainer.isVisible = true
+        binding.profileNotLogin.root.isVisible = false
     }
 
     private fun showLoadingView() {

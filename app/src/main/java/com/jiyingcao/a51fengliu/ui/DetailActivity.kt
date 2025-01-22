@@ -51,6 +51,7 @@ import com.jiyingcao.a51fengliu.viewmodel.DetailViewModelFactory
 import com.jiyingcao.a51fengliu.viewmodel.UiState
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class DetailActivity : BaseActivity() {
@@ -185,7 +186,7 @@ class DetailActivity : BaseActivity() {
         // Collect side effects
         lifecycleScope.launch {
 //            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.effect.collect { effect ->
+                viewModel.effect.collectLatest { effect ->
                     when (effect) {
                         is DetailEffect.ShowLoadingDialog -> showLoadingDialog()
                         is DetailEffect.DismissLoadingDialog -> dismissLoadingDialog()

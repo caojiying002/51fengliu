@@ -53,7 +53,7 @@ class RecordRepository(
                 } ?: emit(Result.failure(Exception("Empty response data")))
             } else {
                 emit(Result.failure(
-                    BusinessException.createFromResponse(response) // TODO 有些失败响应data不为空，需要特殊处理
+                    BusinessException.createFromResponse(response) // TODO 是否还需要[BusinessException]类？
                 ))
             }
         } catch (e: Exception) {

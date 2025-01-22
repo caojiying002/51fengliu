@@ -46,7 +46,7 @@ data class Profile(
     val isMuted: Boolean,
     val reputation: Int,
     val agentId: Any?,
-    val score: Int,
+    val score: String?,  // Int
     val canAgent: Boolean,
     val agentRate: Int,
     val source: Int,
@@ -54,17 +54,19 @@ data class Profile(
     val comment: Any?,
     val sign: Any?,
     val certPics: Any?,
-    val infoPassCount: Int,
-    val infoRefuseCount: Int,
-    val expiredAt: Any?,
-    val forbiddenAt: Any?,
-    val lastLogin: Long,
-    val createdAt: Long,
+    val infoPassCount: String?, // Int
+    val infoRefuseCount: String?, // Int
+
+    /** 会员过期时间。永久会员的值是“2147443200000”，也就是2038-01-19 00:00:00 */
+    val expiredAt: String?, // Long
+    val forbiddenAt: String?, // Long
+    val lastLogin: String?, // Long
+    val createdAt: String?, // Long
     val agentName: Any?,
     val isFrozen: Boolean,
     val isForbidden: Boolean,
     val userType: Int,
-    val isVip: Boolean,
-    val publishedInfoCount: Int,
-    val refusedInfoCount: Int
+    val isVip: Boolean?,
+    val publishedInfoCount: String?, // Int
+    val refusedInfoCount: String? // Int
 )

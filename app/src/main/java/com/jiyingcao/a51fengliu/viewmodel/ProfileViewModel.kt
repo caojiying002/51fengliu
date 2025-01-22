@@ -1,38 +1,64 @@
 package com.jiyingcao.a51fengliu.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.jiyingcao.a51fengliu.api.ApiService
-import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.Profile
+import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
+import com.jiyingcao.a51fengliu.repository.RecordRepository
+import com.jiyingcao.a51fengliu.repository.UserRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-class ProfileViewModel : ViewModel() {
-    private val _profile = MutableStateFlow<Profile?>(null)
-    val profile: StateFlow<Profile?> = _profile.asStateFlow()
+sealed class ProfileState {
+    object Init : ProfileState()
+    object Loading : ProfileState()
+    data class Success(val profile: Profile) : ProfileState()
+    data class Error(val message: String) : ProfileState()
+}
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+sealed class ProfileIntent {
+    object LoadProfile : ProfileIntent()
+    object Refresh : ProfileIntent()
+    object Retry : ProfileIntent()
+}
 
-    private val _error = MutableSharedFlow<String>()
-    val error: SharedFlow<String> = _error.asSharedFlow()
+class ProfileViewModel(
+    private val repository: UserRepository
+) : ViewModel() {
+    private val _state = MutableStateFlow<ProfileState>(ProfileState.Init)
+    val state: StateFlow<ProfileState> = _state.asStateFlow()
+
+    fun processIntent(intent: ProfileIntent) {
+        when (intent) {
+            is ProfileIntent.LoadProfile -> fetchProfile()
+            is ProfileIntent.Refresh -> fetchProfile()
+            is ProfileIntent.Retry -> fetchProfile()
+        }
+    }
 
     fun fetchProfile() {
         viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                val response = RetrofitClient.apiService.getProfile()
-                if (response.isSuccessful()) {
-                    _profile.value = response.data
-                } else {
-                    _error.emit("Failed to fetch profile")
+            _state.value = ProfileState.Loading
+            repository.getProfile().collect { result ->
+                result.onSuccess { profile ->
+                    _state.value = ProfileState.Success(profile)
+                }.onFailure { e ->
+                    _state.value = ProfileState.Error(e.toUserFriendlyMessage())
                 }
-            } catch (e: Exception) {
-                _error.emit(e.message ?: "An error occurred")
-            } finally {
-                _isLoading.value = false
             }
         }
+    }
+}
+
+class ProfileViewModelFactory(
+    private val repository: UserRepository
+): ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(ProfileViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return ProfileViewModel(repository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

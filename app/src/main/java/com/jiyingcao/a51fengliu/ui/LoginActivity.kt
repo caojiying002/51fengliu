@@ -8,6 +8,7 @@ import android.text.TextPaint
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.text.style.ForegroundColorSpan
+import android.util.Log
 import android.view.View
 import android.widget.TextView
 import androidx.core.widget.doOnTextChanged
@@ -125,9 +126,10 @@ class LoginActivity: BaseActivity() {
     private fun navigateToMainActivity() {
         lifecycleScope.launch {
             val savedToken = TokenManager.getInstance().getToken()
-            showToast("登录成功，Token已保存: $savedToken")
-            finish()
+            Log.d(TAG, "登录成功，Token已保存: $savedToken")
         }
+        showToast("登录成功")
+        finish()
     }
     private fun showLoadingDialog() {}
     private fun dismissLoadingDialog() {}

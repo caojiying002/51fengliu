@@ -54,6 +54,16 @@ class ProfileFragment : Fragment() {
         setupClickListeners()
     }
 
+    override fun onStart() {
+        super.onStart()
+        viewModel.setUIVisibility(true)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        viewModel.setUIVisibility(false)
+    }
+
     private fun setupViewModel() {
         viewModel = ViewModelProvider(
             this,

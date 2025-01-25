@@ -34,18 +34,31 @@ class ProfileViewModel(
     private val _isLoggedIn = MutableStateFlow<Boolean?>(null)
     val isLoggedIn: StateFlow<Boolean?> = _isLoggedIn.asStateFlow()
 
+    private val _isUIVisible = MutableStateFlow(false)
+    val isUIVisible: StateFlow<Boolean> = _isUIVisible.asStateFlow()
+
     init {
         viewModelScope.launch {
-            tokenManager.token
-                .map { token -> !token.isNullOrBlank() }
-                .distinctUntilChanged()
-                .collect { isLoggedIn ->
-                    _isLoggedIn.value = isLoggedIn
-                    if (isLoggedIn) {
-                        processIntent(ProfileIntent.LoadProfile)
-                    }
+            // 使用Combine流将token流和UI的可见性状态流(onStart/onStop)结合起来。
+            // 只有当同时满足"已登录"且"UI"两个条件时，才触发fetchProfile请求
+            combine(
+                tokenManager.token
+                    .map { token -> !token.isNullOrBlank() }
+                    .distinctUntilChanged(),
+                isUIVisible
+            ) { isLoggedIn, isVisible ->
+                _isLoggedIn.value = isLoggedIn
+                Pair(isLoggedIn, isVisible)
+            }.collect { (isLoggedIn, isVisible) ->
+                if (isLoggedIn && isVisible) {
+                    processIntent(ProfileIntent.LoadProfile)
                 }
+            }
         }
+    }
+
+    fun setUIVisibility(isVisible: Boolean) {
+        _isUIVisible.value = isVisible
     }
 
     fun processIntent(intent: ProfileIntent) {

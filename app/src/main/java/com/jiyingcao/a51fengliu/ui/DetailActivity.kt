@@ -212,6 +212,9 @@ class DetailActivity : BaseActivity() {
             true
         }
         findViewById<View>(R.id.click_report).setOnClickListener {}
+        contactInfoNotLogin.findViewById<View>(R.id.click_login).setOnClickListener {
+            LoginActivity.start(this)
+        }
     }
     
     private fun updateUI(record: RecordInfo) {

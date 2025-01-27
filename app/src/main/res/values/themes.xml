@@ -3,6 +3,7 @@
     <style name="Base.Theme.App" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <item name="android:windowBackground">@color/background</item>
+        <item name="android:textColorPrimary">@color/text_content</item>
 
         <!-- 自定义 Material 3 颜色 -->
         <item name="colorPrimary">@color/md_theme_primary</item>

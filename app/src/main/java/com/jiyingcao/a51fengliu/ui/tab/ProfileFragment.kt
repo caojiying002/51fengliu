@@ -124,11 +124,15 @@ class ProfileFragment : Fragment() {
         binding.profileNotLogin.clickLogin.setOnClickListener {
             startActivity(LoginActivity.createIntent(requireContext()))
         }
+        binding.tvLogout.setOnClickListener {
+            viewModel.processIntent(ProfileIntent.Logout)
+        }
     }
 
     private fun showLoggedOutUI() {
         binding.profileNotLogin.root.isVisible = true
         binding.profileInfoContainer.isVisible = false
+        binding.tvLogout.isVisible = false
 
         // 虽然隐藏了，最好也清除一下之前的个人信息显示
         binding.profileInfo.apply {
@@ -142,6 +146,7 @@ class ProfileFragment : Fragment() {
     private fun showLoggedInUI() {
         binding.profileInfoContainer.isVisible = true
         binding.profileNotLogin.root.isVisible = false
+        binding.tvLogout.isVisible = true
     }
 
     private fun showLoadingView() {

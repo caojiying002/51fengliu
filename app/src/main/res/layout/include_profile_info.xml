@@ -1,201 +1,198 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:paddingVertical="8dp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
+    <!-- 标题文本 -->
+    <TextView
+        android:id="@+id/titleText"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingVertical="8dp">
+        android:paddingVertical="10dp"
+        android:text="@string/normal_welcome"
+        android:textColor="@color/text_content"
+        android:textSize="18dp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="尊敬的VIP，欢迎登录" />
 
-        <!-- 标题文本 -->
-        <TextView
-            android:id="@+id/titleText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingVertical="10dp"
-            android:text="@string/normal_welcome"
-            android:textSize="18dp"
-            android:textStyle="bold"
-            android:textColor="@color/text_content"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="尊敬的VIP，欢迎登录" />
+    <!-- 用户名 -->
+    <TextView
+        android:id="@+id/usernameText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="4dp"
+        android:drawableStart="@drawable/ic_user"
+        android:drawablePadding="2dp"
+        android:paddingVertical="10dp"
+        android:text="jiyingcao"
+        android:textColor="@color/text_content"
+        android:textSize="@dimen/text_default"
+        app:drawableTint="@color/text_title"
+        app:layout_constraintEnd_toStartOf="@id/membershipStatus"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/titleText" />
 
-        <LinearLayout
-            android:id="@+id/usernameLayout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingVertical="10dp"
-            android:gravity="center"
-            android:orientation="horizontal"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/titleText" >
+    <!-- 会员状态 -->
+    <TextView
+        android:id="@+id/membershipStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="4dp"
+        android:drawableStart="@drawable/ic_vip"
+        android:drawablePadding="2dp"
+        android:text="VIP会员"
+        android:textColor="@color/text_strong"
+        android:textSize="@dimen/text_default"
+        app:drawableTint="@color/text_title"
+        app:layout_constraintBaseline_toBaselineOf="@id/usernameText"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/usernameText" />
 
-            <!-- 用户名 -->
-            <TextView
-                android:id="@+id/usernameText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:drawableStart="@drawable/ic_user"
-                android:drawablePadding="2dp"
-                android:textSize="@dimen/text_default"
-                android:textColor="@color/text_content"
-                app:drawableTint="@color/text_title"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/membershipStatus"
-                app:layout_constraintTop_toBottomOf="@id/titleText"
-                android:text="jiyingcao" />
+    <!-- 永久会员标识 -->
+    <TextView
+        android:id="@+id/permanentStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:drawablePadding="8dp"
+        android:paddingVertical="10dp"
+        android:text="@string/permanent"
+        android:textColor="@color/text_content"
+        android:textSize="@dimen/text_default"
+        app:drawableLeftCompat="@drawable/ic_time_profile"
+        app:drawableTint="@color/text_title"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/usernameText"
+        app:tint="@color/text_light" />
 
-            <!-- 会员状态 -->
-            <TextView
-                android:id="@+id/membershipStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:drawableStart="@drawable/ic_vip"
-                android:drawablePadding="2dp"
-                android:textColor="@color/text_strong"
-                android:textSize="@dimen/text_default"
-                app:drawableTint="@color/text_title"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toBottomOf="@id/usernameText"
-                app:layout_constraintStart_toEndOf="@id/usernameText"
-                app:layout_constraintTop_toTopOf="@id/usernameText"
-                android:text="VIP会员" />
-        </LinearLayout>
+    <!-- 升级提示 -->
+    <TextView
+        android:id="@+id/upgradePrompt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:text="@string/upgrade_prompt"
+        android:textColor="@color/text_strong"
+        android:textSize="@dimen/text_default"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/usernameText" />
 
-        <!-- 永久会员标识 -->
-        <TextView
-            android:id="@+id/permanentStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingVertical="10dp"
-            android:drawablePadding="8dp"
-            android:text="@string/permanent"
-            android:textColor="@color/text_content"
-            android:textSize="@dimen/text_default"
-            app:drawableTint="@color/text_title"
-            app:drawableLeftCompat="@drawable/ic_time_profile"
-            app:tint="@color/text_light"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/usernameLayout" />
+    <!-- 刷新提示 -->
+    <TextView
+        android:id="@+id/refreshPrompt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:text="@string/refresh_prompt"
+        android:textColor="@color/text_strong"
+        android:textSize="@dimen/text_default"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/upgradePrompt" />
 
-        <!-- 升级提示 -->
-        <TextView
-            android:id="@+id/upgradePrompt"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="10dp"
-            android:text="@string/upgrade_prompt"
-            android:textColor="@color/text_strong"
-            android:textSize="@dimen/text_default"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/usernameLayout" />
+    <!-- 普通会员相关视图的Group -->
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/normalMemberGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="upgradePrompt,refreshPrompt" />
 
-        <!-- 刷新提示 -->
-        <TextView
-            android:id="@+id/refreshPrompt"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="10dp"
-            android:text="@string/refresh_prompt"
-            android:textColor="@color/text_strong"
-            android:textSize="@dimen/text_default"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/upgradePrompt" />
+    <!-- 永久会员相关视图的Group -->
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/permanentMemberGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:constraint_referenced_ids="permanentStatus" />
 
-        <!-- 普通会员相关视图的Group -->
-        <androidx.constraintlayout.widget.Group
-            android:id="@+id/normalMemberGroup"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:constraint_referenced_ids="upgradePrompt,refreshPrompt" />
-
-        <!-- 永久会员相关视图的Group -->
-        <androidx.constraintlayout.widget.Group
-            android:id="@+id/permanentMemberGroup"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            app:constraint_referenced_ids="permanentStatus" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
+    <!-- 通过barrier划分上下部分 -->
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierAllowsGoneWidgets="false"
+        app:barrierDirection="bottom"
+        app:constraint_referenced_ids="permanentStatus,refreshPrompt" />
 
     <!-- 分割线 -->
     <View
         android:id="@+id/divider"
         android:layout_width="match_parent"
         android:layout_height="1px"
-        android:background="#e0e0e0"/>
+        android:layout_marginTop="8dp"
+        android:background="#e0e0e0"
+        app:layout_constraintTop_toBottomOf="@id/barrier" />
 
     <!-- 积分和信息统计 -->
+    <!-- 积分 -->
     <LinearLayout
-        android:layout_width="match_parent"
+        android:id="@+id/layout_points"
+        android:layout_width="wrap_content"
         android:layout_height="80dp"
-        android:orientation="horizontal">
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp"
+        app:layout_constraintEnd_toStartOf="@id/layout_messages"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/divider">
 
-        <!-- 积分 -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
+        <TextView
+            android:id="@+id/tv_points"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textColor="@color/text_content"
+            android:textSize="16dp"
+            android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/tv_points"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0"
-                android:textSize="16dp"
-                android:textStyle="bold"
-                android:textColor="@color/text_content"/>
-
-            <TextView
-                android:id="@+id/tv_points_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="积分"
-                android:textSize="@dimen/text_default"
-                android:textColor="@color/text_content"/>
-        </LinearLayout>
-
-        <!-- 信息 -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/tv_messages"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0"
-                android:textSize="16dp"
-                android:textStyle="bold"
-                android:textColor="@color/text_content"/>
-
-            <TextView
-                android:id="@+id/tv_messages_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="信息"
-                android:textSize="@dimen/text_default"
-                android:textColor="@color/text_content"/>
-        </LinearLayout>
+        <TextView
+            android:id="@+id/tv_points_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="积分"
+            android:textColor="@color/text_content"
+            android:textSize="@dimen/text_default" />
     </LinearLayout>
-</LinearLayout>
+
+    <!-- 信息 -->
+    <LinearLayout
+        android:id="@+id/layout_messages"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp"
+        app:layout_constraintBottom_toBottomOf="@id/layout_points"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/layout_points"
+        app:layout_constraintTop_toTopOf="@id/layout_points">
+
+        <TextView
+            android:id="@+id/tv_messages"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textColor="@color/text_content"
+            android:textSize="16dp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_messages_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="信息"
+            android:textColor="@color/text_content"
+            android:textSize="@dimen/text_default" />
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

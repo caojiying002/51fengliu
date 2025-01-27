@@ -6,8 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.api.response.Profile
 import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
-import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.repository.UserRepository
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -22,6 +22,13 @@ sealed class ProfileIntent {
     object LoadProfile : ProfileIntent()
     object Refresh : ProfileIntent()
     object Retry : ProfileIntent()
+    object Logout : ProfileIntent()
+}
+
+sealed class LogoutEffect {
+    object ShowLoadingDialog : LogoutEffect()
+    object DismissLoadingDialog : LogoutEffect()
+    data class ShowToast(val message: String) : LogoutEffect()
 }
 
 class ProfileViewModel(
@@ -36,6 +43,9 @@ class ProfileViewModel(
 
     private val _isUIVisible = MutableStateFlow(false)
     val isUIVisible: StateFlow<Boolean> = _isUIVisible.asStateFlow()
+
+    private val _effect = Channel<LogoutEffect>()
+    val effect = _effect.receiveAsFlow()
 
     init {
         viewModelScope.launch {
@@ -66,6 +76,7 @@ class ProfileViewModel(
             is ProfileIntent.LoadProfile -> fetchProfile()
             is ProfileIntent.Refresh -> fetchProfile()
             is ProfileIntent.Retry -> fetchProfile()
+            is ProfileIntent.Logout -> logout()
         }
     }
 
@@ -77,6 +88,24 @@ class ProfileViewModel(
                     _state.value = ProfileState.Success(profile)
                 }.onFailure { e ->
                     _state.value = ProfileState.Error(e.toUserFriendlyMessage())
+                }
+            }
+        }
+    }
+
+    fun logout() {
+        viewModelScope.launch {
+            _effect.send(LogoutEffect.ShowLoadingDialog)
+            repository.logout().collect { result ->
+                result.onSuccess {
+                    tokenManager.clearToken()
+                    //_isLoggedIn.value = false // tokenManager.token流会自动触发_isLoggedIn流的赋值，这里不需要再手动设置
+
+                    _effect.send(LogoutEffect.DismissLoadingDialog)
+                    _effect.send(LogoutEffect.ShowToast("已退出登录"))
+                }.onFailure { e ->
+                    _effect.send(LogoutEffect.DismissLoadingDialog)
+                    _effect.send(LogoutEffect.ShowToast(e.toUserFriendlyMessage()))
                 }
             }
         }

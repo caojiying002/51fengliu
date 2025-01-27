@@ -4,7 +4,6 @@ import com.jiyingcao.a51fengliu.api.ApiService
 import com.jiyingcao.a51fengliu.api.request.LoginRequest
 import com.jiyingcao.a51fengliu.api.response.ApiResult
 import com.jiyingcao.a51fengliu.api.response.Profile
-import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.domain.exception.BusinessException
 import com.jiyingcao.a51fengliu.domain.exception.LoginException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -60,6 +59,27 @@ class UserRepository(
                 response.data?.let {
                     emit(Result.success(it))
                 } ?: emit(Result.failure(Exception("Empty response data")))
+            } else {
+                emit(Result.failure(
+                    BusinessException.createFromResponse(response)
+                ))
+            }
+        } catch (e: Exception) {
+            emit(Result.failure(e))
+        }
+    }.flowOn(dispatcher)
+
+
+
+    /**
+     * 退出登录（注销）
+     * @return Flow<Result<*> 表示注销成功或失败的结果流
+     */
+    fun logout(): Flow<Result<*>> = flow {
+        try {
+            val response = apiService.postLogout()
+            if (response.isSuccessful()) {
+                emit(Result.success(null))
             } else {
                 emit(Result.failure(
                     BusinessException.createFromResponse(response)

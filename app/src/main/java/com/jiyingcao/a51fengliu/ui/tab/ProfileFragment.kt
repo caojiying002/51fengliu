@@ -22,6 +22,9 @@ import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.ui.LoginActivity
 import com.jiyingcao.a51fengliu.util.dataStore
+import com.jiyingcao.a51fengliu.util.showToast
+import com.jiyingcao.a51fengliu.viewmodel.LogoutEffect
+import kotlinx.coroutines.flow.collectLatest
 
 class ProfileFragment : Fragment() {
     private var _binding: FragmentProfileBinding? = null
@@ -105,6 +108,16 @@ class ProfileFragment : Fragment() {
                 }
             }
 //            }
+        }
+
+        lifecycleScope.launch {
+            viewModel.effect.collectLatest { effect ->
+                when (effect) {
+                    is LogoutEffect.ShowLoadingDialog -> { /* 显示加载中 */ }
+                    is LogoutEffect.DismissLoadingDialog -> { /* 隐藏加载中 */ }
+                    is LogoutEffect.ShowToast -> { context?.showToast(effect.message) }
+                }
+            }
         }
     }
 

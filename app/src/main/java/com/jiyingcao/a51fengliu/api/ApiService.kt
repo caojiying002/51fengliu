@@ -55,6 +55,10 @@ interface ApiService {
         @Body body: LoginRequest
     ): ApiResponse<ApiResult<String, LoginErrorData>>
 
+    /** 退出登录 */
+    @POST("/api/web/auth/logout.json")
+    suspend fun postLogout(): ApiResponse<Nothing>   // {"code":0,"msg":"Ok","data":""}
+
     /** 个人中心：用户信息（需登录） */
     @GET("/api/web/authUser/detail.json")
     suspend fun getProfile(): ApiResponse<Profile>

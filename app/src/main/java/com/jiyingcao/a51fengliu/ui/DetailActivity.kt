@@ -11,15 +11,12 @@ import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityOptionsCompat
 import androidx.core.app.SharedElementCallback
 import androidx.core.view.isVisible
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
@@ -48,7 +45,6 @@ import com.jiyingcao.a51fengliu.viewmodel.DetailIntent
 import com.jiyingcao.a51fengliu.viewmodel.DetailState
 import com.jiyingcao.a51fengliu.viewmodel.DetailViewModel
 import com.jiyingcao.a51fengliu.viewmodel.DetailViewModelFactory
-import com.jiyingcao.a51fengliu.viewmodel.UiState
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
 import kotlinx.coroutines.flow.collectLatest
@@ -183,6 +179,14 @@ class DetailActivity : BaseActivity() {
 //            }
         }
 
+        // 更新收藏按钮状态
+        lifecycleScope.launch {
+            viewModel.isFavorited.collect { isFavorited ->
+                val favorite = realContentView.findViewById<TextView>(R.id.click_favorite)
+                favorite.isSelected = isFavorited == true
+            }
+        }
+
         // Collect side effects
         lifecycleScope.launch {
 //            repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -212,6 +216,11 @@ class DetailActivity : BaseActivity() {
             true
         }
         findViewById<View>(R.id.click_report).setOnClickListener {}
+        findViewById<View>(R.id.click_favorite).setOnClickListener {
+            val detailIntent =
+                if (viewModel.isFavorited.value == true) DetailIntent.Unfavorite else DetailIntent.Favorite
+            viewModel.processIntent(detailIntent)
+        }
         contactInfoNotLogin.findViewById<View>(R.id.click_login).setOnClickListener {
             LoginActivity.start(this)
         }
@@ -251,12 +260,6 @@ class DetailActivity : BaseActivity() {
             record.anonymous == true -> "匿名"
             record.publisher != null -> record.publisher.name
             else -> "匿名"
-        }
-
-        val isFavorite = record.isFavorite==true
-        favorite.isSelected = isFavorite
-        favorite.setOnClickListener { v ->
-            // TODO viewModel.processIntent(if (isFavorite) DetailIntent.Unfavorite else DetailIntent.Favorite)
         }
 
         displayContactInfoByMemberState(record)

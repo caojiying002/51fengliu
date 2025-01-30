@@ -63,15 +63,15 @@ interface ApiService {
     @GET("/api/web/authUser/detail.json")
     suspend fun getProfile(): ApiResponse<Profile>
 
-    /** 收藏(需登录)：已收藏会报错，code=-2 */
+    /** 收藏(需登录)：已收藏会报错，code=-2，msg="已经收藏过了" */
     @POST("/api/web/info/favorite.json")
     suspend fun postFavorite(
         @Body body: InfoIdRequest
-    ): ApiResponse<Nothing>     // TODO 使用DualWrapper。{"code":0,"msg":"Ok","data":""}
+    ): ApiResponse<Nothing>
 
-    /** 取消收藏(需登录)：未收藏会报错，code=-2 */
+    /** 取消收藏(需登录)：未收藏会报错，code=-2，msg="Failed" */
     @POST("/api/web/info/unfavorite.json")
     suspend fun postUnfavorite(
         @Body body: InfoIdRequest
-    ): ApiResponse<Nothing>     // TODO 使用DualWrapper。{"code":0,"msg":"Ok","data":""}
+    ): ApiResponse<Nothing>
 }

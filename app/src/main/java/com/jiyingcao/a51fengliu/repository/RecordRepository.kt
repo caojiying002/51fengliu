@@ -1,6 +1,7 @@
 package com.jiyingcao.a51fengliu.repository
 
 import com.jiyingcao.a51fengliu.api.ApiService
+import com.jiyingcao.a51fengliu.api.request.InfoIdRequest
 import com.jiyingcao.a51fengliu.api.request.RecordsRequest
 import com.jiyingcao.a51fengliu.api.response.PageData
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
@@ -55,6 +56,42 @@ class RecordRepository(
                 emit(Result.failure(
                     BusinessException.createFromResponse(response) // TODO 是否还需要[BusinessException]类？
                 ))
+            }
+        } catch (e: Exception) {
+            emit(Result.failure(e))
+        }
+    }.flowOn(dispatcher)
+
+    /**
+     * 收藏
+     * @param id 记录ID
+     * @return Flow<Result<*>> 表示收藏成功或失败的结果流
+     */
+    fun favorite(id: String): Flow<Result<*>> = flow {
+        try {
+            val response = apiService.postFavorite(InfoIdRequest(id))
+            if (response.isSuccessful()) {
+                emit(Result.success(null))
+            } else {
+                emit(Result.failure(BusinessException.createFromResponse(response)))
+            }
+        } catch (e: Exception) {
+            emit(Result.failure(e))
+        }
+    }.flowOn(dispatcher)
+
+    /**
+     * 取消收藏
+     * @param id 记录ID
+     * @return Flow<Result<*>> 表示取消收藏成功或失败的结果流
+     */
+    fun unfavorite(id: String): Flow<Result<*>> = flow {
+        try {
+            val response = apiService.postUnfavorite(InfoIdRequest(id))
+            if (response.isSuccessful()) {
+                emit(Result.success(null))
+            } else {
+                emit(Result.failure(BusinessException.createFromResponse(response)))
             }
         } catch (e: Exception) {
             emit(Result.failure(e))

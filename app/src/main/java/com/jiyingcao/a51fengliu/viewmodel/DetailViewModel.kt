@@ -43,8 +43,25 @@ class DetailViewModel(
     private val _state = MutableStateFlow<DetailState>(DetailState.Init)
     val state: StateFlow<DetailState> = _state.asStateFlow()
 
+    // 表示是否已经收藏的流
+    private val _isFavorited: MutableStateFlow<Boolean?> = MutableStateFlow(null)
+    val isFavorited: StateFlow<Boolean?> = _isFavorited.asStateFlow()
+
     private val _effect = Channel<DetailEffect>()
     val effect = _effect.receiveAsFlow()
+
+    init {
+        viewModelScope.launch {
+            _state.collect { detailState ->
+                when (detailState) {
+                    is DetailState.Success -> {
+                        _isFavorited.value = detailState.record.isFavorite
+                    }
+                    else -> {}
+                }
+            }
+        }
+    }
 
     fun processIntent(intent: DetailIntent) {
         when (intent) {
@@ -88,8 +105,32 @@ class DetailViewModel(
         }
     }
 
-    private fun favorite() {}
-    private fun unfavorite() {}
+    private fun favorite() {
+        viewModelScope.launch {
+            repository.favorite(infoId)
+                .collect { result ->
+                    result.onSuccess {
+                        _isFavorited.value = true
+                        _effect.send(DetailEffect.ShowToast("收藏成功"))
+                    }.onFailure { e ->
+                        _effect.send(DetailEffect.ShowToast(e.toUserFriendlyMessage()))
+                    }
+                }
+        }
+    }
+    private fun unfavorite() {
+        viewModelScope.launch {
+            repository.unfavorite(infoId)
+                .collect { result ->
+                    result.onSuccess {
+                        _isFavorited.value = false
+                        _effect.send(DetailEffect.ShowToast("取消收藏成功"))
+                    }.onFailure { e ->
+                        _effect.send(DetailEffect.ShowToast(e.toUserFriendlyMessage()))
+                    }
+                }
+        }
+    }
 }
 
 class DetailViewModelFactory(

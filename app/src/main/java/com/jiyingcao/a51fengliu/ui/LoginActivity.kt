@@ -63,12 +63,19 @@ class LoginActivity: BaseActivity() {
                     when (state) {
                         is LoginState.Init -> {
                             clearErrorMessage()
+                            enableLoginButton()
+                        }
+                        is LoginState.Loading -> {
+                            //clearErrorMessage()
+                            disableLoginButton()
                         }
                         is LoginState.Success -> {
                             clearErrorMessage()
+                            enableLoginButton()
                         }
                         is LoginState.Error -> {
                             showError(state.errorType, state.code)
+                            enableLoginButton()
                         }
                     }
                 }
@@ -79,8 +86,6 @@ class LoginActivity: BaseActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.effect.collect { effect ->
                     when (effect) {
-                        is LoginEffect.ShowLoadingDialog -> showLoadingDialog()
-                        is LoginEffect.DismissLoadingDialog -> dismissLoadingDialog()
                         is LoginEffect.ShowToast -> {
                             showToast(effect.message)
                         }
@@ -131,8 +136,14 @@ class LoginActivity: BaseActivity() {
         showToast("登录成功")
         finish()
     }
-    private fun showLoadingDialog() {}
-    private fun dismissLoadingDialog() {}
+
+    private fun enableLoginButton() {
+        binding.btnLogin.isEnabled = true
+    }
+
+    private fun disableLoginButton() {
+        binding.btnLogin.isEnabled = false
+    }
 
     /**
      * 设置"立即注册"和"点此找回"两个文本的点击事件

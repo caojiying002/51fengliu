@@ -24,6 +24,7 @@ sealed class LoginErrorType {
 // 登录状态
 sealed class LoginState {
     object Init : LoginState()
+    object Loading : LoginState()
     data class Success(val token: String) : LoginState()
     data class Error(
         val errorType: LoginErrorType,
@@ -43,8 +44,6 @@ sealed class LoginIntent {
 
 // 副作用
 sealed class LoginEffect {
-    object ShowLoadingDialog : LoginEffect()
-    object DismissLoadingDialog : LoginEffect()
     data class ShowToast(val message: String) : LoginEffect()
     object NavigateToMain : LoginEffect()   // TODO 不一定要跳转到 MainActivity，是否应该由调用方决定？
 }
@@ -68,13 +67,12 @@ class LoginViewModel(
 
     private fun login(username: String, password: String) {
         viewModelScope.launch {
-            _effect.send(LoginEffect.ShowLoadingDialog)
+            _state.value = LoginState.Loading
             repository.login(username, password)
                 .collect { result ->
                     result.onSuccess { token ->
                         TokenManager.getInstance().saveToken(token)
                         _state.value = LoginState.Success(token)
-                        _effect.send(LoginEffect.DismissLoadingDialog)
                         _effect.send(LoginEffect.NavigateToMain)
                     }.onFailure { e ->
                         when (e) {
@@ -101,7 +99,6 @@ class LoginViewModel(
                                 )
                             }
                         }
-                        _effect.send(LoginEffect.DismissLoadingDialog)
                     }
                 }
         }

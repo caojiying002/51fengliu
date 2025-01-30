@@ -23,11 +23,12 @@
     <color name="text_item_title">#262626</color><!-- 用于列表项标题 -->
     <color name="text_title">#222222</color><!-- 用于详情页标题 -->
     <color name="text_content">#525252</color>
-    <color name="text_light">#A3A3A3</color><!-- 用于发布时间等次要信息 -->
+    <color name="text_light">#a3a3a3</color><!-- 用于发布时间等次要信息 -->
     <color name="text_price">@color/black</color><!-- 价格使用纯黑色 -->
     <color name="text_warning_yellow">#de983f</color>
 
     <!-- 按钮颜色 -->
     <color name="button_default">@color/primary</color>
     <color name="button_pressed">#f495c4</color>
+    <color name="button_disabled">#e0e0e0</color>
 </resources>

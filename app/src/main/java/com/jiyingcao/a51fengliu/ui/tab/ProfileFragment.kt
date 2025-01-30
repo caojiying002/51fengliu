@@ -129,10 +129,10 @@ class ProfileFragment : Fragment() {
 
     private fun setupClickListeners() {
         binding.profileError.clickRetry.setOnClickListener {
-            viewModel.processIntent(ProfileIntent.Retry)
+            viewModel.processIntent(ProfileIntent.LoadProfile)    // 如果有不同的UI样式，需要定义新Intent类型 ProfileIntent.Retry
         }
         binding.profileInfo.refreshPrompt.setOnClickListener {
-            viewModel.processIntent(ProfileIntent.Refresh)
+            viewModel.processIntent(ProfileIntent.LoadProfile)  // 如果有不同的UI样式，需要定义新Intent类型 ProfileIntent.Refresh
         }
         binding.profileNotLogin.clickLogin.setOnClickListener {
             startActivity(LoginActivity.createIntent(requireContext()))

@@ -20,8 +20,6 @@ sealed class ProfileState {
 
 sealed class ProfileIntent {
     object LoadProfile : ProfileIntent()
-    object Refresh : ProfileIntent()
-    object Retry : ProfileIntent()
     object Logout : ProfileIntent()
 }
 
@@ -42,40 +40,46 @@ class ProfileViewModel(
     val isLoggedIn: StateFlow<Boolean?> = _isLoggedIn.asStateFlow()
 
     private val _isUIVisible = MutableStateFlow(false)
-    val isUIVisible: StateFlow<Boolean> = _isUIVisible.asStateFlow()
+
+    /** 从未登录状态转变为已登录时，标记为true */
+    private val _needsProfileRefresh = MutableStateFlow(false)
 
     private val _effect = Channel<LogoutEffect>()
     val effect = _effect.receiveAsFlow()
 
     init {
         viewModelScope.launch {
-            // 使用Combine流将token流和UI的可见性状态流(onStart/onStop)结合起来。
-            // 只有当同时满足"已登录"且"UI"两个条件时，才触发fetchProfile请求
-            combine(
-                tokenManager.token
-                    .map { token -> !token.isNullOrBlank() }
-                    .distinctUntilChanged(),
-                isUIVisible
-            ) { isLoggedIn, isVisible ->
-                _isLoggedIn.value = isLoggedIn
-                Pair(isLoggedIn, isVisible)
-            }.collect { (isLoggedIn, isVisible) ->
-                if (isLoggedIn && isVisible) {
-                    processIntent(ProfileIntent.LoadProfile)
+            tokenManager.token
+                .map { token -> !token.isNullOrBlank() }
+                .distinctUntilChanged()
+                .collect { isLoggedIn ->
+                    _isLoggedIn.value = isLoggedIn
+                    // 标记需要刷新的条件：从未登录状态变为已登录状态
+                    if (isLoggedIn) {
+                        _needsProfileRefresh.value = true
+                        checkAndLoadProfile()
+                    }
                 }
-            }
+        }
+    }
+
+    private fun checkAndLoadProfile() {
+        if (_needsProfileRefresh.value && _isUIVisible.value) {
+            _needsProfileRefresh.value = false
+            processIntent(ProfileIntent.LoadProfile)
         }
     }
 
     fun setUIVisibility(isVisible: Boolean) {
         _isUIVisible.value = isVisible
+        if (isVisible) {
+            checkAndLoadProfile()
+        }
     }
 
     fun processIntent(intent: ProfileIntent) {
         when (intent) {
             is ProfileIntent.LoadProfile -> fetchProfile()
-            is ProfileIntent.Refresh -> fetchProfile()
-            is ProfileIntent.Retry -> fetchProfile()
             is ProfileIntent.Logout -> logout()
         }
     }

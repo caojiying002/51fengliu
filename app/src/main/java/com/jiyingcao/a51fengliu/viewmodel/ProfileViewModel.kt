@@ -10,7 +10,6 @@ import com.jiyingcao.a51fengliu.repository.UserRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -105,29 +104,26 @@ class ProfileViewModel(
     }
 
     fun logout() {
-        // 取消之前的任务（如果存在）
         cancelLogout()
 
         logoutJob = viewModelScope.launch {
             _effect.send(LogoutEffect.ShowLoadingDialog)
-            repository.logout().collect { result ->
-                result.onSuccess {
-                    tokenManager.clearToken()
-                    //_isLoggedIn.value = false // tokenManager.token流会自动触发_isLoggedIn流的赋值，这里不需要再手动设置
 
-                    _effect.send(LogoutEffect.ShowToast("已退出登录"))
-
-                    // 取消对话框，清理Job引用避免内存泄露（可以放在finally块中避免重复和遗漏）
-                    _effect.send(LogoutEffect.DismissLoadingDialog)
-                    logoutJob = null
-                }.onFailure { e ->
-                    _effect.send(LogoutEffect.ShowToast(e.toUserFriendlyMessage()))
-
-                    // 取消对话框，清理Job引用避免内存泄露（可以放在finally块中避免重复和遗漏）
+            repository.logout()
+                .onEach { result ->
+                    result.onSuccess {
+                        tokenManager.clearToken()
+                        //_isLoggedIn.value = false // tokenManager.token流会自动触发_isLoggedIn流的赋值，这里不需要手动设置
+                        _effect.send(LogoutEffect.ShowToast("已退出登录"))
+                    }.onFailure { e ->
+                        _effect.send(LogoutEffect.ShowToast(e.toUserFriendlyMessage()))
+                    }
+                }
+                .onCompletion {
                     _effect.send(LogoutEffect.DismissLoadingDialog)
                     logoutJob = null
                 }
-            }
+                .collect()
         }
     }
 

@@ -7,7 +7,10 @@ import com.jiyingcao.a51fengliu.api.response.Profile
 import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.UserRepository
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -21,6 +24,7 @@ sealed class ProfileState {
 sealed class ProfileIntent {
     object LoadProfile : ProfileIntent()
     object Logout : ProfileIntent()
+    object CancelLogout : ProfileIntent()
 }
 
 sealed class LogoutEffect {
@@ -46,6 +50,8 @@ class ProfileViewModel(
 
     private val _effect = Channel<LogoutEffect>()
     val effect = _effect.receiveAsFlow()
+
+    private var logoutJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -81,6 +87,7 @@ class ProfileViewModel(
         when (intent) {
             is ProfileIntent.LoadProfile -> fetchProfile()
             is ProfileIntent.Logout -> logout()
+            is ProfileIntent.CancelLogout -> cancelLogout()
         }
     }
 
@@ -98,21 +105,39 @@ class ProfileViewModel(
     }
 
     fun logout() {
-        viewModelScope.launch {
+        // 取消之前的任务（如果存在）
+        cancelLogout()
+
+        logoutJob = viewModelScope.launch {
             _effect.send(LogoutEffect.ShowLoadingDialog)
             repository.logout().collect { result ->
                 result.onSuccess {
                     tokenManager.clearToken()
                     //_isLoggedIn.value = false // tokenManager.token流会自动触发_isLoggedIn流的赋值，这里不需要再手动设置
 
-                    _effect.send(LogoutEffect.DismissLoadingDialog)
                     _effect.send(LogoutEffect.ShowToast("已退出登录"))
-                }.onFailure { e ->
+
+                    // 取消对话框，清理Job引用避免内存泄露（可以放在finally块中避免重复和遗漏）
                     _effect.send(LogoutEffect.DismissLoadingDialog)
+                    logoutJob = null
+                }.onFailure { e ->
                     _effect.send(LogoutEffect.ShowToast(e.toUserFriendlyMessage()))
+
+                    // 取消对话框，清理Job引用避免内存泄露（可以放在finally块中避免重复和遗漏）
+                    _effect.send(LogoutEffect.DismissLoadingDialog)
+                    logoutJob = null
                 }
             }
         }
+    }
+
+    fun cancelLogout() {
+        logoutJob?.cancel()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        cancelLogout()
     }
 }
 

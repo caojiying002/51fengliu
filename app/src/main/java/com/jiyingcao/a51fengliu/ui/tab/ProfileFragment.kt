@@ -21,6 +21,7 @@ import com.jiyingcao.a51fengliu.viewmodel.ProfileViewModelFactory
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.ui.LoginActivity
+import com.jiyingcao.a51fengliu.ui.dialog.LoadingDialog
 import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.LogoutEffect
@@ -39,6 +40,8 @@ class ProfileFragment : Fragment() {
     private lateinit var profileLoading: View
 
     private lateinit var viewModel: ProfileViewModel
+
+    private var loadingDialog: LoadingDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -113,8 +116,12 @@ class ProfileFragment : Fragment() {
         lifecycleScope.launch {
             viewModel.effect.collectLatest { effect ->
                 when (effect) {
-                    is LogoutEffect.ShowLoadingDialog -> { /* 显示加载中 */ }
-                    is LogoutEffect.DismissLoadingDialog -> { /* 隐藏加载中 */ }
+                    is LogoutEffect.ShowLoadingDialog -> {
+                        showLoadingDialog {
+                            viewModel.processIntent(ProfileIntent.CancelLogout)
+                        }
+                    }
+                    is LogoutEffect.DismissLoadingDialog -> { dismissLoadingDialog() }
                     is LogoutEffect.ShowToast -> { context?.showToast(effect.message) }
                 }
             }
@@ -219,5 +226,25 @@ class ProfileFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        dismissLoadingDialog()
+    }
+
+    private fun showLoadingDialog(onCancelListener: (() -> Unit)? = null) {
+        if (loadingDialog == null) {
+            loadingDialog = LoadingDialog().apply {
+                setOnCancelListener(onCancelListener)
+            }
+        }
+        if (loadingDialog?.isVisible != true) {
+            loadingDialog?.showNow(parentFragmentManager, LoadingDialog.TAG)
+        }
+    }
+
+    private fun dismissLoadingDialog() {
+        loadingDialog?.dismissAllowingStateLoss()
     }
 }

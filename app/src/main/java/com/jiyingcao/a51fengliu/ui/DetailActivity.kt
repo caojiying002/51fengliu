@@ -138,8 +138,11 @@ class DetailActivity : BaseActivity() {
                             showContentView()
                         }
                         is DetailState.Loading -> {
-                            // Initial loading state
-                            showLoadingView()
+                            if (state.isFloatLoading) {
+                                binding.showLoadingOverContent()
+                            } else {
+                                showLoadingView()
+                            }
                         }
                         is DetailState.Success -> {
                             showContentView()
@@ -167,7 +170,6 @@ class DetailActivity : BaseActivity() {
                     when (effect) {
                         is DetailEffect.ShowLoadingDialog -> showLoadingDialog()
                         is DetailEffect.DismissLoadingDialog -> dismissLoadingDialog()
-                        is DetailEffect.FinishRefresh -> {}
                         is DetailEffect.ShowToast -> showToast(effect.message)
                     }
                 }

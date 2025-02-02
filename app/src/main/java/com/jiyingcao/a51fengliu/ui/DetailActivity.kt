@@ -22,9 +22,11 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
+import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
+import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.databinding.ActivityDetailBinding
 import com.jiyingcao.a51fengliu.databinding.ContentDetailBinding
 import com.jiyingcao.a51fengliu.glide.BASE_IMAGE_URL
@@ -34,6 +36,7 @@ import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.common.BigImageViewerActivity
 import com.jiyingcao.a51fengliu.ui.dialog.LoadingDialog
 import com.jiyingcao.a51fengliu.util.copyOnLongClick
+import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.dp
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.timestampToDay
@@ -97,7 +100,8 @@ class DetailActivity : BaseActivity() {
             this,
             DetailViewModelFactory(
                 recordId,
-                RecordRepository.getInstance(RetrofitClient.apiService)
+                RecordRepository.getInstance(RetrofitClient.apiService),
+                TokenManager.getInstance(App.INSTANCE.dataStore)
             )
         )[DetailViewModel::class.java]
 
@@ -127,6 +131,16 @@ class DetailActivity : BaseActivity() {
             // 开始延迟的过渡
             supportStartPostponedEnterTransition()
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        viewModel.setUIVisibility(true)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        viewModel.setUIVisibility(false)
     }
 
     private fun setupFlowCollectors() {

@@ -4,12 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
+import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
@@ -36,7 +39,8 @@ sealed class DetailEffect {
 
 class DetailViewModel(
     private val infoId: String,
-    private val repository: RecordRepository
+    private val repository: RecordRepository,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<DetailState>(DetailState.Init)
@@ -45,6 +49,13 @@ class DetailViewModel(
     // 表示是否已经收藏的流
     private val _isFavorited: MutableStateFlow<Boolean?> = MutableStateFlow(null)
     val isFavorited: StateFlow<Boolean?> = _isFavorited.asStateFlow()
+
+    private val _isUIVisible = MutableStateFlow(false)
+
+    /** 从未登录状态转变为已登录时，标记为true */
+    private val _needsRefresh = MutableStateFlow(false)
+
+    private var hasLoadedData = false
 
     private val _effect = Channel<DetailEffect>()
     val effect = _effect.receiveAsFlow()
@@ -59,6 +70,36 @@ class DetailViewModel(
                     else -> {}
                 }
             }
+        }
+
+        viewModelScope.launch {
+            tokenManager.token
+                .map { token -> !token.isNullOrBlank() }
+                .distinctUntilChanged()
+                .collect { isLoggedIn ->
+                    // 标记需要刷新的条件：从未登录状态变为已登录状态
+                    if (isLoggedIn) {
+                        _needsRefresh.value = true
+                        checkAndRefresh()
+                    }
+                }
+        }
+    }
+
+    private fun checkAndRefresh() {
+        if (_needsRefresh.value &&
+            _isUIVisible.value &&
+            hasLoadedData  // 第三个条件：确保之前已经加载过数据
+        ) {
+            _needsRefresh.value = false
+            processIntent(DetailIntent.Refresh)
+        }
+    }
+
+    fun setUIVisibility(isVisible: Boolean) {
+        _isUIVisible.value = isVisible
+        if (isVisible) {
+            checkAndRefresh()
         }
     }
 
@@ -78,12 +119,10 @@ class DetailViewModel(
             repository.getDetail(infoId)
                 .collect { result ->
                     result.onSuccess { record ->
-                        // 处理成功情况
+                        hasLoadedData = true  // 标记已加载过数据
                         _state.value = DetailState.Success(record)
                     }.onFailure { e ->
-                        // 处理错误情况
-                        var errMsg = e.toUserFriendlyMessage()
-                        _state.value = DetailState.Error(errMsg)
+                        _state.value = DetailState.Error(e.toUserFriendlyMessage())
                     }
                 }
         }
@@ -119,16 +158,22 @@ class DetailViewModel(
                 }
         }
     }
+
+    override fun onCleared() {
+        super.onCleared()
+        hasLoadedData = false
+    }
 }
 
 class DetailViewModelFactory(
     private val infoId: String,
-    private val repository: RecordRepository
+    private val repository: RecordRepository,
+    private val tokenManager: TokenManager
 ): ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(DetailViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return DetailViewModel(infoId, repository) as T
+            return DetailViewModel(infoId, repository, tokenManager) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

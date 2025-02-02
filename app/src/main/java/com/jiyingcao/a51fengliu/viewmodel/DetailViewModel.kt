@@ -23,6 +23,7 @@ sealed class DetailState {
 
 sealed class DetailIntent {
     object LoadDetail : DetailIntent()
+    object Retry : DetailIntent()
     object Refresh : DetailIntent()
     object Favorite : DetailIntent()
     object Unfavorite : DetailIntent()
@@ -66,6 +67,7 @@ class DetailViewModel(
     fun processIntent(intent: DetailIntent) {
         when (intent) {
             is DetailIntent.LoadDetail -> loadDetail()
+            is DetailIntent.Retry -> loadDetail()
             is DetailIntent.Refresh -> refresh()
             is DetailIntent.Favorite -> favorite()
             is DetailIntent.Unfavorite -> unfavorite()

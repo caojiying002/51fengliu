@@ -2,4 +2,5 @@
 <resources>
     <item name="system_top_bar_space" type="id"/>
     <item name="system_bottom_bar_space" type="id"/>
+    <item name="loading_view" type="id"/>
 </resources>

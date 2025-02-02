@@ -8,7 +8,6 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
-import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.app.ActivityCompat
@@ -26,15 +25,14 @@ import com.bumptech.glide.request.target.Target
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
-import com.jiyingcao.a51fengliu.databinding.ActivityStatefulDetailBinding
+import com.jiyingcao.a51fengliu.databinding.ActivityDetailBinding
+import com.jiyingcao.a51fengliu.databinding.ContentDetailBinding
 import com.jiyingcao.a51fengliu.glide.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.glide.GlideApp
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.common.BigImageViewerActivity
 import com.jiyingcao.a51fengliu.ui.dialog.LoadingDialog
-import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout
-import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout.State.*
 import com.jiyingcao.a51fengliu.util.copyOnLongClick
 import com.jiyingcao.a51fengliu.util.dp
 import com.jiyingcao.a51fengliu.util.showToast
@@ -45,25 +43,14 @@ import com.jiyingcao.a51fengliu.viewmodel.DetailIntent
 import com.jiyingcao.a51fengliu.viewmodel.DetailState
 import com.jiyingcao.a51fengliu.viewmodel.DetailViewModel
 import com.jiyingcao.a51fengliu.viewmodel.DetailViewModelFactory
-import com.scwang.smart.refresh.header.ClassicsHeader
-import com.scwang.smart.refresh.layout.SmartRefreshLayout
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class DetailActivity : BaseActivity() {
-    private lateinit var binding: ActivityStatefulDetailBinding
-    private lateinit var statefulLayout: StatefulLayout
-    private lateinit var refreshLayout: SmartRefreshLayout
-    private lateinit var realContentView: View
-    private lateinit var contactInfoContainer: ViewGroup
-    private lateinit var contactInfoVIP: View
-    private lateinit var contactInfoOrdinaryMember: View
-    private lateinit var contactInfoNotLogin: View
+    private lateinit var binding: ActivityDetailBinding
+    private val contentBinding: ContentDetailBinding get() = binding.contentLayout
 
     private lateinit var viewModel: DetailViewModel
-
-    /** 是否有数据已经加载 */
-    private var hasDataLoaded: Boolean = false
 
     private var loadingDialog: LoadingDialog? = null
 
@@ -74,7 +61,7 @@ class DetailActivity : BaseActivity() {
             names: List<String>,
             sharedElements: MutableMap<String, View>
         ) {
-            val imageContainer = realContentView.findViewById<ViewGroup>(R.id.image_container)
+            val imageContainer = contentBinding.imageContainer
             // 获取对应位置的缩略图ImageView
             val imageView: ImageView = when (returnIndex) {
                 0 -> imageContainer.findViewById(R.id.image_0)
@@ -91,7 +78,7 @@ class DetailActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //enableEdgeToEdge()
-        binding = ActivityStatefulDetailBinding.inflate(layoutInflater)
+        binding = ActivityDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
         //setEdgeToEdgePaddings(binding.root)
 
@@ -100,19 +87,6 @@ class DetailActivity : BaseActivity() {
             showToast("缺少参数: recordId")
             finish()
             return
-        }
-
-        statefulLayout = binding.statefulLayout // 简化代码调用
-        realContentView = binding.statefulLayout.getContentView()
-        contactInfoContainer = realContentView.findViewById(R.id.contactInfoContainer)
-        contactInfoVIP = contactInfoContainer.findViewById(R.id.contact_info_vip)
-        contactInfoOrdinaryMember = contactInfoContainer.findViewById(R.id.contact_info_ordinary_member)
-        contactInfoNotLogin = contactInfoContainer.findViewById(R.id.contact_info_not_login)
-
-        refreshLayout = realContentView.findViewById(R.id.refreshLayout)
-        refreshLayout.apply {
-            setRefreshHeader(ClassicsHeader(context))
-            setOnRefreshListener { viewModel.processIntent(DetailIntent.Refresh) }
         }
 
         setupClickListeners()
@@ -182,8 +156,7 @@ class DetailActivity : BaseActivity() {
         // 更新收藏按钮状态
         lifecycleScope.launch {
             viewModel.isFavorited.collect { isFavorited ->
-                val favorite = realContentView.findViewById<TextView>(R.id.click_favorite)
-                favorite.isSelected = isFavorited == true
+                contentBinding.clickFavorite.isSelected = isFavorited == true
             }
         }
 
@@ -194,7 +167,7 @@ class DetailActivity : BaseActivity() {
                     when (effect) {
                         is DetailEffect.ShowLoadingDialog -> showLoadingDialog()
                         is DetailEffect.DismissLoadingDialog -> dismissLoadingDialog()
-                        is DetailEffect.FinishRefresh -> refreshLayout.finishRefresh()
+                        is DetailEffect.FinishRefresh -> {}
                         is DetailEffect.ShowToast -> showToast(effect.message)
                     }
                 }
@@ -202,27 +175,32 @@ class DetailActivity : BaseActivity() {
         }
     }
 
-    private fun showLoadingView() {statefulLayout.currentState = LOADING}
-    private fun showContentView() {statefulLayout.currentState = CONTENT}
-    private fun showErrorView(message: String = "加载失败") { // TODO 显示[message]到UI，以及点击重试
-        statefulLayout.currentState = ERROR
-        statefulLayout.getErrorView().findViewById<TextView>(R.id.stateful_default_error_text_view)?.text = message
+    private fun showLoadingView() { binding.showLoading() }
+    private fun showContentView() { binding.showContent() }
+    private fun showErrorView(message: String) {
+        binding.showError(message) { viewModel.processIntent(DetailIntent.Retry) }
     }
 
     private fun setupClickListeners() {
-        findViewById<View>(R.id.title_bar_back).setOnClickListener { finish() }
-        findViewById<View>(R.id.contactWarning).setOnLongClickListener { v ->
-            v.isVisible = false
-            true
-        }
-        findViewById<View>(R.id.click_report).setOnClickListener {}
-        findViewById<View>(R.id.click_favorite).setOnClickListener {
-            val detailIntent =
-                if (viewModel.isFavorited.value == true) DetailIntent.Unfavorite else DetailIntent.Favorite
-            viewModel.processIntent(detailIntent)
-        }
-        contactInfoNotLogin.findViewById<View>(R.id.click_login).setOnClickListener {
-            LoginActivity.start(this)
+        binding.titleBar.titleBarBack.setOnClickListener { finish() }
+
+        with(contentBinding) {
+            clickReport.setOnClickListener {}
+            clickFavorite.setOnClickListener {
+                val detailIntent =
+                    if (viewModel.isFavorited.value == true) DetailIntent.Unfavorite else DetailIntent.Favorite
+                viewModel.processIntent(detailIntent)
+            }
+
+            contactInfoNotLogin.clickLogin.setOnClickListener {
+                LoginActivity.start(this@DetailActivity)
+            }
+
+            // （不是正式功能，方便截图用的）长按隐藏警告信息
+            contactWarning.setOnLongClickListener { v ->
+                v.isVisible = false
+                true
+            }
         }
     }
     
@@ -230,36 +208,25 @@ class DetailActivity : BaseActivity() {
         //displayImagesIfAny(itemData.file)
         displayImagesIfAnyV2(record.getPictures())
 
-        val title = realContentView.findViewById<TextView>(R.id.title)
-        val dz = realContentView.findViewById<TextView>(R.id.dz)
+        with(contentBinding) {
+            title.copyOnLongClick()
+            dz.copyOnLongClick()
 
-        title.copyOnLongClick()
-        dz.copyOnLongClick()
+            title.text = record.title
+            age.text = record.girlAge
+            faceValue.text = record.girlBeauty
+            displayPrices(price, record)
+            process.text = record.desc
+            project.text = record.serveList
+            dz.text = record.cityCode.to2LevelName()
+            createTime.text = timestampToDay(record.publishedAt)
+            browse.text = record.viewCount
 
-        val age = realContentView.findViewById<TextView>(R.id.age)
-        val faceValue = realContentView.findViewById<TextView>(R.id.faceValue)
-        val price = realContentView.findViewById<TextView>(R.id.price)
-        val process = realContentView.findViewById<TextView>(R.id.process)
-        val project = realContentView.findViewById<TextView>(R.id.project)
-        val createTime = realContentView.findViewById<TextView>(R.id.createTime)
-        val browse = realContentView.findViewById<TextView>(R.id.browse)
-        val publisher = realContentView.findViewById<TextView>(R.id.publisher)
-        val favorite = realContentView.findViewById<TextView>(R.id.click_favorite)
-
-        title.text = record.title
-        age.text = record.girlAge
-        faceValue.text = record.girlBeauty
-        displayPrices(price, record)
-        process.text = record.desc
-        project.text = record.serveList
-        dz.text = record.cityCode.to2LevelName()
-        createTime.text = timestampToDay(record.publishedAt)
-        browse.text = record.viewCount
-
-        publisher.text = when {
-            record.anonymous == true -> "匿名"
-            record.publisher != null -> record.publisher.name
-            else -> "匿名"
+            publisher.text = when {
+                record.anonymous == true -> "匿名"
+                record.publisher != null -> record.publisher.name
+                else -> "匿名"
+            }
         }
 
         displayContactInfoByMemberState(record)
@@ -269,55 +236,46 @@ class DetailActivity : BaseActivity() {
      * 根据用户的会员状态显示联系方式
      */
     private fun displayContactInfoByMemberState(record: RecordInfo) {
-        val contactWarning = realContentView.findViewById<View>(R.id.contactWarning)
-
         // 情况1：当前用户是VIP会员，显示联系方式
         if (!record.vipView.isNullOrBlank()
             /*&& record.vipProfileStatus!!.toInt() >= 4*/) {
-            contactInfoVIP.isVisible = true
-            contactInfoOrdinaryMember.isVisible = false
-            contactInfoNotLogin.isVisible = false
+            with(contentBinding) {
+                showVip()
+                // 显示警告信息，避免诈骗
+                contactWarning.isVisible = true
 
-            // 显示警告信息，避免诈骗
-            contactWarning.isVisible = true
+                contactInfoVip.apply {
+                    qq.copyOnLongClick()
+                    wechat.copyOnLongClick()
+                    telegram.copyOnLongClick()
+                    yuni.copyOnLongClick()
+                    phone.copyOnLongClick()
+                    address.copyOnLongClick()
 
-            val qq = realContentView.findViewById<TextView>(R.id.qq)
-            val wechat = realContentView.findViewById<TextView>(R.id.wechat)
-            val telegram = realContentView.findViewById<TextView>(R.id.telegram)
-            val yuni = realContentView.findViewById<TextView>(R.id.yuni)
-            val phone = realContentView.findViewById<TextView>(R.id.phone)
-            val address = realContentView.findViewById<TextView>(R.id.address)
-
-            qq.copyOnLongClick()
-            wechat.copyOnLongClick()
-            telegram.copyOnLongClick()
-            yuni.copyOnLongClick()
-            phone.copyOnLongClick()
-            address.copyOnLongClick()
-
-            qq.isVisible = !record.qq.isNullOrBlank()
-            qq.text = getString(R.string.qq_format, record.qq)
-            wechat.isVisible = !record.wechat.isNullOrBlank()
-            wechat.text = getString(R.string.wechat_format, record.wechat)
-            telegram.isVisible = !record.telegram.isNullOrBlank()
-            telegram.text = getString(R.string.telegram_format, record.telegram)
-            yuni.isVisible = !record.yuni.isNullOrBlank()
-            yuni.text = getString(R.string.yuni_format, record.yuni)
-            phone.isVisible = !record.phone.isNullOrBlank()
-            phone.text = getString(R.string.phone_format, record.phone)
-            address.isVisible = !record.address.isNullOrBlank()
-            address.text = getString(R.string.address_format, record.address)
+                    qq.isVisible = !record.qq.isNullOrBlank()
+                    qq.text = getString(R.string.qq_format, record.qq)
+                    wechat.isVisible = !record.wechat.isNullOrBlank()
+                    wechat.text = getString(R.string.wechat_format, record.wechat)
+                    telegram.isVisible = !record.telegram.isNullOrBlank()
+                    telegram.text = getString(R.string.telegram_format, record.telegram)
+                    yuni.isVisible = !record.yuni.isNullOrBlank()
+                    yuni.text = getString(R.string.yuni_format, record.yuni)
+                    phone.isVisible = !record.phone.isNullOrBlank()
+                    phone.text = getString(R.string.phone_format, record.phone)
+                    address.isVisible = !record.address.isNullOrBlank()
+                    address.text = getString(R.string.address_format, record.address)
+                }
+            }
             return
         }
 
         // 情况2：当前用户是注册用户，显示“发布信息”“升级VIP”按钮
         if (record.vipProfileStatus?.toInt() == 3) {
-            contactInfoVIP.isVisible = false
-            contactInfoOrdinaryMember.isVisible = true
-            contactInfoNotLogin.isVisible = false
-
-            // 没有联系方式时不需要显示警告信息
-            contactWarning.isVisible = false
+            with(contentBinding) {
+                showOrdinaryMember()
+                // 没有联系方式时不需要显示警告信息
+                contactWarning.isVisible = false
+            }
             return
         }
 
@@ -326,11 +284,11 @@ class DetailActivity : BaseActivity() {
         // 情况3：当前用户未登录，显示“立即登录”按钮
         if (/*TODO token为空 ||*/
             record.vipProfileStatus?.toInt() == 1) {
-            contactInfoVIP.isVisible = false
-            contactInfoOrdinaryMember.isVisible = false
-            contactInfoNotLogin.isVisible = true
-            // 同上，未登录时不需要显示警告信息
-            contactWarning.isVisible = false
+            with(contentBinding) {
+                showNotLogin()
+                // 同上，未登录时不需要显示警告信息
+                contactWarning.isVisible = false
+            }
             return
         }
     }
@@ -354,7 +312,7 @@ class DetailActivity : BaseActivity() {
     private val imageLoadedMap: MutableMap<String, Boolean> = mutableMapOf()
 
     private fun displayImagesIfAnyV2(imgs: List<String>) {
-        val imageContainer = realContentView.findViewById<ViewGroup>(R.id.image_container)
+        val imageContainer = contentBinding.imageContainer
 
         if (imgs.isEmpty()) {
             imageContainer.visibility = GONE
@@ -460,4 +418,62 @@ class DetailActivity : BaseActivity() {
 
         private fun Intent.getRecordId(): String? = getStringExtra(KEY_EXTRA_RECORD_ID)
     }
+}
+
+// 扩展函数
+fun ActivityDetailBinding.showContent() {
+    contentLayout.root.isVisible = true
+    errorLayout.root.isVisible = false
+    loadingLayout.root.isVisible = false
+}
+
+fun ActivityDetailBinding.showError() {
+    contentLayout.root.isVisible = false
+    errorLayout.root.isVisible = true
+    loadingLayout.root.isVisible = false
+}
+
+fun ActivityDetailBinding.showError(
+    message: String = "出错了，请稍后重试",
+    retry: (() -> Unit)? = null
+) {
+    loadingLayout.root.isVisible = false
+    contentLayout.root.isVisible = false
+    errorLayout.apply {
+        root.isVisible = true
+        // 假设错误布局中有这些视图
+        tvError.text = message
+        clickRetry.isVisible = retry != null
+        clickRetry.setOnClickListener { retry?.invoke() }
+    }
+}
+
+fun ActivityDetailBinding.showLoading() {
+    contentLayout.root.isVisible = false
+    errorLayout.root.isVisible = false
+    loadingLayout.root.isVisible = true
+}
+
+fun ActivityDetailBinding.showLoadingOverContent() {
+    contentLayout.root.isVisible = true
+    errorLayout.root.isVisible = false
+    loadingLayout.root.isVisible = true
+}
+
+fun ContentDetailBinding.showNotLogin() {
+    contactInfoNotLogin.root.isVisible = true
+    contactInfoOrdinaryMember.root.isVisible = false
+    contactInfoVip.root.isVisible = false
+}
+
+fun ContentDetailBinding.showOrdinaryMember() {
+    contactInfoNotLogin.root.isVisible = false
+    contactInfoOrdinaryMember.root.isVisible = true
+    contactInfoVip.root.isVisible = false
+}
+
+fun ContentDetailBinding.showVip() {
+    contactInfoNotLogin.root.isVisible = false
+    contactInfoOrdinaryMember.root.isVisible = false
+    contactInfoVip.root.isVisible = true
 }

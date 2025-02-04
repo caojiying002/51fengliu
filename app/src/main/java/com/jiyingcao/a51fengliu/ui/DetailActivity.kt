@@ -48,7 +48,6 @@ import com.jiyingcao.a51fengliu.viewmodel.DetailIntent
 import com.jiyingcao.a51fengliu.viewmodel.DetailState
 import com.jiyingcao.a51fengliu.viewmodel.DetailViewModel
 import com.jiyingcao.a51fengliu.viewmodel.DetailViewModelFactory
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -57,8 +56,6 @@ class DetailActivity : BaseActivity() {
     private val contentBinding: ContentDetailBinding get() = binding.contentLayout
 
     private lateinit var viewModel: DetailViewModel
-
-    private var remoteLoginJob: Job? = null
 
     private var loadingDialog: LoadingDialog? = null
 
@@ -148,11 +145,6 @@ class DetailActivity : BaseActivity() {
         viewModel.setUIVisibility(false)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        remoteLoginJob?.cancel()
-    }
-
     private fun setupFlowCollectors() {
         lifecycleScope.launch {
 //            repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -199,24 +191,6 @@ class DetailActivity : BaseActivity() {
                 }
 //            }
         }
-
-        remoteLoginJob = lifecycleScope.launch {
-            RemoteLoginManager.remoteLoginEvent.collect {
-                showRemoteLoginDialog()
-            }
-        }
-    }
-
-    private fun showRemoteLoginDialog() {
-        MaterialAlertDialogBuilder(this, com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog)
-            .setTitle("异地登录提醒")
-            .setMessage("您的账号已在其他设备登录")
-            .setCancelable(false)
-            .setPositiveButton("确定") { dialog, _ ->
-                dialog.dismiss()
-                // handleLogout(activity)
-            }
-            .show()
     }
 
     private fun showLoadingView() { binding.showLoading() }

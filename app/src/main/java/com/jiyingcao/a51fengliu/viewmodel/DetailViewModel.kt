@@ -44,7 +44,7 @@ class DetailViewModel(
     private val infoId: String,
     private val repository: RecordRepository,
     private val tokenManager: TokenManager
-) : ViewModel() {
+) : BaseViewModel() {
 
     private val _state = MutableStateFlow<DetailState>(DetailState.Init)
     val state: StateFlow<DetailState> = _state.asStateFlow()
@@ -127,12 +127,10 @@ class DetailViewModel(
             repository.getDetail(infoId)
                 .collect { result ->
                     result.onSuccess { record ->
-                        hasLoadedData = true  // 标记已加载过数据
+                        hasLoadedData = true
                         _state.value = DetailState.Success(record)
                     }.onFailure { e ->
-                        if (e is RemoteLoginException) {
-                            RemoteLoginManager.handleRemoteLogin()
-                        }
+                        handleFailure(e)  // 使用基类的统一错误处理
                         _state.value = DetailState.Error(e.toUserFriendlyMessage())
                     }
                 }

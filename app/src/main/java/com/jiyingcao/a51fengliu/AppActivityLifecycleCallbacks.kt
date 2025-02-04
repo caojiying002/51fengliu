@@ -6,10 +6,12 @@ import android.os.Bundle
 import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
+import java.lang.ref.WeakReference
 
 /**
  *
@@ -31,7 +33,32 @@ open class DefaultActivityLifecycleCallbacks : Application.ActivityLifecycleCall
     override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) = Unit
 
     override fun onActivityDestroyed(activity: Activity) = Unit
+}
 
+object ActivityManager {
+    private var currentActivity: WeakReference<AppCompatActivity>? = null
+
+    fun getCurrentActivity(): AppCompatActivity? = currentActivity?.get()
+
+    val activityLifecycleCallbacks = object : DefaultActivityLifecycleCallbacks() {
+        override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+            if (activity is AppCompatActivity) {
+                currentActivity = WeakReference(activity)
+            }
+        }
+
+        override fun onActivityResumed(activity: Activity) {
+            if (activity is AppCompatActivity) {
+                currentActivity = WeakReference(activity)
+            }
+        }
+
+        override fun onActivityDestroyed(activity: Activity) {
+            if (activity is AppCompatActivity && activity == currentActivity?.get()) {
+                currentActivity = null
+            }
+        }
+    }
 }
 
 /**

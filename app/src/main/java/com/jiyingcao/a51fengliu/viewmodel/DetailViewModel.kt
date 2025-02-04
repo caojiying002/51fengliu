@@ -4,13 +4,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
+import com.jiyingcao.a51fengliu.data.RemoteLoginManager
 import com.jiyingcao.a51fengliu.data.TokenManager
+import com.jiyingcao.a51fengliu.domain.exception.RemoteLoginException
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -119,7 +122,7 @@ class DetailViewModel(
     }
 
     private fun loadDetail(isFloatLoading: Boolean = false) {
-        viewModelScope.launch {
+        viewModelScope.launch(RemoteLoginManager.networkScope.coroutineContext) {
             _state.value = DetailState.Loading(isFloatLoading)
             repository.getDetail(infoId)
                 .collect { result ->
@@ -127,6 +130,9 @@ class DetailViewModel(
                         hasLoadedData = true  // 标记已加载过数据
                         _state.value = DetailState.Success(record)
                     }.onFailure { e ->
+                        if (e is RemoteLoginException) {
+                            RemoteLoginManager.handleRemoteLogin()
+                        }
                         _state.value = DetailState.Error(e.toUserFriendlyMessage())
                     }
                 }

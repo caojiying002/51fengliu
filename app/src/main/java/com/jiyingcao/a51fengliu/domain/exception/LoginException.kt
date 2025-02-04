@@ -7,4 +7,9 @@ class LoginException(
     message: String?,
     cause: Throwable? = null,
     val errorData: LoginErrorData?
-) : ApiException(code, message, cause)
+) : ApiException(code, message, cause) {
+
+    override fun toString(): String {
+        return "LoginException(code=$code, message=$message, errorData=$errorData)"
+    }
+}

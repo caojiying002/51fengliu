@@ -1,5 +1,6 @@
 package com.jiyingcao.a51fengliu.api
 
+import com.jiyingcao.a51fengliu.api.parse.ApiCallAdapterFactory
 import com.jiyingcao.a51fengliu.data.TokenManager
 import java.util.concurrent.TimeUnit.SECONDS
 import okhttp3.OkHttpClient
@@ -48,6 +49,7 @@ object RetrofitClient {
         Retrofit.Builder()
             .client(okHttpClient)
             .baseUrl(BASE_URL)
+            .addCallAdapterFactory(ApiCallAdapterFactory())
             .addConverterFactory(GsonConverterFactory.create(GsonInstance.gson))
             //.addCallAdapterFactory(CoroutineCallAdapterFactory())
             .build()

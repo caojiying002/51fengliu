@@ -46,6 +46,9 @@ class DetailViewModel(
     private val _state = MutableStateFlow<DetailState>(DetailState.Init)
     val state: StateFlow<DetailState> = _state.asStateFlow()
 
+    private val _isLoggedIn = MutableStateFlow<Boolean?>(null)
+    //val isLoggedIn: StateFlow<Boolean?> = _isLoggedIn.asStateFlow()
+
     // 表示是否已经收藏的流
     private val _isFavorited: MutableStateFlow<Boolean?> = MutableStateFlow(null)
     val isFavorited: StateFlow<Boolean?> = _isFavorited.asStateFlow()
@@ -77,8 +80,10 @@ class DetailViewModel(
                 .map { token -> !token.isNullOrBlank() }
                 .distinctUntilChanged()
                 .collect { isLoggedIn ->
+                    val wasLoggedIn = _isLoggedIn.value
+                    _isLoggedIn.value = isLoggedIn
                     // 标记需要刷新的条件：从未登录状态变为已登录状态
-                    if (isLoggedIn) {
+                    if (isLoggedIn && wasLoggedIn == false) {
                         _needsRefresh.value = true
                         checkAndRefresh()
                     }

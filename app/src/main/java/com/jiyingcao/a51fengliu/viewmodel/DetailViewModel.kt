@@ -4,16 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
-import com.jiyingcao.a51fengliu.data.RemoteLoginManager
+import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
 import com.jiyingcao.a51fengliu.data.TokenManager
-import com.jiyingcao.a51fengliu.domain.exception.RemoteLoginException
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -21,15 +19,16 @@ import kotlinx.coroutines.launch
 
 sealed class DetailState {
     object Init : DetailState()
-    data class Loading(val isFloatLoading: Boolean = false) : DetailState()
+    object Loading : DetailState()
+    object FloatLoading : DetailState()
     data class Success(val record: RecordInfo) : DetailState()
     data class Error(val message: String) : DetailState()
 }
 
 sealed class DetailIntent {
-    object LoadDetail : DetailIntent()
+    class LoadDetail(val forceRefresh: Boolean = false) : DetailIntent()    // 用于首次进入页面加载和用户主动下拉刷新
     object Retry : DetailIntent()
-    object Refresh : DetailIntent()
+    object Refresh : DetailIntent() // 用于登录成功后刷新。登录成功后刷新是一个特定场景，可能需要清除未登录态的缓存数据，也可能未来需要针对登录后刷新添加特殊逻辑（如同步用户相关数据等）
     object Favorite : DetailIntent()
     object Unfavorite : DetailIntent()
 }
@@ -113,56 +112,98 @@ class DetailViewModel(
 
     fun processIntent(intent: DetailIntent) {
         when (intent) {
-            is DetailIntent.LoadDetail -> loadDetail()
-            is DetailIntent.Retry -> loadDetail()
-            is DetailIntent.Refresh -> refresh()
+            is DetailIntent.LoadDetail -> loadDetail(intent.forceRefresh)
+            is DetailIntent.Retry -> retry()
+            is DetailIntent.Refresh -> refresh()    // 用于登录成功后刷新
             is DetailIntent.Favorite -> favorite()
             is DetailIntent.Unfavorite -> unfavorite()
         }
     }
 
-    private fun loadDetail(isFloatLoading: Boolean = false) {
-        viewModelScope.launch(RemoteLoginManager.networkScope.coroutineContext) {
-            _state.value = DetailState.Loading(isFloatLoading)
+    private fun loadDetail(forceRefresh: Boolean = false) {
+        if (!hasLoadedData
+            || forceRefresh) {
+            loadDetail0()
+        }
+    }
+
+    private fun loadDetail0() {
+        viewModelScope.launch(remoteLoginCoroutineContext) {
+            _state.value = DetailState.Loading
             repository.getDetail(infoId)
                 .collect { result ->
-                    result.onSuccess { record ->
-                        hasLoadedData = true
-                        _state.value = DetailState.Success(record)
-                    }.onFailure { e ->
-                        handleFailure(e)  // 使用基类的统一错误处理
-                        _state.value = DetailState.Error(e.toUserFriendlyMessage())
-                    }
+                    result.mapCatching { requireNotNull(it) }
+                        .onSuccess { record ->
+                            hasLoadedData = true
+                            _state.value = DetailState.Success(record)
+                        }.onFailure { e ->
+                            if (!handleFailure(e))  // 通用的错误处理，如果处理过就不用再处理了
+                                _state.value = DetailState.Error(e.toUserFriendlyMessage())
+                        }
                 }
         }
     }
 
+    /**
+     * 对于登录后刷新，更推荐使用 DetailIntent.Refresh，因为：
+     *
+     * - 登录成功后刷新是一个特定场景，可能需要清除未登录态的缓存数据
+     * - 相比 forceRefresh 参数，独立的 Intent 让代码意图更清晰
+     * - 未来可能需要针对登录后刷新添加特殊逻辑（如同步用户相关数据）
+     *
+     * 目前和[loadDetail0]只有加载样式上的区别
+     */
     private fun refresh() {
-        loadDetail(isFloatLoading = true)
+        viewModelScope.launch(remoteLoginCoroutineContext) {
+            _state.value = DetailState.FloatLoading // 区别在这里
+            repository.getDetail(infoId)
+                .collect { result ->
+                    result.mapCatching { requireNotNull(it) }
+                        .onSuccess { record ->
+                            hasLoadedData = true
+                            _state.value = DetailState.Success(record)
+                        }.onFailure { e ->
+                            if (!handleFailure(e))
+                                _state.value = DetailState.Error(e.toUserFriendlyMessage())
+                        }
+                }
+        }
+    }
+
+    /**
+     * 对于请求失败的场景，专门定义 DetailIntent.Retry 更合适：
+     * - 语义更明确，表达了用户重试的意图
+     * - 错误恢复是独立的业务场景，可能需要特殊处理（如清除错误状态）
+     * - 方便后续添加重试相关的特殊逻辑（如重试次数限制）
+     */
+    private fun retry() {
+        loadDetail0()
     }
 
     private fun favorite() {
-        viewModelScope.launch {
+        viewModelScope.launch(remoteLoginCoroutineContext) {
             repository.favorite(infoId)
                 .collect { result ->
                     result.onSuccess {
                         _isFavorited.value = true
                         _effect.send(DetailEffect.ShowToast("收藏成功"))
                     }.onFailure { e ->
-                        _effect.send(DetailEffect.ShowToast(e.toUserFriendlyMessage()))
+                        if (!handleFailure(e))
+                            _effect.send(DetailEffect.ShowToast(e.toUserFriendlyMessage()))
                     }
                 }
         }
     }
     private fun unfavorite() {
-        viewModelScope.launch {
+        viewModelScope.launch(remoteLoginCoroutineContext) {
             repository.unfavorite(infoId)
                 .collect { result ->
                     result.onSuccess {
                         _isFavorited.value = false
                         _effect.send(DetailEffect.ShowToast("取消收藏成功"))
                     }.onFailure { e ->
-                        _effect.send(DetailEffect.ShowToast(e.toUserFriendlyMessage()))
+                        if (!handleFailure(e))
+                            _effect.send(DetailEffect.ShowToast(e.toUserFriendlyMessage()))
                     }
                 }
         }

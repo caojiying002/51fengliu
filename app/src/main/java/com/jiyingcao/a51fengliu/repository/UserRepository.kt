@@ -4,7 +4,6 @@ import com.jiyingcao.a51fengliu.api.ApiService
 import com.jiyingcao.a51fengliu.api.request.LoginRequest
 import com.jiyingcao.a51fengliu.api.response.ApiResult
 import com.jiyingcao.a51fengliu.api.response.Profile
-import com.jiyingcao.a51fengliu.domain.exception.ApiException
 import com.jiyingcao.a51fengliu.domain.exception.LoginException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -15,7 +14,7 @@ import kotlinx.coroutines.flow.flowOn
 class UserRepository(
     private val apiService: ApiService,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
-) {
+) : BaseRepository() {
 
     /**
      * 登录
@@ -52,39 +51,17 @@ class UserRepository(
      * 获取个人中心用户信息
      * @return Flow<Result<Profile>> 包含用户信息的结果流
      */
-    fun getProfile(): Flow<Result<Profile>> = flow {
-        try {
-            val response = apiService.getProfile()
-            if (response.isSuccessful()) {
-                response.data?.let {
-                    emit(Result.success(it))
-                } ?: emit(Result.failure(Exception("Empty response data")))
-            } else {
-                emit(Result.failure(ApiException.createFromResponse(response)))
-            }
-        } catch (e: Exception) {
-            emit(Result.failure(e))
-        }
-    }.flowOn(dispatcher)
-
-
+    fun getProfile(): Flow<Result<Profile?>> = apiCall {
+        apiService.getProfile()
+    }
 
     /**
      * 退出登录（注销）
      * @return Flow<Result<*> 表示注销成功或失败的结果流
      */
-    fun logout(): Flow<Result<*>> = flow {
-        try {
-            val response = apiService.postLogout()
-            if (response.isSuccessful()) {
-                emit(Result.success(null))
-            } else {
-                emit(Result.failure(ApiException.createFromResponse(response)))
-            }
-        } catch (e: Exception) {
-            emit(Result.failure(e))
-        }
-    }.flowOn(dispatcher)
+    fun logout(): Flow<Result<*>> = apiCall {
+        apiService.postLogout()
+    }
 
     companion object {
         // 用于单例模式实现

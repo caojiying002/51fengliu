@@ -31,6 +31,8 @@ data class RecordInfo(  // 2024.09.13重命名为RecordInfo，避免和java.lang
     val picture: String?,
     val coverPicture: String?,
     val anonymous: Boolean?,
+    /** 从"我的收藏"进去有，普通列表页没有 */
+    val ip: String?,
     val publishedAt: String?, //Long,
     val createdAt: String?, //Long,
     /** 列表页为null，详情页为true/false */
@@ -51,13 +53,16 @@ data class RecordInfo(  // 2024.09.13重命名为RecordInfo，避免和java.lang
     /** 列表页无，详情页仅VIP会员有"only vip have" */
     val vipView: String?,
 
-    /** 列表页无，详情页"only user have" */
+    /**
+     * 列表页无，详情页"only user have"。
+     * 好像没什么用，带不带token列表页详情页都一样
+     */
     val userView: String?,
 
     /** 列表页详情页都是"only guest have" */
     val guestView: String?,
 
-    // 登录后可见（列表页无，详情页有）
+    // VIP登录后可见（列表页无，详情页有）
     val qq: String?,
     val wechat: String?,
     val telegram: String?,

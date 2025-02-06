@@ -16,9 +16,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="false"
         android:theme="@style/Theme.App"
-        tools:targetApi="31">
+        tools:targetApi="31"
+        tools:ignore="DiscouragedApi">
         <activity
             android:name=".ui.MainActivity"
+            android:screenOrientation="${screenOrientation}"
             android:exported="true"
             android:launchMode="singleTask" >
             <intent-filter>
@@ -29,37 +31,46 @@
         </activity>
         <activity
             android:name=".ui.DetailActivity"
-            android:exported="false" >
+            android:exported="${activityExported}"
+            android:screenOrientation="${screenOrientation}" >
             <meta-data
                 android:name="android.app.activity.enable_content_transitions"
                 android:value="true" />
         </activity>
         <activity
             android:name=".ui.CityActivity"
-            android:exported="false" />
+            android:exported="${activityExported}"
+            android:screenOrientation="${screenOrientation}" />
         <activity
             android:name=".ui.SearchActivity"
-            android:exported="false" />
+            android:exported="${activityExported}"
+            android:screenOrientation="${screenOrientation}" />
         <activity
             android:name=".ui.ChooseCityActivity"
-            android:exported="false" />
+            android:exported="${activityExported}"
+            android:screenOrientation="${screenOrientation}" />
         <activity
             android:name=".ui.LoginActivity"
             android:windowSoftInputMode="adjustResize|stateHidden"
-            android:exported="false" />
+            android:exported="${activityExported}"
+            android:screenOrientation="${screenOrientation}" />
         <activity
             android:name=".ui.RegisterActivity"
-            android:exported="false" />
+            android:exported="${activityExported}"
+            android:screenOrientation="${screenOrientation}" />
         <activity
             android:name=".ui.ForgetPasswordActivity"
-            android:exported="false" />
+            android:exported="${activityExported}"
+            android:screenOrientation="${screenOrientation}" />
         <activity
             android:name=".ui.common.WebViewActivity"
-            android:exported="false" />
+            android:exported="${activityExported}"
+            android:screenOrientation="${screenOrientation}" />
         <activity
             android:name=".ui.common.BigImageViewerActivity"
             android:theme="@style/Theme.App.BigImageViewer"
-            android:exported="false" />
+            android:exported="${activityExported}"
+            android:screenOrientation="${screenOrientation}" />
     </application>
 
 </manifest>

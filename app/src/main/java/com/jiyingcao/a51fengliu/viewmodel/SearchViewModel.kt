@@ -57,7 +57,7 @@ class SearchViewModel: ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.postValue(Loading(loadingType))
             try {
-                val response = RetrofitClient.apiService.search2(keywords = keywords, page = page)
+                val response = RetrofitClient.apiService.search4(keywords = keywords, cityCode = "", page = page)
                 if (response.code != 0) {
                     Log.w(TAG, "API状态码 code=${response.code}, msg=${response.msg}")
                     _uiState.postValue(Error(loadingType))

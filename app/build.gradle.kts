@@ -19,7 +19,17 @@ android {
     }
 
     buildTypes {
+        debug {
+            manifestPlaceholders += mapOf(
+                "activityExported" to true,
+                "screenOrientation" to "unspecified"  // 允许旋转
+            )
+        }
         release {
+            manifestPlaceholders += mapOf(
+                "activityExported" to false,
+                "screenOrientation" to "portrait"     // 锁定竖屏
+            )
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

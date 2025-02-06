@@ -85,7 +85,7 @@ class SearchViewModel2 : ViewModel() {
         }
 
         try {
-            val response = RetrofitClient.apiService.search2(keywords, pendingPage)
+            val response = RetrofitClient.apiService.search4(keywords, "", pendingPage)
             if (response.isSuccessful()) {
                 _searchResults.value = response.data
                 // TODO 增加一种空数据的状态

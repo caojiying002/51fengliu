@@ -1,48 +1,55 @@
 package com.jiyingcao.a51fengliu.api
 
+import com.jiyingcao.a51fengliu.api.TokenPolicy.Policy
 import com.jiyingcao.a51fengliu.data.TokenManager
 import okhttp3.Interceptor
 import okhttp3.Response
 import kotlinx.coroutines.runBlocking
+import okhttp3.Request
 
 /**
  * 正式环境使用的认证拦截器
  * @param tokenManager Token管理器实例
- * @param noAuthPaths 不需要认证的API路径列表
  */
 class AuthInterceptor(
-    private val tokenManager: TokenManager,
-    private val noAuthPaths: List<String> = listOf(
-        "/api/web/auth/login.json",
-        "/api/web/auth/register.json",
-        // 在此添加其他不需要认证的路径
-    )
+    private val tokenManager: TokenManager
 ) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
-        val path = request.url.encodedPath
 
-        // 检查是否是不需要认证的路径
-        if (noAuthPaths.any { path.startsWith(it) }) {
-            return chain.proceed(request)
+        val token = runBlocking { tokenManager.getToken() }
+
+        val tokenPolicy = request.findTokenPolicy()
+
+        return when (tokenPolicy?.value) {
+            null -> chain.proceed(request.addTokenIfAny(token)) // 未标注的接口采用默认策略
+            Policy.OPTIONAL -> chain.proceed(request.addTokenIfAny(token))
+            Policy.FORBIDDEN -> chain.proceed(request)
+            Policy.REQUIRED -> {
+                if (token.isNullOrEmpty()) {
+                    // TODO 可以根据需求决定是抛异常还是返回401响应
+                    throw IllegalStateException("Required token not found")
+                }
+                chain.proceed(request.addToken(token))
+            }
         }
+    }
 
-        // 使用协程获取token
-        val token: String? = runBlocking {
-            tokenManager.getToken()
-        }
+    private fun Request.addTokenIfAny(token: String?): Request =
+        if (token.isNullOrEmpty()) this else addToken(token)
 
-        // 如果有token则添加到请求头中
-        val newRequest = if (!token.isNullOrEmpty()) {
-            request.newBuilder()
-                .header("Authorization", "Bearer $token")
-                .build()
-        } else {
-            request
-        }
+    private fun Request.addToken(token: String): Request =
+        this.newBuilder()
+            .header("Authorization", "Bearer $token")
+            .build()
 
-        return chain.proceed(newRequest)
+    /**
+     * 获取请求对应的TokenPolicy注解
+     */
+    private fun Request.findTokenPolicy(): TokenPolicy? {
+        // TODO 可以添加方法缓存，避免每次都反射获取注解
+        return this.method.javaClass.getAnnotation(TokenPolicy::class.java)
     }
 }
 

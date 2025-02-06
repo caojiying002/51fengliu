@@ -22,12 +22,10 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
-import com.jiyingcao.a51fengliu.data.RemoteLoginManager
 import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.databinding.ActivityDetailBinding
 import com.jiyingcao.a51fengliu.databinding.ContentDetailBinding
@@ -109,14 +107,14 @@ class DetailActivity : BaseActivity() {
 
         setupFlowCollectors()
 
-        viewModel.processIntent(DetailIntent.LoadDetail)
+        viewModel.processIntent(DetailIntent.LoadDetail())
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
 
         val recordId = intent.getRecordId()
-        if (recordId != null) viewModel.processIntent(DetailIntent.LoadDetail)
+        if (recordId != null) viewModel.processIntent(DetailIntent.LoadDetail())
     }
 
     override fun onActivityReenter(resultCode: Int, data: Intent?) {
@@ -154,11 +152,10 @@ class DetailActivity : BaseActivity() {
                             showContentView()
                         }
                         is DetailState.Loading -> {
-                            if (state.isFloatLoading) {
-                                binding.showLoadingOverContent()
-                            } else {
-                                showLoadingView()
-                            }
+                            showLoadingView()
+                        }
+                        is DetailState.FloatLoading -> {
+                            binding.showLoadingOverContent()
                         }
                         is DetailState.Success -> {
                             showContentView()

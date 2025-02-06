@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.api.response.Profile
+import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
 import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.UserRepository
@@ -91,14 +92,16 @@ class ProfileViewModel(
     }
 
     fun fetchProfile() {
-        viewModelScope.launch {
+        viewModelScope.launch(remoteLoginCoroutineContext) {
             _state.value = ProfileState.Loading
             repository.getProfile().collect { result ->
-                result.onSuccess { profile ->
-                    _state.value = ProfileState.Success(profile)
-                }.onFailure { e ->
-                    _state.value = ProfileState.Error(e.toUserFriendlyMessage())
-                }
+                result.mapCatching { requireNotNull(it) }
+                    .onSuccess { profile ->
+                        _state.value = ProfileState.Success(profile)
+                    }.onFailure { e ->
+                        if (!handleFailure(e))  // 通用的错误处理，如果处理过就不用再处理了
+                            _state.value = ProfileState.Error(e.toUserFriendlyMessage())
+                    }
             }
         }
     }
@@ -106,7 +109,7 @@ class ProfileViewModel(
     fun logout() {
         cancelLogout()
 
-        logoutJob = viewModelScope.launch {
+        logoutJob = viewModelScope.launch(remoteLoginCoroutineContext) {
             _effect.send(LogoutEffect.ShowLoadingDialog)
 
             repository.logout()
@@ -116,7 +119,8 @@ class ProfileViewModel(
                         //_isLoggedIn.value = false // tokenManager.token流会自动触发_isLoggedIn流的赋值，这里不需要手动设置
                         _effect.send(LogoutEffect.ShowToast("已退出登录"))
                     }.onFailure { e ->
-                        _effect.send(LogoutEffect.ShowToast(e.toUserFriendlyMessage()))
+                        if (!handleFailure(e))
+                            _effect.send(LogoutEffect.ShowToast(e.toUserFriendlyMessage()))
                     }
                 }
                 .onCompletion {

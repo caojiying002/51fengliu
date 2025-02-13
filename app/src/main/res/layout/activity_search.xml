@@ -53,6 +53,8 @@
                 android:background="@drawable/selector_search_input_background"
                 android:hint="关键词"
                 android:lines="1"
+                android:singleLine="true"
+                android:imeOptions="actionSearch"
                 android:textColorHint="@color/text_default"
                 android:textSize="18dp"
                 android:textColor="@color/text_item_title"

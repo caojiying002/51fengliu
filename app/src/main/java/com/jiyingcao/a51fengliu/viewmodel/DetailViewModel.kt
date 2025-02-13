@@ -17,16 +17,43 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
+private enum class LoadingType0 {
+    FULL_SCREEN,
+    PULL_TO_REFRESH,
+    FLOAT
+}
+
+private fun LoadingType0.toLoadingState(): DetailState.Loading = when (this) {
+    LoadingType0.FULL_SCREEN -> DetailState.Loading.FullScreen
+    LoadingType0.PULL_TO_REFRESH -> DetailState.Loading.PullToRefresh
+    LoadingType0.FLOAT -> DetailState.Loading.Float
+}
+
+private fun LoadingType0.toErrorState(message: String): DetailState.Error = when (this) {
+    LoadingType0.FULL_SCREEN -> DetailState.Error.FullScreen(message)
+    LoadingType0.PULL_TO_REFRESH -> DetailState.Error.PullToRefresh(message)
+    LoadingType0.FLOAT -> DetailState.Error.Float(message)
+}
+
 sealed class DetailState {
     object Init : DetailState()
-    object Loading : DetailState()
-    object FloatLoading : DetailState()
+    sealed class Loading : DetailState() {
+        object FullScreen : Loading()
+        object PullToRefresh : Loading()
+        object Float : Loading()
+    }
     data class Success(val record: RecordInfo) : DetailState()
-    data class Error(val message: String) : DetailState()
+    sealed class Error(open val message: String) : DetailState() {
+        data class FullScreen(override val message: String) : Error(message)
+        data class PullToRefresh(override val message: String) : Error(message)
+        data class Float(override val message: String) : Error(message)
+    }
 }
 
 sealed class DetailIntent {
-    class LoadDetail(val forceRefresh: Boolean = false) : DetailIntent()    // 用于首次进入页面加载和用户主动下拉刷新
+    /** [forceRefresh]一般用于区分从本地缓存加载还是从网络加载，目前APP没有本地缓存功能，可忽略 */
+    class LoadDetail(val forceRefresh: Boolean = false) : DetailIntent()
+    object PullToRefresh : DetailIntent()
     object Retry : DetailIntent()
     object Refresh : DetailIntent() // 用于登录成功后刷新。登录成功后刷新是一个特定场景，可能需要清除未登录态的缓存数据，也可能未来需要针对登录后刷新添加特殊逻辑（如同步用户相关数据等）
     object Favorite : DetailIntent()
@@ -60,7 +87,8 @@ class DetailViewModel(
     /** 从未登录状态转变为已登录时，标记为true */
     private val _needsRefresh = MutableStateFlow(false)
 
-    private var hasLoadedData = false
+    @Volatile
+    var hasLoadedData = false
 
     private val _effect = Channel<DetailEffect>()
     val effect = _effect.receiveAsFlow()
@@ -112,24 +140,18 @@ class DetailViewModel(
 
     fun processIntent(intent: DetailIntent) {
         when (intent) {
-            is DetailIntent.LoadDetail -> loadDetail(intent.forceRefresh)
-            is DetailIntent.Retry -> retry()
-            is DetailIntent.Refresh -> refresh()    // 用于登录成功后刷新
-            is DetailIntent.Favorite -> favorite()
-            is DetailIntent.Unfavorite -> unfavorite()
+            is DetailIntent.LoadDetail -> loadDetail()
+            DetailIntent.PullToRefresh -> pullToRefresh()
+            DetailIntent.Retry -> retry()
+            DetailIntent.Refresh -> refresh()    // 用于登录成功后刷新
+            DetailIntent.Favorite -> favorite()
+            DetailIntent.Unfavorite -> unfavorite()
         }
     }
 
-    private fun loadDetail(forceRefresh: Boolean = false) {
-        if (!hasLoadedData
-            || forceRefresh) {
-            loadDetail0()
-        }
-    }
-
-    private fun loadDetail0() {
+    private fun loadDetail(loadingType: LoadingType0 = LoadingType0.FULL_SCREEN) {
         viewModelScope.launch(remoteLoginCoroutineContext) {
-            _state.value = DetailState.Loading
+            _state.value = loadingType.toLoadingState()
             repository.getDetail(infoId)
                 .collect { result ->
                     result.mapCatching { requireNotNull(it) }
@@ -138,10 +160,14 @@ class DetailViewModel(
                             _state.value = DetailState.Success(record)
                         }.onFailure { e ->
                             if (!handleFailure(e))  // 通用的错误处理，如果处理过就不用再处理了
-                                _state.value = DetailState.Error(e.toUserFriendlyMessage())
+                                _state.value = loadingType.toErrorState(e.toUserFriendlyMessage())
                         }
                 }
         }
+    }
+
+    private fun pullToRefresh() {
+        loadDetail(LoadingType0.PULL_TO_REFRESH)
     }
 
     /**
@@ -153,21 +179,8 @@ class DetailViewModel(
      *
      * 目前和[loadDetail0]只有加载样式上的区别
      */
-    private fun refresh() {
-        viewModelScope.launch(remoteLoginCoroutineContext) {
-            _state.value = DetailState.FloatLoading // 区别在这里
-            repository.getDetail(infoId)
-                .collect { result ->
-                    result.mapCatching { requireNotNull(it) }
-                        .onSuccess { record ->
-                            hasLoadedData = true
-                            _state.value = DetailState.Success(record)
-                        }.onFailure { e ->
-                            if (!handleFailure(e))
-                                _state.value = DetailState.Error(e.toUserFriendlyMessage())
-                        }
-                }
-        }
+    private fun refresh() { // TODO 根据登录后刷新的语义，最好能重命名
+        loadDetail(LoadingType0.FLOAT)
     }
 
     /**
@@ -177,7 +190,7 @@ class DetailViewModel(
      * - 方便后续添加重试相关的特殊逻辑（如重试次数限制）
      */
     private fun retry() {
-        loadDetail0()
+        loadDetail(LoadingType0.FULL_SCREEN)
     }
 
     private fun favorite() {

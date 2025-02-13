@@ -85,9 +85,9 @@ class ProfileViewModel(
 
     fun processIntent(intent: ProfileIntent) {
         when (intent) {
-            is ProfileIntent.LoadProfile -> fetchProfile()
-            is ProfileIntent.Logout -> logout()
-            is ProfileIntent.CancelLogout -> cancelLogout()
+            ProfileIntent.LoadProfile -> fetchProfile()
+            ProfileIntent.Logout -> logout()
+            ProfileIntent.CancelLogout -> cancelLogout()
         }
     }
 

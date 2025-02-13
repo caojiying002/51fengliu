@@ -59,4 +59,11 @@ interface ApiService {
     suspend fun postUnfavorite(
         @Body body: InfoIdRequest
     ): ApiResponse<Nothing>
+
+    /** 我的收藏（需登录） */
+    @TokenPolicy(Policy.REQUIRED)
+    @GET("/api/web/authUser/favoritePage.json")
+    suspend fun getFavorites(
+        @Query("page") page: Int = 1
+    ): ApiResponse<PageData>
 }

@@ -3,39 +3,41 @@ package com.jiyingcao.a51fengliu.ui
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
-import android.view.View
-import android.view.ViewGroup
-import android.widget.EditText
+import android.view.KeyEvent
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
-import androidx.core.view.isGone
-import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.R
+import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.PageData
 import com.jiyingcao.a51fengliu.databinding.ActivitySearchBinding
+import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout
+import com.jiyingcao.a51fengliu.util.ImeUtil
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.to2LevelName
 import com.jiyingcao.a51fengliu.viewmodel.LoadingType.*
-import com.jiyingcao.a51fengliu.viewmodel.LoadingType4
+import com.jiyingcao.a51fengliu.viewmodel.RefreshState
+import com.jiyingcao.a51fengliu.viewmodel.SearchIntent
+import com.jiyingcao.a51fengliu.viewmodel.SearchState
+import com.jiyingcao.a51fengliu.viewmodel.SearchState.Loading
+import com.jiyingcao.a51fengliu.viewmodel.SearchState.Error
 import com.jiyingcao.a51fengliu.viewmodel.SearchViewModel2.UiState
 import com.jiyingcao.a51fengliu.viewmodel.SearchViewModel4
+import com.jiyingcao.a51fengliu.viewmodel.SearchViewModelFactory
 import com.jiyingcao.a51fengliu.viewmodel.UiState2
 import com.jiyingcao.a51fengliu.viewmodel.UiState2.*
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class SearchActivity: BaseActivity() {
@@ -44,12 +46,9 @@ class SearchActivity: BaseActivity() {
     private lateinit var refreshLayout: SmartRefreshLayout
     private lateinit var recyclerView: RecyclerView
 
-    private val viewModel: SearchViewModel4 by viewModels()
+    private lateinit var viewModel: SearchViewModel4
 
     private lateinit var recordAdapter: RecordAdapter
-
-    /** 是否有数据已经加载 */
-    @Deprecated("") private var hasDataLoaded: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,7 +60,8 @@ class SearchActivity: BaseActivity() {
         setupSmartRefreshLayout()
         setupRecyclerView()
 
-        setupFlowCollectors4()
+        setupViewModel()
+        setupFlowCollectors()
 
         /*viewModel.uiState.observe(this) { state ->
             handleLoadingState(state)
@@ -103,35 +103,43 @@ class SearchActivity: BaseActivity() {
         //viewModel.search(page = 1)
     }
 
-    private fun setupFlowCollectors4() {
+    private fun setupViewModel() {
+        viewModel = ViewModelProvider(
+            this,
+            SearchViewModelFactory(
+                RecordRepository.getInstance(RetrofitClient.apiService)
+            )
+        )[SearchViewModel4::class.java]
+    }
+
+    private fun setupFlowCollectors() {
         lifecycleScope.launch {
-            viewModel.searchState.collect { state ->
-                when (state.loadingType) {
-                    LoadingType4.FULL_SCREEN -> showFullScreenLoading()
-                    LoadingType4.PULL_TO_REFRESH -> showPullToRefreshLoading()
-                    LoadingType4.PAGINATION -> showPaginationLoading()
-                    LoadingType4.DIALOG -> showLoadingDialog()
-                    LoadingType4.NONE -> hideAllLoadingIndicators()
-                }
-
-                state.error?.let { showError(it) }
-
-                state.results?.let {    // it: PageData
-                    if (state.shouldClearList) {
-                        recordAdapter.submitList(it.records)
-                    } else {
-                        recordAdapter.addAll(it.records)
+            viewModel.state.collect { state ->
+                when (state) {
+                    is SearchState.Loading -> handleLoadingState(state)
+                    is SearchState.Error -> handleErrorState(state)
+                    is SearchState.Success -> {
+                        state.apply { updateUI(pagedData, isFirstPage, isLastPage) }
                     }
-                    refreshLayout.setNoMoreData(!it.hasNextPage())
+                    else -> {}
                 }
-                if (state.results != null) {
-                    if (state.shouldClearList) {
-                        recordAdapter.submitList(state.results.records)
-                    } else {
-                        recordAdapter.addAll(state.results.records)
-                    }
-                    // 是否还有下一页可以加载
-                    refreshLayout.setNoMoreData(!state.results.hasNextPage())
+            }
+        }
+
+        lifecycleScope.launch {
+            viewModel.noMoreDataState.collect { noMoreData ->
+                refreshLayout.setNoMoreData(noMoreData)
+            }
+        }
+
+        lifecycleScope.launch {
+            viewModel.refreshState.collect { state ->
+                when (state) {
+                    RefreshState.RefreshSuccess -> refreshLayout.finishRefresh()
+                    RefreshState.RefreshError -> refreshLayout.finishRefresh(false)
+                    RefreshState.LoadMoreSuccess -> refreshLayout.finishLoadMore()
+                    RefreshState.LoadMoreError -> refreshLayout.finishLoadMore(false)
+                    else -> {}
                 }
             }
         }
@@ -143,6 +151,29 @@ class SearchActivity: BaseActivity() {
     private fun showLoadingDialog() { /* 实现加载对话框 */ }
     private fun hideAllLoadingIndicators() { /* 隐藏所有加载指示器 */ }
     private fun showError(error: String) { /* 显示错误信息 */ }
+
+    private fun handleLoadingState(loading: Loading) {
+        when (loading) {
+            Loading.FullScreen -> showFullScreenLoading()
+            Loading.PullToRefresh -> showPullToRefreshLoading()
+            Loading.Pagination -> showPaginationLoading()
+        }
+    }
+
+    private fun handleErrorState(error: Error) {
+        when (error) {
+            is Error.FullScreen -> showError(error.message)
+            is Error.PullToRefresh -> refreshLayout.finishRefresh(false)
+            is Error.Pagination -> refreshLayout.finishLoadMore(false)
+        }
+    }
+
+    private fun updateUI(pagedData: PageData, isFirstPage: Boolean, isLastPage: Boolean) {
+        when (isFirstPage) {
+            true -> recordAdapter.submitList(pagedData.records)
+            false -> recordAdapter.addAll(pagedData.records)
+        }
+    }
 
     /*private fun setupFlowCollectors2() {
         lifecycleScope.launch {
@@ -256,7 +287,7 @@ class SearchActivity: BaseActivity() {
             displayCity(cityCode)
             cityCode?.let {
                 App.INSTANCE.showToast("City code selected: $cityCode")
-                viewModel.updateCity(it)
+                viewModel.processIntent(SearchIntent.UpdateCity(cityCode))
             }
         }
     }
@@ -270,12 +301,26 @@ class SearchActivity: BaseActivity() {
         binding.clickChooseCity.setOnClickListener {
             chooseCityLauncher.launch(ChooseCityActivity.createIntent(this@SearchActivity))
         }
-        binding.clickSearch.setOnClickListener {
+        binding.clickSearch.setOnClickListener { v ->
+            ImeUtil.hideIme(v)
+
             val keywords = binding.searchEditText.text.toString().trim()
-            //if (keywords.isNotEmpty()) {
+            // 关键字允许为空，相当于显示(某城市)所有数据
             Log.d(TAG, "Search keywords=$keywords")
-            viewModel.updateKeywords(keywords)
-            //}
+            // 隐藏键盘
+            viewModel.processIntent(SearchIntent.UpdateKeywords(keywords))
+        }
+        binding.searchEditText.setOnEditorActionListener { v, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH ||
+                (event != null &&
+                        event.keyCode == KeyEvent.KEYCODE_ENTER &&
+                        event.action == KeyEvent.ACTION_DOWN)
+            ) {
+                // 触发搜索点击
+                binding.clickSearch.performClick()
+                return@setOnEditorActionListener true
+            }
+            false
         }
     }
 
@@ -289,8 +334,8 @@ class SearchActivity: BaseActivity() {
             .apply {
                 setRefreshHeader(ClassicsHeader(context))
                 setRefreshFooter(ClassicsFooter(context))
-                setOnRefreshListener { viewModel.refreshList() }
-                setOnLoadMoreListener { viewModel.nextPage() }
+                setOnRefreshListener { viewModel.processIntent(SearchIntent.Refresh) }
+                setOnLoadMoreListener { viewModel.processIntent(SearchIntent.NextPage) }
                 // setEnableLoadMore(false)  // 加载第一页成功前暂时禁用LoadMore
             }
     }

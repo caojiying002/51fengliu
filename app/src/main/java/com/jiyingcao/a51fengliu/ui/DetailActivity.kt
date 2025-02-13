@@ -28,6 +28,7 @@ import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.databinding.ActivityDetailBinding
+import com.jiyingcao.a51fengliu.databinding.ContentDetail0Binding
 import com.jiyingcao.a51fengliu.databinding.ContentDetailBinding
 import com.jiyingcao.a51fengliu.glide.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.glide.GlideApp
@@ -46,13 +47,13 @@ import com.jiyingcao.a51fengliu.viewmodel.DetailIntent
 import com.jiyingcao.a51fengliu.viewmodel.DetailState
 import com.jiyingcao.a51fengliu.viewmodel.DetailViewModel
 import com.jiyingcao.a51fengliu.viewmodel.DetailViewModelFactory
+import com.scwang.smart.refresh.layout.SmartRefreshLayout
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class DetailActivity : BaseActivity() {
     private lateinit var binding: ActivityDetailBinding
-    private val contentBinding: ContentDetailBinding get() = binding.contentLayout
-
+    private val contentBinding: ContentDetail0Binding get() = binding.contentLayout.contentDetail0
     private lateinit var viewModel: DetailViewModel
 
     private var loadingDialog: LoadingDialog? = null
@@ -93,6 +94,7 @@ class DetailActivity : BaseActivity() {
         }
 
         setupClickListeners()
+        setupSmartRefreshLayout()
 
         setExitSharedElementCallback(mySharedElementCallback)
 
@@ -107,11 +109,19 @@ class DetailActivity : BaseActivity() {
 
         setupFlowCollectors()
 
-        viewModel.processIntent(DetailIntent.LoadDetail())
+        if (!viewModel.hasLoadedData)   // 横竖屏等配置更改时，不需要重新加载数据
+            viewModel.processIntent(DetailIntent.LoadDetail())
+    }
+
+    private fun setupSmartRefreshLayout() {
+        binding.contentLayout.refreshLayout.setOnRefreshListener {
+            viewModel.processIntent(DetailIntent.PullToRefresh)
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        setIntent(intent)
 
         val recordId = intent.getRecordId()
         if (recordId != null) viewModel.processIntent(DetailIntent.LoadDetail())
@@ -151,18 +161,28 @@ class DetailActivity : BaseActivity() {
                         is DetailState.Init -> {
                             showContentView()
                         }
-                        is DetailState.Loading -> {
+                        is DetailState.Loading.FullScreen -> {
                             showLoadingView()
                         }
-                        is DetailState.FloatLoading -> {
+                        is DetailState.Loading.Float -> {
                             binding.showLoadingOverContent()
                         }
+                        is DetailState.Loading.PullToRefresh -> {}
                         is DetailState.Success -> {
                             showContentView()
+                            binding.contentLayout.refreshLayout.finishRefresh(true)
                             updateUI(state.record)
                         }
-                        is DetailState.Error -> {
+                        is DetailState.Error.FullScreen -> {
                             showErrorView(state.message)
+                        }
+                        is DetailState.Error.Float -> {
+                            showContentView()
+                            showToast(state.message)
+                        }
+                        is DetailState.Error.PullToRefresh -> {
+                            binding.contentLayout.refreshLayout.finishRefresh(false)
+                            showToast(state.message)
                         }
                     }
                 }
@@ -475,19 +495,19 @@ fun ActivityDetailBinding.showLoadingOverContent() {
     loadingLayout.root.isVisible = true
 }
 
-fun ContentDetailBinding.showNotLogin() {
+fun ContentDetail0Binding.showNotLogin() {
     contactInfoNotLogin.root.isVisible = true
     contactInfoOrdinaryMember.root.isVisible = false
     contactInfoVip.root.isVisible = false
 }
 
-fun ContentDetailBinding.showOrdinaryMember() {
+fun ContentDetail0Binding.showOrdinaryMember() {
     contactInfoNotLogin.root.isVisible = false
     contactInfoOrdinaryMember.root.isVisible = true
     contactInfoVip.root.isVisible = false
 }
 
-fun ContentDetailBinding.showVip() {
+fun ContentDetail0Binding.showVip() {
     contactInfoNotLogin.root.isVisible = false
     contactInfoOrdinaryMember.root.isVisible = false
     contactInfoVip.root.isVisible = true

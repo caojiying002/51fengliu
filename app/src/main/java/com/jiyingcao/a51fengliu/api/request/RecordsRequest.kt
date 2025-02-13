@@ -79,17 +79,17 @@ data class RecordsRequest(
 
         /**
          * 搜索结果
-         * @param cityCode 城市代码。如：广州市为440100
          * @param keywords 关键字
+         * @param cityCode 城市代码。如：广州市为440100
          * @param page 页数，默认为1
          */
         fun forSearch(
-            cityCode: String,
             keywords: String,
+            cityCode: String = "",
             page: Int = 1
         ) = RecordsRequest(
-            cityCode = cityCode,
             keywords = keywords,
+            cityCode = cityCode,
             page = page
         )
     }

@@ -22,6 +22,7 @@ import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.databinding.ActivityLoginBinding
 import com.jiyingcao.a51fengliu.repository.UserRepository
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
+import com.jiyingcao.a51fengliu.util.ImeUtil
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.LoginEffect
 import com.jiyingcao.a51fengliu.viewmodel.LoginErrorType
@@ -102,7 +103,9 @@ class LoginActivity: BaseActivity() {
         binding.titleBar.titleBarBack.setOnClickListener {
             finish()
         }
-        binding.btnLogin.setOnClickListener {
+        binding.btnLogin.setOnClickListener { v ->
+            ImeUtil.hideIme(v)
+
             val username = binding.etUsername.text.toString().trim()
             val password = binding.etPassword.text.toString().trim()
 

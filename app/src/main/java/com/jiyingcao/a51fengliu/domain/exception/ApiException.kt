@@ -22,6 +22,9 @@ open class ApiException(
     companion object {
         const val CODE_REMOTE_LOGIN = 1003
 
+        /** 2001: 无效的记录Record ID，可能已被删除 */
+        const val CODE_INVALID_RECORD_ID = 2001
+
         /** 创建异常实例的便捷方法 */
         @JvmStatic
         fun createFromResponse(response: ApiResponse<*>): ApiException {
@@ -41,8 +44,8 @@ open class ApiException(
  */
 fun Throwable.toUserFriendlyMessage(): String {
     return when (this) {
-        is ApiException -> "API错误码${code}：${messageTaggedByType()}"
-        is HttpException -> "${messageTaggedByType()}\r\n" + this.response()?.errorBody()?.string()
+        is ApiException -> toUserFriendlyMessage()
+        is HttpException -> toUserFriendlyMessage()
         is MalformedJsonException, is JsonParseException -> "数据解析错误：${messageTaggedByType()}"
         is IOException -> "网络错误：${messageTaggedByType()}"
         else -> "未知错误：${messageTaggedByType()}"
@@ -54,4 +57,22 @@ fun Throwable.toUserFriendlyMessage(): String {
  */
 fun Throwable.messageTaggedByType(): String {
     return "[${this::class.simpleName}] $message"
+}
+
+fun HttpException.toUserFriendlyMessage(): String {
+    return when (code()) {
+        429 -> "请求过于频繁，请稍后再试"
+        else -> "${messageTaggedByType()}\r\n" + this.response()?.errorBody()?.string()
+    }
+}
+
+/**
+ * 将[ApiException]转换为用户友好的消息
+ */
+fun ApiException.toUserFriendlyMessage(): String {
+    return when (code) {
+        ApiException.CODE_REMOTE_LOGIN -> "您的账号已在其他设备登录"
+        ApiException.CODE_INVALID_RECORD_ID -> "您查找的信息不存在或已删除"
+        else -> "API错误码${code}：${messageTaggedByType()}"
+    }
 }

@@ -14,5 +14,5 @@ data class PageData(
 ) {
     fun isFirstPage() = (current == 1)
 
-    fun hasNextPage() = (current < pages)
+    fun isLastPage() = (current == pages)
 }

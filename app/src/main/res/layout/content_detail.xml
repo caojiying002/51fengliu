@@ -1,400 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:overScrollMode="never" >
+    android:layout_height="match_parent">
 
-    <LinearLayout
-        android:id="@+id/content_without_title_bar"
+    <!-- 空视图 -->
+    <FrameLayout
+        android:id="@+id/empty_content"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/image_container"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/default_horizontal_space"
-            android:layout_marginTop="0dp"
-            android:layout_marginBottom="@dimen/divider_height_half"
-            android:background="@drawable/corner_solid_white_no_padding"
-            android:paddingVertical="8dp"
-            android:paddingHorizontal="8dp"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <androidx.constraintlayout.widget.Guideline
-                android:id="@+id/guideline25"
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:orientation="vertical"
-                app:layout_constraintGuide_percent="0.25" />
-
-            <androidx.constraintlayout.widget.Guideline
-                android:id="@+id/guideline50"
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:orientation="vertical"
-                app:layout_constraintGuide_percent="0.5" />
-
-            <androidx.constraintlayout.widget.Guideline
-                android:id="@+id/guideline75"
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:orientation="vertical"
-                app:layout_constraintGuide_percent="0.75" />
-
-            <ImageView
-                android:id="@+id/image_0"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:adjustViewBounds="true"
-                android:scaleType="centerCrop"
-                android:layout_marginHorizontal="1dp"
-                app:layout_constraintDimensionRatio="W,4:3"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/guideline25"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:src="@drawable/dummy_list_image" />
-
-            <ImageView
-                android:id="@+id/image_1"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:adjustViewBounds="true"
-                android:scaleType="centerCrop"
-                android:layout_marginHorizontal="1dp"
-                app:layout_constraintDimensionRatio="W,4:3"
-                app:layout_constraintStart_toEndOf="@+id/guideline25"
-                app:layout_constraintEnd_toStartOf="@+id/guideline50"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:src="@drawable/dummy_list_image" />
-
-            <ImageView
-                android:id="@+id/image_2"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:adjustViewBounds="true"
-                android:scaleType="centerCrop"
-                android:layout_marginHorizontal="1dp"
-                app:layout_constraintDimensionRatio="W,4:3"
-                app:layout_constraintStart_toEndOf="@+id/guideline50"
-                app:layout_constraintEnd_toStartOf="@+id/guideline75"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:src="@drawable/dummy_list_image" />
-
-            <ImageView
-                android:id="@+id/image_3"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:adjustViewBounds="true"
-                android:scaleType="centerCrop"
-                android:layout_marginHorizontal="1dp"
-                app:layout_constraintDimensionRatio="W,4:3"
-                app:layout_constraintStart_toEndOf="@+id/guideline75"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:src="@drawable/dummy_list_image" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/basic_info_container"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/default_horizontal_space"
-            android:layout_marginVertical="@dimen/divider_height_half"
-            android:paddingTop="8dp"
-            android:paddingBottom="10dp"
-            android:background="@drawable/corner_solid_white_no_padding">
-
-            <TextView
-                android:id="@+id/title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="8dp"
-                android:lines="1"
-                tools:text="吴中小朵儿"
-                android:textColor="@color/text_title"
-                android:textSize="18dp"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:ignore="SpUsage" />
-
-            <TextView
-                android:id="@+id/createTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:drawablePadding="4dp"
-                android:lines="1"
-                tools:text="2024-07-21"
-                android:textColor="@color/text_light"
-                android:textSize="11dp"
-                app:drawableLeftCompat="@drawable/icon_time"
-                app:tint="@color/text_light"
-                app:layout_constraintStart_toStartOf="@+id/title"
-                app:layout_constraintTop_toBottomOf="@+id/title"
-                tools:ignore="SpUsage" />
-
-            <TextView
-                android:id="@+id/browse"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:drawablePadding="4dp"
-                android:lines="1"
-                tools:text="7320"
-                android:textColor="@color/text_light"
-                android:textSize="11dp"
-                app:drawableLeftCompat="@drawable/icon_browse"
-                app:tint="@color/text_light"
-                app:layout_constraintStart_toEndOf="@+id/createTime"
-                app:layout_constraintTop_toTopOf="@+id/createTime"
-                tools:ignore="SpUsage" />
-
-            <TextView
-                android:id="@+id/publisher"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:drawablePadding="4dp"
-                android:lines="1"
-                tools:text="匿名"
-                android:textColor="@color/text_light"
-                android:textSize="11dp"
-                app:drawableLeftCompat="@drawable/icon_author"
-                app:tint="@color/text_light"
-                app:layout_constraintStart_toEndOf="@+id/browse"
-                app:layout_constraintTop_toTopOf="@+id/createTime"
-                tools:ignore="SpUsage" />
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/infoContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="8dp"
-                android:paddingTop="8dp"
-                android:paddingBottom="12dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/createTime">
-
-                <TextView
-                    android:id="@+id/introDz"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="8dp"
-                    android:text="地区："
-                    android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_content"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/introAge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="8dp"
-                    android:text="年龄："
-                    android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_content"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/introDz" />
-
-                <TextView
-                    android:id="@+id/introFaceValue"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="8dp"
-                    android:text="颜值："
-                    android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_content"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/introAge" />
-
-                <TextView
-                    android:id="@+id/introPrice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="8dp"
-                    android:text="@string/intro_price"
-                    android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_price"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/introFaceValue" />
-
-                <TextView
-                    android:id="@+id/introProject"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="8dp"
-                    android:text="服务："
-                    android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_content"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/introPrice" />
-
-                <androidx.constraintlayout.widget.Barrier
-                    android:id="@+id/vertical_barrier"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:barrierDirection="end"
-                    app:constraint_referenced_ids="introDz,introAge,introFaceValue,introPrice,introProject" />
-
-                <Space
-                    android:id="@+id/vertical_barrier_space"
-                    android:layout_width="10dp"
-                    android:layout_height="match_parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/vertical_barrier"/>
-
-                <TextView
-                    android:id="@+id/dz"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:lines="1"
-                    android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_content"
-                    app:layout_constraintStart_toEndOf="@id/vertical_barrier_space"
-                    app:layout_constraintBottom_toBottomOf="@+id/introDz"
-                    tools:text="江苏-苏州市" />
-
-                <TextView
-                    android:id="@+id/age"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:lines="1"
-                    android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_content"
-                    app:layout_constraintStart_toEndOf="@id/vertical_barrier_space"
-                    app:layout_constraintBottom_toBottomOf="@+id/introAge"
-                    tools:text="20～25" />
-
-                <TextView
-                    android:id="@+id/faceValue"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:lines="1"
-                    android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_content"
-                    app:layout_constraintStart_toEndOf="@id/vertical_barrier_space"
-                    app:layout_constraintBottom_toBottomOf="@+id/introFaceValue"
-                    tools:text="7" />
-
-                <TextView
-                    android:id="@+id/price"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:lines="1"
-                    android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_price"
-                    app:layout_constraintStart_toEndOf="@id/vertical_barrier_space"
-                    app:layout_constraintBottom_toBottomOf="@+id/introPrice"
-                    tools:text="800～1200 (不要先给钱)" />
-
-                <TextView
-                    android:id="@+id/project"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:maxLines="3"
-                    android:textSize="@dimen/text_default"
-                    android:textColor="@color/text_content"
-                    app:layout_constraintStart_toEndOf="@id/vertical_barrier_space"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@+id/introProject"
-                    tools:text="鸳鸯戏水，胸推，漫游，指划，调情，冰火kj，制服诱惑" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <TextView
-                android:id="@+id/click_report"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:lines="1"
-                android:textSize="@dimen/text_default"
-                android:textColor="@color/text_strong"
-                android:clickable="true"
-                android:focusable="true"
-                android:drawablePadding="4dp"
-                android:drawableLeft="@drawable/icon_report"
-                android:text="我要举报"
-                app:layout_constraintStart_toStartOf="@+id/infoContainer"
-                app:layout_constraintTop_toBottomOf="@+id/infoContainer"
-                tools:ignore="HardcodedText" />
-
-            <TextView
-                android:id="@+id/click_favorite"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:lines="1"
-                android:layout_marginLeft="16dp"
-                android:textSize="@dimen/text_default"
-                android:textColor="@color/text_strong"
-                android:clickable="true"
-                android:focusable="true"
-                android:drawablePadding="4dp"
-                android:drawableLeft="@drawable/selector_icon_favorite"
-                android:text="我要收藏"
-                app:layout_constraintStart_toEndOf="@+id/click_report"
-                app:layout_constraintTop_toTopOf="@+id/click_report"
-                tools:ignore="HardcodedText" />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
+        android:layout_height="match_parent"
+        android:visibility="gone">
 
         <TextView
-            android:id="@+id/contactWarning"
-            android:layout_width="match_parent"
+            android:id="@+id/tv_empty_content"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/default_horizontal_space"
-            android:layout_marginVertical="@dimen/divider_height_half"
-            android:background="@drawable/corner_solid_white_padding"
-            android:lineSpacingExtra="0dp"
-            android:textSize="@dimen/text_default"
-            android:textColor="@color/text_warning_yellow"
-            android:text="@string/intro_anti_fraud"
-            android:drawablePadding="16dp"
-            app:drawableLeftCompat="@drawable/ic_warning_yellow" />
-
-        <FrameLayout
-            android:id="@+id/contactInfoContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/default_horizontal_space"
-            android:layout_marginVertical="@dimen/divider_height_half"
-            app:layout_constraintTop_toBottomOf="@+id/divider">
-
-            <include
-                android:id="@+id/contact_info_vip"
-                android:visibility="gone"
-                layout="@layout/include_contact_info_vip" />
-
-            <include
-                android:id="@+id/contact_info_ordinary_member"
-                android:visibility="gone"
-                layout="@layout/include_contact_info_ordinary_member" />
-
-            <include
-                android:id="@+id/contact_info_not_login"
-                android:visibility="visible"
-                layout="@layout/include_contact_info_not_login" />
-        </FrameLayout>
-
-        <TextView
-            android:id="@+id/process"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/default_horizontal_space"
-            android:layout_marginTop="@dimen/divider_height_half"
-            android:layout_marginBottom="12dp"
-            android:textSize="@dimen/text_default"
+            android:layout_gravity="center"
+            android:padding="16dp"
+            android:text="暂无内容，点击刷新"
             android:textColor="@color/text_content"
-            android:background="@drawable/corner_solid_white_padding"
-            tools:text="整体能打个9分吧，长得比我还高一点，估计有170以上，身材高挑，腿细长细长的，技术一般以上，综合性价比挺高的，喜欢身材好的可以约" />
-    </LinearLayout>
-</ScrollView>
+            android:textSize="@dimen/text_default" />
+    </FrameLayout>
+
+    <!-- 真实内容 -->
+    <!-- 从性能角度讲这里多了一层嵌套，但为了可读性和可维护性还是这么写了 -->
+    <FrameLayout
+        android:id="@+id/real_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="visible">
+
+        <com.scwang.smart.refresh.layout.SmartRefreshLayout
+            android:id="@+id/refreshLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:srlEnableOverScrollBounce="false">
+
+            <com.scwang.smart.refresh.header.ClassicsHeader
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <include
+                android:id="@+id/content_detail_0"
+                layout="@layout/content_detail_0"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </com.scwang.smart.refresh.layout.SmartRefreshLayout>
+    </FrameLayout>
+</FrameLayout>

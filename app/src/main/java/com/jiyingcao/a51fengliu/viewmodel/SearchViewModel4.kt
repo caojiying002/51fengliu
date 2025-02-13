@@ -9,9 +9,31 @@ import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.RecordRepository
+import com.jiyingcao.a51fengliu.viewmodel.DetailState.Loading
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+
+private enum class LoadingType1 {
+    FULL_SCREEN,
+    PULL_TO_REFRESH,
+    LOAD_MORE,
+    FLOAT
+}
+
+private fun LoadingType1.toLoadingState(): SearchState.Loading = when (this) {
+    LoadingType1.FULL_SCREEN -> SearchState.Loading.FullScreen
+    LoadingType1.PULL_TO_REFRESH -> SearchState.Loading.PullToRefresh
+    LoadingType1.LOAD_MORE -> SearchState.Loading.LoadMore
+    LoadingType1.FLOAT -> SearchState.Loading.Float
+}
+
+private fun LoadingType1.toErrorState(message: String): SearchState.Error = when (this) {
+    LoadingType1.FULL_SCREEN -> SearchState.Error.FullScreen(message)
+    LoadingType1.PULL_TO_REFRESH -> SearchState.Error.PullToRefresh(message)
+    LoadingType1.LOAD_MORE -> SearchState.Error.LoadMore(message)
+    LoadingType1.FLOAT -> SearchState.Error.Float(message)
+}
 
 sealed class RefreshState {
     object Init : RefreshState()
@@ -28,24 +50,20 @@ sealed class SearchState {
     sealed class Loading : SearchState() {
         object FullScreen : Loading()
         object PullToRefresh : Loading()
-        object Pagination : Loading()
+        object LoadMore : Loading()
+        object Float : Loading()
     }
     data class Success(
         val pagedData: PageData, // TODO 是否可以用List<RecordInfo>代替？
         val isFirstPage: Boolean,
         val isLastPage: Boolean
     ) : SearchState()
-    sealed class Error : SearchState() {
-        data class FullScreen(val message: String) : Error()
-        data class PullToRefresh(val message: String) : Error()
-        data class Pagination(val message: String) : Error()
+    sealed class Error(open val message: String) : SearchState() {
+        data class FullScreen(override val message: String) : Error(message)
+        data class PullToRefresh(override val message: String) : Error(message)
+        data class LoadMore(override val message: String) : Error(message)
+        data class Float(override val message: String) : Error(message)
     }
-}
-
-private fun SearchState.Loading.correspondingError(error: Throwable): SearchState.Error = when (this) {
-    SearchState.Loading.FullScreen -> SearchState.Error.FullScreen(error.toUserFriendlyMessage())
-    SearchState.Loading.PullToRefresh -> SearchState.Error.PullToRefresh(error.toUserFriendlyMessage())
-    SearchState.Loading.Pagination -> SearchState.Error.Pagination(error.toUserFriendlyMessage())
 }
 
 sealed class SearchIntent {
@@ -64,13 +82,21 @@ class SearchViewModel4(
     private val _state: MutableStateFlow<SearchState> = MutableStateFlow(SearchState.Init)
     val state = _state.asStateFlow()
 
+    @Deprecated("Use _state instead")
     private val _refreshState: MutableStateFlow<RefreshState> = MutableStateFlow(RefreshState.Init)
+    @Deprecated("Use state instead")
     val refreshState = _refreshState.asStateFlow()
 
     private val _noMoreDataState: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val noMoreDataState = _noMoreDataState.asStateFlow()
 
+    @Deprecated("Use _request and _cityCode instead")
     private val _request: MutableStateFlow<RecordsRequest?> = MutableStateFlow(null)
+
+    private val _keywords: MutableStateFlow<String?> = MutableStateFlow(null)
+    val keywords = _keywords.asStateFlow()
+
+    private val _cityCode: MutableStateFlow<String?> = MutableStateFlow(null)
 
     private var pagedLoaded: Int = 0
 
@@ -79,10 +105,10 @@ class SearchViewModel4(
             .filterNotNull()
             .distinctUntilChanged() // not necessary: state flows are always distinct
             //.debounce(300)
-            .onEach { search0(
+            .onEach { /*search0(
                 request = it,
                 refreshState = _refreshState.value,
-            ) }
+            )*/ }
             .launchIn(viewModelScope)
     }
 
@@ -101,48 +127,54 @@ class SearchViewModel4(
      * （可以用delay/debounce/throttleFirst等操作符）
      */
     private fun updateKeywords(keywords: String) {
-        if (_request.value?.keywords == keywords) return
+        if (_keywords.value == keywords) return
 
-        _refreshState.value = RefreshState.Init
-        _request.update {
-            it?.copy(keywords = keywords, page = 1)
-                ?: RecordsRequest.forSearch(keywords = keywords, "", 1)
-        }
+        _keywords.value = keywords
+
+        val cityCode = _cityCode.value ?: ""
+        search1(
+            RecordsRequest.forSearch(keywords, cityCode, 1),
+            if (pagedLoaded > 0) LoadingType1.FLOAT else LoadingType1.FULL_SCREEN
+        )
     }
 
     private fun updateCityCode(cityCode: String) {
-        if (_request.value?.cityCode == cityCode) return
+        if (_cityCode.value == cityCode) return
 
-        _refreshState.value = RefreshState.Init
-        _request.update {
-            it?.copy(cityCode = cityCode, page = 1)
-                ?: RecordsRequest.forSearch("", cityCode = cityCode, 1)
-        }
+        _cityCode.value = cityCode
+
+        val keywords = _keywords.value ?: ""
+        search1(
+            RecordsRequest.forSearch(keywords, cityCode, 1),
+            if (pagedLoaded > 0) LoadingType1.FLOAT else LoadingType1.FULL_SCREEN
+        )
     }
 
     private fun refresh() {
-        _refreshState.value = RefreshState.Refreshing
-        _request.update {
-            it?.copy(page = 1)
-                ?: RecordsRequest.forSearch("", "", 1)
-        }
+        val keywords = _keywords.value ?: ""
+        val cityCode = _cityCode.value ?: ""
+        search1(
+            RecordsRequest.forSearch(keywords, cityCode, 1),
+            LoadingType1.PULL_TO_REFRESH
+        )
     }
 
     private fun nextPage() {
-        _refreshState.value = RefreshState.LoadingMore
-        _request.update {
-            it?.copy(page = pagedLoaded + 1)
-                ?: RecordsRequest.forSearch("", "", 1)
-        }
+        val keywords = _keywords.value ?: ""
+        val cityCode = _cityCode.value ?: ""
+        search1(
+            RecordsRequest.forSearch(keywords, cityCode, pagedLoaded + 1),
+            LoadingType1.LOAD_MORE
+        )
     }
 
     private fun search0(
         request: RecordsRequest,
-        loadingState: SearchState.Loading = SearchState.Loading.FullScreen,
+        loadingType: LoadingType1 = LoadingType1.FULL_SCREEN,
         refreshState: RefreshState = RefreshState.Init,
     ) {
         viewModelScope.launch(remoteLoginCoroutineContext) {
-            _state.value = loadingState
+            _state.value = loadingType.toLoadingState()
             repository.getRecords(request)
                 .collect { result ->
                     result.mapCatching { requireNotNull(it) }
@@ -163,13 +195,41 @@ class SearchViewModel4(
                             }
                         }.onFailure { e ->
                             if (!handleFailure(e)) {
-                                _state.value = loadingState.correspondingError(e)
+                                _state.value = loadingType.toErrorState(e.toUserFriendlyMessage())
 
                                 when (refreshState) {
                                     RefreshState.Refreshing -> _refreshState.value = RefreshState.RefreshError
                                     RefreshState.LoadingMore -> _refreshState.value = RefreshState.LoadMoreError
                                     else -> Unit
                                 }
+                            }
+                        }
+                }
+        }
+    }
+
+    // TODO Job应当可以取消
+    private fun search1(
+        request: RecordsRequest,
+        loadingType: LoadingType1 = LoadingType1.FULL_SCREEN,
+    ) {
+        viewModelScope.launch(remoteLoginCoroutineContext) {
+            _state.value = loadingType.toLoadingState()
+            repository.getRecords(request)
+                .collect { result ->
+                    result.mapCatching { requireNotNull(it) }
+                        .onSuccess { pagedData ->
+                            pagedLoaded = if (request.page == 1) 1 else pagedLoaded + 1
+                            _state.value = SearchState.Success(
+                                pagedData,
+                                pagedData.isFirstPage(),
+                                pagedData.isLastPage()
+                            )
+
+                            _noMoreDataState.value = pagedData.isLastPage()
+                        }.onFailure { e ->
+                            if (!handleFailure(e)) {
+                                _state.value = loadingType.toErrorState(e.toUserFriendlyMessage())
                             }
                         }
                 }

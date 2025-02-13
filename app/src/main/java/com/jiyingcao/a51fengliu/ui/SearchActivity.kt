@@ -6,8 +6,8 @@ import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
-import android.view.inputmethod.InputMethodManager
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,21 +20,16 @@ import com.jiyingcao.a51fengliu.databinding.ActivitySearchBinding
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
-import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout
 import com.jiyingcao.a51fengliu.util.ImeUtil
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.to2LevelName
-import com.jiyingcao.a51fengliu.viewmodel.LoadingType.*
 import com.jiyingcao.a51fengliu.viewmodel.RefreshState
 import com.jiyingcao.a51fengliu.viewmodel.SearchIntent
 import com.jiyingcao.a51fengliu.viewmodel.SearchState
 import com.jiyingcao.a51fengliu.viewmodel.SearchState.Loading
 import com.jiyingcao.a51fengliu.viewmodel.SearchState.Error
-import com.jiyingcao.a51fengliu.viewmodel.SearchViewModel2.UiState
 import com.jiyingcao.a51fengliu.viewmodel.SearchViewModel4
 import com.jiyingcao.a51fengliu.viewmodel.SearchViewModelFactory
-import com.jiyingcao.a51fengliu.viewmodel.UiState2
-import com.jiyingcao.a51fengliu.viewmodel.UiState2.*
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
@@ -42,7 +37,6 @@ import kotlinx.coroutines.launch
 
 class SearchActivity: BaseActivity() {
     private lateinit var binding: ActivitySearchBinding
-    private lateinit var statefulLayout: StatefulLayout
     private lateinit var refreshLayout: SmartRefreshLayout
     private lateinit var recyclerView: RecyclerView
 
@@ -56,7 +50,6 @@ class SearchActivity: BaseActivity() {
         setContentView(binding.root)
 
         setupClickListeners()
-        setupStatefulLayout()
         setupSmartRefreshLayout()
         setupRecyclerView()
 
@@ -133,6 +126,13 @@ class SearchActivity: BaseActivity() {
         }
 
         lifecycleScope.launch {
+            viewModel.keywords.collect { keywords ->
+                binding.introSearchResult.isVisible = keywords != null
+                binding.introSearchResult.setText(getString(R.string.intro_search_result_format, keywords))
+            }
+        }
+
+        /*lifecycleScope.launch {
             viewModel.refreshState.collect { state ->
                 when (state) {
                     RefreshState.RefreshSuccess -> refreshLayout.finishRefresh()
@@ -142,138 +142,60 @@ class SearchActivity: BaseActivity() {
                     else -> {}
                 }
             }
-        }
+        }*/
     }
 
-    private fun showFullScreenLoading() { /* 实现全屏加载 */ }
-    private fun showPullToRefreshLoading() { /* 实现下拉刷新加载 */ }
-    private fun showPaginationLoading() { /* 实现分页加载 */ }
-    private fun showLoadingDialog() { /* 实现加载对话框 */ }
+    private fun showContentView() { binding.showContent() }
+    private fun showFullScreenLoading() { binding.showLoading() }
+    private fun showPullToRefreshLoading() { /* 下拉刷新加载 */ }
+    private fun showLoadMoreLoading() { /* 分页加载 */ }
+    private fun showFloatLoading() { binding.showLoadingOverContent() }
     private fun hideAllLoadingIndicators() { /* 隐藏所有加载指示器 */ }
-    private fun showError(error: String) { /* 显示错误信息 */ }
+    private fun showError(error: String) { binding.showError(error) { /* TODO 重试按钮 */ } }
 
     private fun handleLoadingState(loading: Loading) {
         when (loading) {
             Loading.FullScreen -> showFullScreenLoading()
             Loading.PullToRefresh -> showPullToRefreshLoading()
-            Loading.Pagination -> showPaginationLoading()
+            Loading.LoadMore -> showLoadMoreLoading()
+            Loading.Float -> showFloatLoading()
         }
     }
 
     private fun handleErrorState(error: Error) {
         when (error) {
             is Error.FullScreen -> showError(error.message)
-            is Error.PullToRefresh -> refreshLayout.finishRefresh(false)
-            is Error.Pagination -> refreshLayout.finishLoadMore(false)
+            is Error.PullToRefresh -> {
+                refreshLayout.finishRefresh(false)
+                showToast(error.message)
+            }
+            is Error.LoadMore -> {
+                refreshLayout.finishLoadMore(false)
+                showToast(error.message)
+            }
+            is Error.Float -> {
+                showContentView()
+                showToast(error.message)
+            }
         }
     }
 
     private fun updateUI(pagedData: PageData, isFirstPage: Boolean, isLastPage: Boolean) {
+        showContentView()
+        refreshLayout.finishRefresh()
+        refreshLayout.finishLoadMore()
+
+        if (isFirstPage && pagedData.records.isEmpty()) {
+            binding.contentLayout.emptyContent.isVisible = true
+            binding.contentLayout.realContent.isVisible = false
+        } else {
+            binding.contentLayout.emptyContent.isVisible = false
+            binding.contentLayout.realContent.isVisible = true
+        }
+
         when (isFirstPage) {
             true -> recordAdapter.submitList(pagedData.records)
             false -> recordAdapter.addAll(pagedData.records)
-        }
-    }
-
-    /*private fun setupFlowCollectors2() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                launch {
-                    viewModel.searchResults.collect {
-                        // it: PagedData { records: List<RecordInfo> }
-                        if (it == null) {
-                            Log.d(TAG, "No data loaded yet")
-                            return@collect
-                        }
-
-                        // 根据是否第1页来决定清空列表还是追加数据
-                        recordAdapter.let { adapter ->
-                            if (it.isFirstPage()) {
-                                adapter.submitList(it.records)
-                            } else {
-                                adapter.addAll(it.records)
-                            }
-                        }
-
-                        // 是否还有下一页可以加载
-                        refreshLayout.setNoMoreData(!it.hasNextPage())
-                    }
-                }
-                launch {
-                    viewModel.uiState.collectLatest { state ->
-                        handleUiState(state)
-                    }
-                }
-            }
-        }
-    }*/
-
-    private fun handleUiState(state: UiState) {
-        when (state) {
-            is UiState.Idle -> {
-                // Hide loading indicators
-                statefulLayout.currentState = StatefulLayout.State.CONTENT
-                refreshLayout.finishRefresh(true)
-                refreshLayout.finishLoadMore(true)
-            }
-            is UiState.Loading.Initial -> {
-                // Show initial loading state (e.g., full-screen progress bar)
-                statefulLayout.currentState = StatefulLayout.State.LOADING
-                refreshLayout.setNoMoreData(false) // 以防之前设置过“没有更多数据了”
-            }
-            is UiState.Loading.Refresh -> {
-                // Show refresh loading state (e.g., SwipeRefreshLayout)
-                // 样式由SmartRefreshLayout控制，这里不需要做什么
-            }
-            is UiState.Loading.Pagination -> {
-                // Show pagination loading state (e.g., progress bar at the bottom of the list)
-                // 样式由SmartRefreshLayout控制，这里不需要做什么
-            }
-            /*is UiState.Error.Initial -> {
-                // Show initial load error state
-            }
-            is UiState.Error.Refresh -> {
-                // Show refresh error state
-            }
-            is UiState.Error.Pagination -> {
-                // Show pagination error state
-            }*/
-        }
-    }
-
-    @Suppress("CascadeIf")
-    private fun handleLoadingState(state: UiState2) {
-        val loadingType = state.loadingType
-
-        if (state is Loading) {
-            when (loadingType) {
-                FULL_SCREEN -> {
-                    statefulLayout.currentState = StatefulLayout.State.LOADING
-                    refreshLayout.setNoMoreData(false) // 重新加载时重置NoMoreData状态
-                }
-                PULL_REFRESH -> { /*ignore*/ }
-                LOAD_MORE -> { /*ignore*/ }
-                NONE -> {}
-            }
-        } else if (state is Error) {
-            when (loadingType) {
-                FULL_SCREEN -> statefulLayout.currentState = StatefulLayout.State.ERROR
-                PULL_REFRESH -> refreshLayout.finishRefresh(false)
-                LOAD_MORE -> refreshLayout.finishLoadMore(false)
-                NONE -> {}
-            }
-        } else if (state is Success<*>) {
-            when (loadingType) {
-                FULL_SCREEN -> statefulLayout.currentState = StatefulLayout.State.CONTENT
-                PULL_REFRESH -> refreshLayout.finishRefresh(true)
-                LOAD_MORE -> {
-                    refreshLayout.finishLoadMore(true)
-
-                    if (state.data is PageData && state.data.records.isEmpty())
-                        refreshLayout.setNoMoreData(true)
-                }
-                NONE -> {}
-            }
         }
     }
 
@@ -324,13 +246,8 @@ class SearchActivity: BaseActivity() {
         }
     }
 
-    private fun setupStatefulLayout() {
-        /* binding.statefulLayout被多次引用，所以用一个变量简化它 */
-        statefulLayout = binding.statefulLayout
-    }
-
     private fun setupSmartRefreshLayout() {
-        refreshLayout = statefulLayout.getContentView().findViewById<SmartRefreshLayout>(R.id.refreshLayout)
+        refreshLayout = binding.contentLayout.refreshLayout
             .apply {
                 setRefreshHeader(ClassicsHeader(context))
                 setRefreshFooter(ClassicsFooter(context))
@@ -348,7 +265,7 @@ class SearchActivity: BaseActivity() {
                 }
             }
         }
-        recyclerView = statefulLayout.getContentView().findViewById<RecyclerView>(R.id.recyclerView)
+        recyclerView = binding.contentLayout.recyclerView
             .apply {
                 setHasFixedSize(true)
                 layoutManager = LinearLayoutManager(context)
@@ -370,4 +287,44 @@ class SearchActivity: BaseActivity() {
             context.startActivity(createIntent(context))
         }
     }
+}
+
+// 扩展函数
+fun ActivitySearchBinding.showContent() {
+    contentLayout.root.isVisible = true
+    errorLayout.root.isVisible = false
+    loadingLayout.root.isVisible = false
+}
+
+fun ActivitySearchBinding.showError() {
+    contentLayout.root.isVisible = false
+    errorLayout.root.isVisible = true
+    loadingLayout.root.isVisible = false
+}
+
+fun ActivitySearchBinding.showError(
+    message: String = "出错了，请稍后重试",
+    retry: (() -> Unit)? = null
+) {
+    loadingLayout.root.isVisible = false
+    contentLayout.root.isVisible = false
+    errorLayout.apply {
+        root.isVisible = true
+        // 假设错误布局中有这些视图
+        tvError.text = message
+        clickRetry.isVisible = retry != null
+        clickRetry.setOnClickListener { retry?.invoke() }
+    }
+}
+
+fun ActivitySearchBinding.showLoading() {
+    contentLayout.root.isVisible = false
+    errorLayout.root.isVisible = false
+    loadingLayout.root.isVisible = true
+}
+
+fun ActivitySearchBinding.showLoadingOverContent() {
+    contentLayout.root.isVisible = true
+    errorLayout.root.isVisible = false
+    loadingLayout.root.isVisible = true
 }

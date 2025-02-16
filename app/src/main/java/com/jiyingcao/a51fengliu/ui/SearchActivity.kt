@@ -16,6 +16,7 @@ import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.PageData
+import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.databinding.ActivitySearchBinding
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
@@ -65,11 +66,17 @@ class SearchActivity: BaseActivity() {
                     is SearchState.Loading -> handleLoadingState(state)
                     is SearchState.Error -> handleErrorState(state)
                     is SearchState.Success -> {
-                        state.apply { updateUI(pagedData, isFirstPage, isLastPage) }
+                        showContentView()
+                        refreshLayout.finishRefresh()
+                        refreshLayout.finishLoadMore()
                     }
                     else -> {}
                 }
             }
+        }
+
+        lifecycleScope.launch {
+            viewModel.records.collect { updateRecords(it) }
         }
 
         lifecycleScope.launch {
@@ -103,7 +110,6 @@ class SearchActivity: BaseActivity() {
     private fun showFullScreenLoading() { binding.showLoading() }
     private fun showPullToRefreshLoading() { /* 下拉刷新加载 */ }
     private fun showLoadMoreLoading() { /* 分页加载 */ }
-    private fun showFloatLoading() { binding.showLoadingOverContent() }
     private fun hideAllLoadingIndicators() { /* 隐藏所有加载指示器 */ }
     private fun showError(error: String) { binding.showError(error) { /* TODO 重试按钮 */ } }
 
@@ -112,7 +118,6 @@ class SearchActivity: BaseActivity() {
             Loading.FullScreen -> showFullScreenLoading()
             Loading.PullToRefresh -> showPullToRefreshLoading()
             Loading.LoadMore -> showLoadMoreLoading()
-            Loading.Float -> showFloatLoading()
         }
     }
 
@@ -127,18 +132,27 @@ class SearchActivity: BaseActivity() {
                 refreshLayout.finishLoadMore(false)
                 showToast(error.message)
             }
-            is Error.Float -> {
-                showContentView()
-                showToast(error.message)
-            }
         }
     }
 
-    private fun updateUI(pagedData: PageData, isFirstPage: Boolean, isLastPage: Boolean) {
-        showContentView()
-        refreshLayout.finishRefresh()
-        refreshLayout.finishLoadMore()
+    private fun updateRecords(records: List<RecordInfo>) {
+        recordAdapter.submitList(records)
 
+        // 如果没有数据，显示空状态
+        if (records.isEmpty()) {
+            binding.contentLayout.emptyContent.isVisible = true
+            binding.contentLayout.realContent.isVisible = false
+        } else {
+            binding.contentLayout.emptyContent.isVisible = false
+            binding.contentLayout.realContent.isVisible = true
+        }
+    }
+
+    /**
+     * 显示记录列表，包括空状态
+     */
+    @Deprecated("Use updateRecords instead")
+    private fun displayRecords(pagedData: PageData, isFirstPage: Boolean/*, isLastPage: Boolean*/) {
         if (isFirstPage && pagedData.records.isEmpty()) {
             binding.contentLayout.emptyContent.isVisible = true
             binding.contentLayout.realContent.isVisible = false

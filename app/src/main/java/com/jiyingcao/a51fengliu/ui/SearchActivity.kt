@@ -7,8 +7,8 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.core.view.isVisible
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -23,12 +23,11 @@ import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.util.ImeUtil
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.to2LevelName
-import com.jiyingcao.a51fengliu.viewmodel.RefreshState
 import com.jiyingcao.a51fengliu.viewmodel.SearchIntent
 import com.jiyingcao.a51fengliu.viewmodel.SearchState
 import com.jiyingcao.a51fengliu.viewmodel.SearchState.Loading
 import com.jiyingcao.a51fengliu.viewmodel.SearchState.Error
-import com.jiyingcao.a51fengliu.viewmodel.SearchViewModel4
+import com.jiyingcao.a51fengliu.viewmodel.SearchViewModel
 import com.jiyingcao.a51fengliu.viewmodel.SearchViewModelFactory
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
@@ -39,10 +38,13 @@ class SearchActivity: BaseActivity() {
     private lateinit var binding: ActivitySearchBinding
     private lateinit var refreshLayout: SmartRefreshLayout
     private lateinit var recyclerView: RecyclerView
-
-    private lateinit var viewModel: SearchViewModel4
-
     private lateinit var recordAdapter: RecordAdapter
+
+    private val viewModel by viewModels<SearchViewModel> {
+        SearchViewModelFactory(
+            RecordRepository.getInstance(RetrofitClient.apiService)
+        )
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,56 +55,7 @@ class SearchActivity: BaseActivity() {
         setupSmartRefreshLayout()
         setupRecyclerView()
 
-        setupViewModel()
         setupFlowCollectors()
-
-        /*viewModel.uiState.observe(this) { state ->
-            handleLoadingState(state)
-
-            // Success: 将数据提交或追加到列表
-            if (state is Success<*>) {
-                val pageData = state.data as PageData
-                val page = pageData.current
-                val data = pageData.records
-
-                if (page == 1) {
-                    recordAdapter.submitList(data)
-                    // refreshLayout.setEnableLoadMore(true)   // 第一页有数据了，可以启用LoadMore了
-                }
-                else
-                    recordAdapter.addAll(data)
-            }
-        }*/
-
-        /*viewModel.data.observe(this) { dataWithLoadingType ->
-            val loadingType = dataWithLoadingType.loadingType
-            val page = dataWithLoadingType.page
-            val data: List<ItemData> = dataWithLoadingType.data
-            // 显示数据
-            when (loadingType) {
-                FULL_SCREEN -> { statefulLayout.currentState = StatefulLayout.State.CONTENT }
-                PULL_REFRESH -> { refreshLayout.finishRefresh(true) }
-                LOAD_MORE -> { refreshLayout.finishLoadMore(true) }
-                NONE -> {}
-            }
-            if (page == 1) {
-                itemDataAdapter.submitList(data)
-                // refreshLayout.setEnableLoadMore(true)   // 第一页有数据了，可以启用LoadMore了
-            }
-            else
-                itemDataAdapter.addAll(data)
-        }*/
-
-        //viewModel.search(page = 1)
-    }
-
-    private fun setupViewModel() {
-        viewModel = ViewModelProvider(
-            this,
-            SearchViewModelFactory(
-                RecordRepository.getInstance(RetrofitClient.apiService)
-            )
-        )[SearchViewModel4::class.java]
     }
 
     private fun setupFlowCollectors() {
@@ -128,7 +81,8 @@ class SearchActivity: BaseActivity() {
         lifecycleScope.launch {
             viewModel.keywords.collect { keywords ->
                 binding.introSearchResult.isVisible = keywords != null
-                binding.introSearchResult.setText(getString(R.string.intro_search_result_format, keywords))
+                binding.introSearchResult.text =
+                    getString(R.string.intro_search_result_format, keywords)
             }
         }
 

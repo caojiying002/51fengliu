@@ -470,6 +470,7 @@ fun ActivityDetailBinding.showError() {
 
 fun ActivityDetailBinding.showError(
     message: String = "出错了，请稍后重试",
+    //retryText: String = "重试",
     retry: (() -> Unit)? = null
 ) {
     loadingLayout.root.isVisible = false

@@ -48,6 +48,15 @@ class RecordRepository(
         apiService.postUnfavorite(InfoIdRequest(id))
     }
 
+    /**
+     * 获取我的收藏列表
+     * @param page 页码，默认从1开始
+     * @return Flow<Result<PageData?>> 包含收藏列表的结果流
+     */
+    fun getFavorites(page: Int = 1): Flow<Result<PageData?>> = apiCall {
+        apiService.getFavorites(page)
+    }
+
 
     companion object {
         // 用于单例模式实现

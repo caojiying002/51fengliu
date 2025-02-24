@@ -122,43 +122,10 @@
         android:textColor="@color/text_content"
         android:visibility="gone" />
 
-    <FrameLayout
+    <include
+        android:id="@+id/stateful_content"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
-
-        <!-- 一些规则： -->
-        <!-- 1. loading_layout置于最顶层，或者至少置于content_layout和error_layout之上 -->
-        <!-- 2. content_layout和error_layout不能同时出现 -->
-        <!-- 3. loading_layout可以与content_layout同时出现，也可以单独出现 -->
-        <!--   3.1 loading_layout置于content_layout之上 -->
-        <!--   3.2 loading_layout会拦截触摸事件，避免用户操作content_layout -->
-        <!--   3.3 首次进入页面加载数据时，通常让loading_layout单独出现 -->
-        <!--   3.4 页面需要刷新数据时，loading_layout以浮层形式出现在content_layout之上 -->
-        <!-- 4. loading_layout与error_layout能否同时出现不做强制要求 -->
-        <!--   4.1 loading_layout置于error_layout之上 -->
-        <!--   4.2 建议在error_layout点击重试时，隐藏error_layout，只显示loading_layout -->
-        <!-- 5. 如果需要空页面，建议把empty_layout作为content_layout的子布局而不是写在这里，更符合逻辑关系 -->
-
-        <include
-            android:id="@+id/content_layout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"
-            layout="@layout/refresh_recycler_view_and_empty" />
-
-        <include
-            android:id="@+id/error_layout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"
-            layout="@layout/default_error" />
-
-        <include
-            android:id="@+id/loading_layout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"
-            layout="@layout/default_loading" />
-    </FrameLayout>
+        android:layout_weight="1"
+        layout="@layout/stateful_refresh_recycler_view" />
 </LinearLayout>

@@ -15,9 +15,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.RetrofitClient
-import com.jiyingcao.a51fengliu.api.response.PageData
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.databinding.ActivitySearchBinding
+import com.jiyingcao.a51fengliu.databinding.StatefulRefreshRecyclerViewBinding
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
@@ -37,8 +37,13 @@ import kotlinx.coroutines.launch
 
 class SearchActivity: BaseActivity() {
     private lateinit var binding: ActivitySearchBinding
-    private lateinit var refreshLayout: SmartRefreshLayout
-    private lateinit var recyclerView: RecyclerView
+
+    private val statefulContent: StatefulRefreshRecyclerViewBinding
+        get() = binding.statefulContent
+
+    private val refreshLayout: SmartRefreshLayout get() = statefulContent.refreshLayout
+    private val recyclerView: RecyclerView get() = statefulContent.recyclerView
+
     private lateinit var recordAdapter: RecordAdapter
 
     private val viewModel by viewModels<SearchViewModel> {
@@ -106,12 +111,12 @@ class SearchActivity: BaseActivity() {
         }*/
     }
 
-    private fun showContentView() { binding.showContent() }
-    private fun showFullScreenLoading() { binding.showLoading() }
+    private fun showContentView() { statefulContent.showContentView() }
+    private fun showFullScreenLoading() { statefulContent.showLoadingView() }
     private fun showPullToRefreshLoading() { /* 下拉刷新加载 */ }
     private fun showLoadMoreLoading() { /* 分页加载 */ }
     private fun hideAllLoadingIndicators() { /* 隐藏所有加载指示器 */ }
-    private fun showError(error: String) { binding.showError(error) { /* TODO 重试按钮 */ } }
+    private fun showError(error: String) { statefulContent.showErrorView(error) { /* TODO 重试按钮 */ } }
 
     private fun handleLoadingState(loading: Loading) {
         when (loading) {
@@ -140,30 +145,9 @@ class SearchActivity: BaseActivity() {
 
         // 如果没有数据，显示空状态
         if (records.isEmpty()) {
-            binding.contentLayout.emptyContent.isVisible = true
-            binding.contentLayout.realContent.isVisible = false
+            statefulContent.showEmptyContent()
         } else {
-            binding.contentLayout.emptyContent.isVisible = false
-            binding.contentLayout.realContent.isVisible = true
-        }
-    }
-
-    /**
-     * 显示记录列表，包括空状态
-     */
-    @Deprecated("Use updateRecords instead")
-    private fun displayRecords(pagedData: PageData, isFirstPage: Boolean/*, isLastPage: Boolean*/) {
-        if (isFirstPage && pagedData.records.isEmpty()) {
-            binding.contentLayout.emptyContent.isVisible = true
-            binding.contentLayout.realContent.isVisible = false
-        } else {
-            binding.contentLayout.emptyContent.isVisible = false
-            binding.contentLayout.realContent.isVisible = true
-        }
-
-        when (isFirstPage) {
-            true -> recordAdapter.submitList(pagedData.records)
-            false -> recordAdapter.addAll(pagedData.records)
+            statefulContent.showRealContent()
         }
     }
 
@@ -215,14 +199,13 @@ class SearchActivity: BaseActivity() {
     }
 
     private fun setupSmartRefreshLayout() {
-        refreshLayout = binding.contentLayout.refreshLayout
-            .apply {
-                setRefreshHeader(ClassicsHeader(context))
-                setRefreshFooter(ClassicsFooter(context))
-                setOnRefreshListener { viewModel.processIntent(SearchIntent.Refresh) }
-                setOnLoadMoreListener { viewModel.processIntent(SearchIntent.NextPage) }
-                // setEnableLoadMore(false)  // 加载第一页成功前暂时禁用LoadMore
-            }
+        refreshLayout.apply {
+            setRefreshHeader(ClassicsHeader(context))
+            setRefreshFooter(ClassicsFooter(context))
+            setOnRefreshListener { viewModel.processIntent(SearchIntent.Refresh) }
+            setOnLoadMoreListener { viewModel.processIntent(SearchIntent.NextPage) }
+            // setEnableLoadMore(false)  // 加载第一页成功前暂时禁用LoadMore
+        }
     }
 
     private fun setupRecyclerView() {
@@ -233,12 +216,11 @@ class SearchActivity: BaseActivity() {
                 }
             }
         }
-        recyclerView = binding.contentLayout.recyclerView
-            .apply {
-                setHasFixedSize(true)
-                layoutManager = LinearLayoutManager(context)
-                adapter = recordAdapter
-            }
+        recyclerView.apply {
+            setHasFixedSize(true)
+            layoutManager = LinearLayoutManager(context)
+            adapter = recordAdapter
+        }
     }
 
     companion object {
@@ -258,41 +240,56 @@ class SearchActivity: BaseActivity() {
 }
 
 // 扩展函数
-fun ActivitySearchBinding.showContent() {
-    contentLayout.root.isVisible = true
-    errorLayout.root.isVisible = false
-    loadingLayout.root.isVisible = false
+fun StatefulRefreshRecyclerViewBinding.showContentView() {
+    contentLayout.isVisible = true
+    errorLayout.isVisible = false
+    loadingLayout.isVisible = false
 }
 
-fun ActivitySearchBinding.showError() {
-    contentLayout.root.isVisible = false
-    errorLayout.root.isVisible = true
-    loadingLayout.root.isVisible = false
+fun StatefulRefreshRecyclerViewBinding.showLoadingView() {
+    contentLayout.isVisible = false
+    errorLayout.isVisible = false
+    loadingLayout.isVisible = true
 }
 
-fun ActivitySearchBinding.showError(
+fun StatefulRefreshRecyclerViewBinding.showErrorView() {
+    contentLayout.isVisible = false
+    errorLayout.isVisible = true
+    loadingLayout.isVisible = false
+}
+
+fun StatefulRefreshRecyclerViewBinding.showErrorView(
     message: String = "出错了，请稍后重试",
     retry: (() -> Unit)? = null
 ) {
-    loadingLayout.root.isVisible = false
-    contentLayout.root.isVisible = false
-    errorLayout.apply {
-        root.isVisible = true
-        // 假设错误布局中有这些视图
-        tvError.text = message
-        clickRetry.isVisible = retry != null
-        clickRetry.setOnClickListener { retry?.invoke() }
-    }
+    loadingLayout.isVisible = false
+    contentLayout.isVisible = false
+    errorLayout.isVisible = true
+
+    // 假设错误布局中有这些视图
+    tvError.text = message
+    clickRetry.isVisible = retry != null
+    clickRetry.setOnClickListener { retry?.invoke() }
 }
 
-fun ActivitySearchBinding.showLoading() {
-    contentLayout.root.isVisible = false
-    errorLayout.root.isVisible = false
-    loadingLayout.root.isVisible = true
+/**
+ * 显示空态内容
+ *
+ * 注意：调用此方法时，必须确保父布局 contentLayout 可见，比如调用 [showContentView] 方法；
+ * 否则即使设置了 emptyContent 为可见，也会被不可见的父布局 contentLayout 影响
+ */
+fun StatefulRefreshRecyclerViewBinding.showEmptyContent() {
+    emptyContent.isVisible = true
+    realContent.isVisible = false
 }
 
-fun ActivitySearchBinding.showLoadingOverContent() {
-    contentLayout.root.isVisible = true
-    errorLayout.root.isVisible = false
-    loadingLayout.root.isVisible = true
+/**
+ * 显示实际数据内容，非空态
+ *
+ * 注意：调用此方法时，必须确保父布局 contentLayout 可见，比如调用 [showContentView] 方法；
+ * 否则即使设置了 realContent 为可见，也会被不可见的父布局 contentLayout 影响
+ */
+fun StatefulRefreshRecyclerViewBinding.showRealContent() {
+    emptyContent.isVisible = false
+    realContent.isVisible = true
 }

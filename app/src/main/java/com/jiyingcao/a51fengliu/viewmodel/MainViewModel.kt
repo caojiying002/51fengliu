@@ -8,16 +8,16 @@ import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.request.RecordsRequest
 import com.jiyingcao.a51fengliu.api.response.PageData
-import com.jiyingcao.a51fengliu.viewmodel.UiState.Error
-import com.jiyingcao.a51fengliu.viewmodel.UiState.Loading
-import com.jiyingcao.a51fengliu.viewmodel.UiState.Success
+import com.jiyingcao.a51fengliu.viewmodel.UiState0.Error
+import com.jiyingcao.a51fengliu.viewmodel.UiState0.Loading
+import com.jiyingcao.a51fengliu.viewmodel.UiState0.Success
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 // TODO 重命名为HomeSubViewModel
 class MainViewModel: ViewModel() {
-    private val _data = MutableLiveData<UiState<PageData>>()
-    val data: LiveData<UiState<PageData>> = _data
+    private val _data = MutableLiveData<UiState0<PageData>>()
+    val data: LiveData<UiState0<PageData>> = _data
 
     fun fetchByPage(
         showFullScreenLoading: Boolean = false,
@@ -51,6 +51,6 @@ class MainViewModel: ViewModel() {
     }
 
     companion object {
-        private const val TAG: String = "MainViewModel2"
+        private const val TAG: String = "MainViewModel"
     }
 }

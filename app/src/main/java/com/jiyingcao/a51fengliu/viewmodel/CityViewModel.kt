@@ -8,14 +8,14 @@ import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.request.RecordsRequest
 import com.jiyingcao.a51fengliu.api.response.*
-import com.jiyingcao.a51fengliu.viewmodel.UiState.*
+import com.jiyingcao.a51fengliu.viewmodel.UiState0.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-// TODO [CityViewModel]和[SearchViewModel]是否需要抽取共同父类[PagedViewModel]？
+// TODO 重命名为CityRecordsViewModel？
 class CityViewModel: ViewModel() {
-    private val _data = MutableLiveData<UiState<PageData>>()
-    val data: LiveData<UiState<PageData>> = _data
+    private val _data = MutableLiveData<UiState0<PageData>>()
+    val data: LiveData<UiState0<PageData>> = _data
 
     fun fetchCityDataByPage(
         cityCode: String = "330100",

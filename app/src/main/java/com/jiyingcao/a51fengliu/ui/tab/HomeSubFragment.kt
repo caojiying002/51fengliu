@@ -11,7 +11,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.jiyingcao.a51fengliu.R
-import com.jiyingcao.a51fengliu.ui.CityActivity
 import com.jiyingcao.a51fengliu.ui.DetailActivity
 import com.jiyingcao.a51fengliu.ui.SearchActivity
 import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
@@ -22,7 +21,7 @@ import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout.State.LOADING
 import com.jiyingcao.a51fengliu.util.FirstResumeLifecycleObserver
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.MainViewModel
-import com.jiyingcao.a51fengliu.viewmodel.UiState
+import com.jiyingcao.a51fengliu.viewmodel.UiState0
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
@@ -88,12 +87,12 @@ class HomeSubFragment : Fragment(),
         //viewModel = ViewModelProvider(this)[MainViewModel::class.java]
         viewModel.data.observe(viewLifecycleOwner) { state ->
             when (state) {
-                is UiState.Loading -> {
+                is UiState0.Loading -> {
                     // 显示加载动画
                     if (!hasDataLoaded)
                         statefulLayout.currentState = LOADING
                 }
-                is UiState.Success -> {
+                is UiState0.Success -> {
                     hasDataLoaded = true
                     refreshLayout.finishRefresh()
                     refreshLayout.finishLoadMore()
@@ -114,11 +113,11 @@ class HomeSubFragment : Fragment(),
                         recordAdapter.addAll(data)
                     // TODO 如果列表为空需要显示空状态
                 }
-                is UiState.Empty -> {
+                is UiState0.Empty -> {
                     // 不再使用
                     //refreshLayout.finishRefresh()
                 }
-                is UiState.Error -> {
+                is UiState0.Error -> {
                     refreshLayout.finishRefresh()
                     refreshLayout.finishLoadMore()
                     // 显示错误信息
@@ -129,10 +128,6 @@ class HomeSubFragment : Fragment(),
                 }
             }
         }
-
-        // TODO 使用fragment.startActivity()
-        view.findViewById<View>(R.id.title_bar_menu)?.setOnClickListener { CityActivity.start(view.context) }
-        view.findViewById<View>(R.id.title_bar_profile)?.setOnClickListener { SearchActivity.start(view.context) }
     }
 
     override fun onFirstResume(isRecreate: Boolean) {

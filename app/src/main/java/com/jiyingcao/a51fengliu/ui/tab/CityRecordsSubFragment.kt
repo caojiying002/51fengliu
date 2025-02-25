@@ -30,7 +30,7 @@ import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.CityRecordsViewModel
 import com.jiyingcao.a51fengliu.viewmodel.CityViewModel
-import com.jiyingcao.a51fengliu.viewmodel.UiState
+import com.jiyingcao.a51fengliu.viewmodel.UiState0
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
@@ -112,12 +112,12 @@ class CityRecordsSubFragment : Fragment(),
         //viewModel = ViewModelProvider(this)[MainViewModel::class.java]
         viewModel.data.observe(viewLifecycleOwner) { state ->
             when (state) {
-                is UiState.Loading -> {
+                is UiState0.Loading -> {
                     // 显示加载动画
                     if (!hasDataLoaded)
                         statefulLayout.currentState = LOADING
                 }
-                is UiState.Success -> {
+                is UiState0.Success -> {
                     hasDataLoaded = true
                     refreshLayout.finishRefresh()
                     refreshLayout.finishLoadMore()
@@ -138,11 +138,11 @@ class CityRecordsSubFragment : Fragment(),
                         recordAdapter.addAll(data)
                     // TODO 如果列表为空需要显示空状态
                 }
-                is UiState.Empty -> {
+                is UiState0.Empty -> {
                     // 不再使用
                     //refreshLayout.finishRefresh()
                 }
-                is UiState.Error -> {
+                is UiState0.Error -> {
                     refreshLayout.finishRefresh()
                     refreshLayout.finishLoadMore()
                     // 显示错误信息

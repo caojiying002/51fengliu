@@ -1,5 +1,6 @@
 package com.jiyingcao.a51fengliu.viewmodel
 
+import androidx.annotation.GuardedBy
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -16,33 +17,22 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-private enum class LoadingType1 {
+private enum class SearchLoadingType {
     FULL_SCREEN,
     PULL_TO_REFRESH,
     LOAD_MORE
 }
 
-private fun LoadingType1.toLoadingState(): SearchState.Loading = when (this) {
-    LoadingType1.FULL_SCREEN -> SearchState.Loading.FullScreen
-    LoadingType1.PULL_TO_REFRESH -> SearchState.Loading.PullToRefresh
-    LoadingType1.LOAD_MORE -> SearchState.Loading.LoadMore
+private fun SearchLoadingType.toLoadingState(): SearchState.Loading = when (this) {
+    SearchLoadingType.FULL_SCREEN -> SearchState.Loading.FullScreen
+    SearchLoadingType.PULL_TO_REFRESH -> SearchState.Loading.PullToRefresh
+    SearchLoadingType.LOAD_MORE -> SearchState.Loading.LoadMore
 }
 
-private fun LoadingType1.toErrorState(message: String): SearchState.Error = when (this) {
-    LoadingType1.FULL_SCREEN -> SearchState.Error.FullScreen(message)
-    LoadingType1.PULL_TO_REFRESH -> SearchState.Error.PullToRefresh(message)
-    LoadingType1.LOAD_MORE -> SearchState.Error.LoadMore(message)
-}
-
-// 目前未使用
-sealed class RefreshState {
-    object Init : RefreshState()
-    object Refreshing : RefreshState()
-    object RefreshSuccess : RefreshState()
-    object RefreshError : RefreshState()
-    object LoadingMore : RefreshState()
-    object LoadMoreSuccess : RefreshState()
-    object LoadMoreError : RefreshState()
+private fun SearchLoadingType.toErrorState(message: String): SearchState.Error = when (this) {
+    SearchLoadingType.FULL_SCREEN -> SearchState.Error.FullScreen(message)
+    SearchLoadingType.PULL_TO_REFRESH -> SearchState.Error.PullToRefresh(message)
+    SearchLoadingType.LOAD_MORE -> SearchState.Error.LoadMore(message)
 }
 
 sealed class SearchState {
@@ -52,7 +42,7 @@ sealed class SearchState {
         data object PullToRefresh : Loading()
         data object LoadMore : Loading()
     }
-    data object Success : SearchState()
+    data object Success : SearchState() // 必要时也可以区分FullScreen、PullToRefresh、LoadMore等状态，现在暂时不需要
     sealed class Error(open val message: String) : SearchState() {
         data class FullScreen(override val message: String) : Error(message)
         data class PullToRefresh(override val message: String) : Error(message)
@@ -72,14 +62,10 @@ sealed class SearchIntent {
 class SearchViewModel(
     private val repository: RecordRepository
 ) : BaseViewModel() {
+    private var searchJob: Job? = null
 
     private val _state: MutableStateFlow<SearchState> = MutableStateFlow(SearchState.Init)
     val state = _state.asStateFlow()
-
-    @Deprecated("Use _state instead")
-    private val _refreshState: MutableStateFlow<RefreshState> = MutableStateFlow(RefreshState.Init)
-    @Deprecated("Use state instead")
-    val refreshState = _refreshState.asStateFlow()
 
     private val _noMoreDataState: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val noMoreDataState = _noMoreDataState.asStateFlow()
@@ -89,23 +75,32 @@ class SearchViewModel(
 
     private val _cityCode: MutableStateFlow<String?> = MutableStateFlow(null)
 
-    private var pagedLoaded: Int = 0
+    /**
+     * 加载成功的页数，每次加载成功后加1，用于加载更多时的页码计算。
+     * 0表示没有加载成功过，1表示第一页加载成功，以此类推。
+     */
+    private val _pagedLoaded = MutableStateFlow(0)
 
-    private var searchJob: Job? = null
-
-    private val dataLock = Mutex() // Kotlin 协程的互斥锁
+    /** 保护[data]列表，确保在多线程环境下的数据安全。 */
+    private val dataLock = Mutex()
 
     /**
      * 存放Records的列表，更改关键词或者城市时清空。
      *
      * 【注意】应当使用[updateRecords]方法修改这个列表，确保[_records]流每次都能获得更新。
      */
+    @GuardedBy("dataLock")
     private var data: MutableList<RecordInfo> = mutableListOf()
 
+    /**
+     * 【注意】不要直接修改这个流，应当使用[updateRecords]。
+     */
     private val _records = MutableStateFlow<List<RecordInfo>>(emptyList())
     val records = _records.asStateFlow()
 
-    /** 应当使用这个方法更新records，确保所有对[data]的修改都伴随着对[_records]的更新，而不是直接操作[data]。 */
+    /**
+     * 修改[data]列表并同时更新[_records]流。
+     */
     private suspend fun updateRecords(operation: suspend (MutableList<RecordInfo>) -> Unit) {
         dataLock.withLock {
             operation(data)
@@ -137,7 +132,7 @@ class SearchViewModel(
                 _cityCode.value.orEmpty(),
                 1
             ),
-            LoadingType1.FULL_SCREEN,
+            SearchLoadingType.FULL_SCREEN,
             true    // 关键词有变化，清空之前的搜索结果
         )
     }
@@ -152,7 +147,7 @@ class SearchViewModel(
                 cityCode,
                 1
             ),
-            LoadingType1.FULL_SCREEN,
+            SearchLoadingType.FULL_SCREEN,
             true    // 城市有变化，清空之前的搜索结果
         )
     }
@@ -164,7 +159,7 @@ class SearchViewModel(
                 _cityCode.value.orEmpty(),
                 1
             ),
-            LoadingType1.PULL_TO_REFRESH
+            SearchLoadingType.PULL_TO_REFRESH
         )
     }
 
@@ -173,15 +168,15 @@ class SearchViewModel(
             RecordsRequest.forSearch(
                 _keywords.value.orEmpty(),
                 _cityCode.value.orEmpty(),
-                pagedLoaded + 1
+                _pagedLoaded.value + 1
             ),
-            LoadingType1.LOAD_MORE
+            SearchLoadingType.LOAD_MORE
         )
     }
 
     private fun search0(
         request: RecordsRequest,
-        loadingType: LoadingType1 = LoadingType1.FULL_SCREEN,
+        loadingType: SearchLoadingType = SearchLoadingType.FULL_SCREEN,
         clearRecordsBeforeSearch: Boolean = false
     ) {
         searchJob?.cancel()
@@ -200,18 +195,18 @@ class SearchViewModel(
     private suspend fun handleSearchResult(
         request: RecordsRequest,
         result: Result<PageData?>,
-        loadingType: LoadingType1
+        loadingType: SearchLoadingType
     ) {
         result.mapCatching { requireNotNull(it) }
             .onSuccess { pagedData ->
-                pagedLoaded = if (request.page == 1) 1 else pagedLoaded + 1
+                _pagedLoaded.value = if (request.page == 1) 1 else _pagedLoaded.value + 1
                 _state.value = SearchState.Success
                 _noMoreDataState.value = pagedData.isLastPage()
 
                 updateRecords {
                     it.apply {
                         // 只有下拉刷新时清空列表，其他情况直接添加（更新关键字或城市时已经预先清除过列表）
-                        if (loadingType == LoadingType1.PULL_TO_REFRESH) clear()
+                        if (loadingType == SearchLoadingType.PULL_TO_REFRESH) clear()
                         addAll(pagedData.records)
                     }
                 }
@@ -227,7 +222,7 @@ class SearchViewModel(
     }
 
     private fun resetPage() {
-        pagedLoaded = 0
+        _pagedLoaded.value = 0
     }
 
     override fun onCleared() {

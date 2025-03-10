@@ -1,51 +1,213 @@
 package com.jiyingcao.a51fengliu.viewmodel
 
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.annotation.GuardedBy
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.request.RecordsRequest
 import com.jiyingcao.a51fengliu.api.response.*
-import com.jiyingcao.a51fengliu.viewmodel.UiState0.*
-import kotlinx.coroutines.Dispatchers
+import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
+import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
+import com.jiyingcao.a51fengliu.repository.RecordRepository
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
-// TODO 重命名为CityRecordsViewModel？
-class CityViewModel: ViewModel() {
-    private val _data = MutableLiveData<UiState0<PageData>>()
-    val data: LiveData<UiState0<PageData>> = _data
+private enum class CityLoadingType {
+    FULL_SCREEN,
+    PULL_TO_REFRESH,
+    LOAD_MORE
+}
 
-    fun fetchCityDataByPage(
-        cityCode: String = "330100",
-        sort: String = "publish",
-        page: Int = 1
-    ) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val loadingState =
-                if (page == 1) Loading.fullScreen() else Loading.pullRefresh()
-            _data.postValue(loadingState)
-            try {
-                val queryMap = RecordsRequest
-                    .forCity(cityCode, sort, page)
-                    .toMap()
-                val response = RetrofitClient.apiService.getRecords(queryMap)
-                if (response.code != 0) {
-                    _data.postValue(Error("API状态码 code=${response.code}, msg=${response.msg}"))
-                    Log.w(TAG, "API状态码 code=${response.code}, msg=${response.msg}")
-                    return@launch
-                }
-                _data.postValue(Success(response.data!!))
-            } catch (e: Exception) {
-                _data.postValue(Error("网络请求失败"))
-                Log.w(TAG, "fetchData error: ", e)
-            }
+private fun CityLoadingType.toLoadingState(): CityState.Loading = when (this) {
+    CityLoadingType.FULL_SCREEN -> CityState.Loading.FullScreen
+    CityLoadingType.PULL_TO_REFRESH -> CityState.Loading.PullToRefresh
+    CityLoadingType.LOAD_MORE -> CityState.Loading.LoadMore
+}
 
+private fun CityLoadingType.toErrorState(message: String): CityState.Error = when (this) {
+    CityLoadingType.FULL_SCREEN -> CityState.Error.FullScreen(message)
+    CityLoadingType.PULL_TO_REFRESH -> CityState.Error.PullToRefresh(message)
+    CityLoadingType.LOAD_MORE -> CityState.Error.LoadMore(message)
+}
+
+sealed class CityState {
+    data object Init : CityState()
+    sealed class Loading : CityState() {
+        data object FullScreen : Loading()
+        data object PullToRefresh : Loading()
+        data object LoadMore : Loading()
+    }
+    data object Success : CityState()
+    sealed class Error(open val message: String) : CityState() {
+        data class FullScreen(override val message: String) : Error(message)
+        data class PullToRefresh(override val message: String) : Error(message)
+        data class LoadMore(override val message: String) : Error(message)
+    }
+}
+
+sealed class CityIntent {
+    //data class FetchData(val cityCode: String = "330100", val page: Int = 1) : CityIntent()
+    data class UpdateCity(val cityCode: String) : CityIntent()
+    data object Retry : CityIntent()
+    data object Refresh : CityIntent()
+    data object LoadMore : CityIntent()
+}
+
+class CityViewModel(
+    private val repository: RecordRepository,
+    /** publish最新发布，weekly一周热门，monthly本月热门，lastMonth上月热门 */
+    val sort: String
+): BaseViewModel() {
+    private var fetchJob: Job? = null
+    
+    private val _state = MutableStateFlow<CityState>(CityState.Init)
+    val state = _state.asStateFlow()
+    
+    private val _noMoreDataState = MutableStateFlow(false)
+    val noMoreDataState = _noMoreDataState.asStateFlow()
+    
+    /** 保存当前城市代码 */
+    private val _cityCode = MutableStateFlow<String?>(null)
+    val cityCode = _cityCode.asStateFlow()
+    
+    /**
+     * 加载成功的页数，每次加载成功后加1，用于加载更多时的页码计算。
+     * 0表示没有加载成功过，1表示第一页加载成功，以此类推。
+     */
+    private val _pageLoaded = MutableStateFlow(0)
+    
+    /** 保护[data]列表，确保在多线程环境下的数据安全。 */
+    private val dataLock = Mutex()
+    
+    /**
+     * 存放Records的列表，更改关键词或者城市时清空。
+     *
+     * 【注意】应当使用[updateRecords]方法修改这个列表，确保[_records]流每次都能获得更新。
+     */
+    @GuardedBy("dataLock")
+    private var data: MutableList<RecordInfo> = mutableListOf()
+    
+    /**
+     * 【注意】不要直接修改这个流，应当使用[updateRecords]。
+     */
+    private val _records = MutableStateFlow<List<RecordInfo>>(emptyList())
+    val records = _records.asStateFlow()
+    
+    /**
+     * 修改[data]列表并同时更新[_records]流。
+     */
+    private suspend fun updateRecords(operation: suspend (MutableList<RecordInfo>) -> Unit) {
+        dataLock.withLock {
+            operation(data)
+            _records.value = data.toList()
         }
+    }
+    
+    fun processIntent(intent: CityIntent) {
+        when (intent) {
+            //is CityIntent.FetchData -> fetchData(intent.cityCode, intent.page)
+            is CityIntent.UpdateCity -> updateCity(intent.cityCode)
+            CityIntent.Retry -> retry()
+            CityIntent.Refresh -> refresh()
+            CityIntent.LoadMore -> loadMore()
+        }
+    }
+    
+    private fun updateCity(cityCode: String) {
+        if (_cityCode.value == cityCode) return
+        
+        _cityCode.value = cityCode
+        _pageLoaded.value = 0
+        clearRecords()
+        fetchData(cityCode, 1)
+    }
+    
+    private fun fetchData(
+        cityCode: String,
+        page: Int,
+        loadingType: CityLoadingType = CityLoadingType.FULL_SCREEN
+    ) {
+        fetchJob?.cancel()
+        fetchJob = viewModelScope.launch(remoteLoginCoroutineContext) {
+            _state.value = loadingType.toLoadingState()
+            
+            val request = RecordsRequest.forCity(cityCode, sort, page)
+            repository.getRecords(request)
+                .onEach { result -> 
+                    handleDataResult(request, result, loadingType)
+                }
+                .onCompletion { fetchJob = null }
+                .collect()
+        }
+    }
+    
+    private suspend fun handleDataResult(
+        request: RecordsRequest,
+        result: Result<PageData?>,
+        loadingType: CityLoadingType
+    ) {
+        result.mapCatching { requireNotNull(it) }
+            .onSuccess { pageData ->
+                _pageLoaded.value = if (request.page == 1) 1 else _pageLoaded.value + 1
+                _state.value = CityState.Success
+                _noMoreDataState.value = pageData.isLastPage()
+                
+                updateRecords {
+                    it.apply {
+                        // 只有下拉刷新时清空列表，其他情况直接添加
+                        if (loadingType == CityLoadingType.PULL_TO_REFRESH) clear()
+                        addAll(pageData.records)
+                    }
+                }
+            }
+            .onFailure { e ->
+                if (!handleFailure(e)) {
+                    _state.value = loadingType.toErrorState(e.toUserFriendlyMessage())
+                }
+            }
+    }
+
+    private fun retry() {
+        fetchData(_cityCode.value!!, 1, CityLoadingType.FULL_SCREEN)
+    }
+    
+    private fun refresh() {
+        fetchData(_cityCode.value!!, 1, CityLoadingType.PULL_TO_REFRESH)
+    }
+    
+    private fun loadMore() {
+        fetchData(_cityCode.value!!, _pageLoaded.value + 1, CityLoadingType.LOAD_MORE)
+    }
+    
+    private fun clearRecords() {
+        viewModelScope.launch {
+            updateRecords { it.clear() }
+        }
+    }
+    
+    override fun onCleared() {
+        super.onCleared()
+        fetchJob?.cancel()
     }
 
     companion object {
         private const val TAG: String = "CityViewModel"
+    }
+}
+
+class CityViewModelFactory(
+    private val repository: RecordRepository,
+    private val sort: String
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(CityViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return CityViewModel(repository, sort) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

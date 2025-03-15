@@ -49,22 +49,28 @@
             android:layout_height="match_parent"
             android:visibility="visible">
 
-            <com.scwang.smart.refresh.layout.SmartRefreshLayout
-                android:id="@+id/refreshLayout"
+            <!-- 加入ViewPager2NestedScrollingLayout来解决嵌套滑动冲突 -->
+            <com.jiyingcao.a51fengliu.ui.widget.ViewPager2NestedScrollingLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                app:srlEnableOverScrollBounce="false">
+                android:layout_height="match_parent">
 
-                <com.scwang.smart.refresh.header.ClassicsHeader
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recyclerView"
+                <com.scwang.smart.refresh.layout.SmartRefreshLayout
+                    android:id="@+id/refreshLayout"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:overScrollMode="never" />
-            </com.scwang.smart.refresh.layout.SmartRefreshLayout>
+                    app:srlEnableOverScrollBounce="false">
+
+                    <com.scwang.smart.refresh.header.ClassicsHeader
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recyclerView"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:overScrollMode="never" />
+                </com.scwang.smart.refresh.layout.SmartRefreshLayout>
+            </com.jiyingcao.a51fengliu.ui.widget.ViewPager2NestedScrollingLayout>
         </FrameLayout>
     </FrameLayout>
 

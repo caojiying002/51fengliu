@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.api.RetrofitClient
-import com.jiyingcao.a51fengliu.databinding.StatefulRefreshRecyclerViewBinding
+import com.jiyingcao.a51fengliu.databinding.StatefulViewpager2RecyclerViewBinding
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.DetailActivity
 import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
@@ -39,7 +39,7 @@ import kotlinx.coroutines.launch
 class CityRecordsSubFragment : Fragment(),
     FirstResumeLifecycleObserver.FirstResumeListener {
 
-    private var _binding: StatefulRefreshRecyclerViewBinding? = null
+    private var _binding: StatefulViewpager2RecyclerViewBinding? = null
     private val binding get() = _binding!!
 
     private val refreshLayout: SmartRefreshLayout get() = binding.refreshLayout
@@ -82,7 +82,7 @@ class CityRecordsSubFragment : Fragment(),
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        _binding = StatefulRefreshRecyclerViewBinding.inflate(inflater, container, false)
+        _binding = StatefulViewpager2RecyclerViewBinding.inflate(inflater, container, false)
         return binding.root
     }
 

@@ -22,6 +22,7 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.ui.ChooseCityActivity
+import com.jiyingcao.a51fengliu.ui.widget.ViewPager2TouchInterceptor
 import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.to2LevelName
@@ -55,6 +56,7 @@ class CityRecordsFragment : Fragment() {
         setupViewPager()
         setupTabLayout()
         setupClickListeners(view)
+        //setupNestedScrolling() // 不需要，用嵌套布局解决滑动冲突了
 
         viewLifecycleOwner.lifecycleScope.launch {
             //viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -63,6 +65,20 @@ class CityRecordsFragment : Fragment() {
                 }
             //}
         }
+    }
+
+    /**
+     * 设置嵌套滑动，解决ViewPager2与内部RecyclerView的滑动冲突
+     */
+    private fun setupNestedScrolling() {
+        // 在ViewPager2层次设置触摸拦截器
+        ViewPager2TouchInterceptor.setupWithViewPager(viewPager)
+        
+        // 额外设置嵌套滚动视图处理
+        ViewPager2TouchInterceptor.setupNestedScrollableViews(viewPager)
+        
+        // 日志输出
+        Log.d(TAG, "ViewPager2TouchInterceptor setup complete")
     }
 
     override fun onResume() {
@@ -167,5 +183,9 @@ class CityRecordsFragment : Fragment() {
             }
             return CityRecordsSubFragment.newInstance(sort)
         }
+    }
+    
+    companion object {
+        private const val TAG = "CityRecordsFragment"
     }
 }

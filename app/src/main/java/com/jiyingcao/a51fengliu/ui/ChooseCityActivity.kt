@@ -84,6 +84,8 @@ class ChooseCityActivity: BaseActivity() {
         // 更新 RecyclerView 的数据
         // 在 RecyclerView 的点击监听中调用 viewModel.onItemClick(city)
         cityAdapter.submitList(cities)
+        // 数据更新后，重置列表滚动位置到顶部
+        binding.recyclerView.scrollToPosition(0)
     }
 
     private fun updateTitle(title: String) {

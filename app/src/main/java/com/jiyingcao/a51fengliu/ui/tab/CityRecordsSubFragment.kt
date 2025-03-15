@@ -70,6 +70,9 @@ class CityRecordsSubFragment : Fragment(),
     }
 
     private lateinit var recordAdapter: RecordAdapter
+    
+    /** 标记是否需要重置列表滚动位置 */
+    private var shouldResetScroll = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -124,6 +127,8 @@ class CityRecordsSubFragment : Fragment(),
             selectedCityViewModel.selectedCity.collect { cityCode ->
                 Log.d(TAG, "City code selected: $cityCode")
                 cityCode?.let {
+                    // StateFlow保证值不会重复发射，所以每次收到新的城市代码时都需要重置滚动
+                    shouldResetScroll = true
                     viewModel.processIntent(CityIntent.UpdateCity(it))
                 }
             }
@@ -148,7 +153,14 @@ class CityRecordsSubFragment : Fragment(),
         // 监听记录数据
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.records.collect { records ->
+                // 使用BRVAH的普通方法设置列表数据，无法使用回调
                 recordAdapter.submitList(records)
+                
+                // 如果需要重置滚动位置（切换过城市），则滚动到顶部
+                if (shouldResetScroll) {
+                    recyclerView.scrollToPosition(0)
+                    shouldResetScroll = false
+                }
                 
                 // 如果没有数据，显示空状态
                 if (records.isEmpty()) {

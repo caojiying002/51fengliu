@@ -69,6 +69,12 @@ class CityViewModel(
     
     private val _noMoreDataState = MutableStateFlow(false)
     val noMoreDataState = _noMoreDataState.asStateFlow()
+
+    private val _isUIVisible = MutableStateFlow(false)
+    val isUIVisible = _isUIVisible.asStateFlow()
+
+    /** 标记城市是否发生了变化，需要重新加载数据 */
+    private var pendingCityUpdate = false
     
     /** 保存当前城市代码 */
     private val _cityCode = MutableStateFlow<String?>(null)
@@ -97,6 +103,38 @@ class CityViewModel(
     private val _records = MutableStateFlow<List<RecordInfo>>(emptyList())
     val records = _records.asStateFlow()
     
+    init {
+        // 监听UI可见性变化，当变为可见且有待处理的城市更新时加载数据
+        viewModelScope.launch {
+            _isUIVisible.collect { isVisible ->
+                if (isVisible) {
+                    checkAndLoadPendingData()
+                }
+            }
+        }
+        
+        // 监听城市代码变化
+        viewModelScope.launch {
+            _cityCode.collect { newCityCode ->
+                newCityCode?.let {
+                    // 重置页码和清空记录
+                    _pageLoaded.value = 0
+                    clearRecords()
+                    
+                    // 标记需要更新数据，但不立即加载
+                    pendingCityUpdate = true
+                    
+                    // 仅当UI可见时才加载数据
+                    if (_isUIVisible.value) {
+                        fetchData(it, 1)
+                        pendingCityUpdate = false
+                    }
+                    // 否则等待变为可见时加载
+                }
+            }
+        }
+    }
+    
     /**
      * 修改[data]列表并同时更新[_records]流。
      */
@@ -118,12 +156,23 @@ class CityViewModel(
     }
     
     private fun updateCity(cityCode: String) {
+        // 只有当城市代码变化时才更新
         if (_cityCode.value == cityCode) return
-        
         _cityCode.value = cityCode
-        _pageLoaded.value = 0
-        clearRecords()
-        fetchData(cityCode, 1)
+        // 其他处理逻辑已移动到对_cityCode的流监听中
+    }
+    
+    /**
+     * 检查并加载待处理的数据
+     */
+    private fun checkAndLoadPendingData() {
+        val currentCityCode = _cityCode.value ?: return
+        
+        // 如果有待处理的城市更新
+        if (pendingCityUpdate) {
+            fetchData(currentCityCode, 1)
+            pendingCityUpdate = false
+        }
     }
     
     private fun fetchData(
@@ -174,11 +223,11 @@ class CityViewModel(
     private fun retry() {
         fetchData(_cityCode.value!!, 1, CityLoadingType.FULL_SCREEN)
     }
-    
+
     private fun refresh() {
         fetchData(_cityCode.value!!, 1, CityLoadingType.PULL_TO_REFRESH)
     }
-    
+
     private fun loadMore() {
         fetchData(_cityCode.value!!, _pageLoaded.value + 1, CityLoadingType.LOAD_MORE)
     }
@@ -187,6 +236,13 @@ class CityViewModel(
         viewModelScope.launch {
             updateRecords { it.clear() }
         }
+    }
+
+    fun setUIVisibility(isVisible: Boolean) {
+        if (_isUIVisible.value == isVisible) return
+        
+        _isUIVisible.value = isVisible
+        Log.d(TAG, "UI visibility changed to: $isVisible for sort: $sort")
     }
     
     override fun onCleared() {

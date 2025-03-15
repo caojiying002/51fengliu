@@ -207,11 +207,13 @@ class CityRecordsSubFragment : Fragment(),
 
     override fun onResume() {
         super.onResume()
+        viewModel.setUIVisibility(true)
         onFragmentVisible()
     }
 
     override fun onPause() {
         super.onPause()
+        viewModel.setUIVisibility(false)
         onFragmentInvisible()
     }
 

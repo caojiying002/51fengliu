@@ -35,5 +35,5 @@ Phasellus in leo massa. Aliquam malesuada, enim nec auctor posuere, quam sem mal
     <string name="permanent">永久</string>
     <string name="upgrade_prompt">立即升级，轻松风流 >>></string>
     <string name="refresh_prompt">[已经升级？点击刷新]</string>
-
+    <string name="my_favorite">我的收藏</string>
 </resources>

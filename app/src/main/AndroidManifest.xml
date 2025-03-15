@@ -38,15 +38,15 @@
                 android:value="true" />
         </activity>
         <activity
-            android:name=".ui.CityActivity"
-            android:exported="${activityExported}"
-            android:screenOrientation="${screenOrientation}" />
-        <activity
             android:name=".ui.SearchActivity"
             android:exported="${activityExported}"
             android:screenOrientation="${screenOrientation}" />
         <activity
             android:name=".ui.ChooseCityActivity"
+            android:exported="${activityExported}"
+            android:screenOrientation="${screenOrientation}" />
+        <activity
+            android:name=".ui.FavoriteActivity"
             android:exported="${activityExported}"
             android:screenOrientation="${screenOrientation}" />
         <activity

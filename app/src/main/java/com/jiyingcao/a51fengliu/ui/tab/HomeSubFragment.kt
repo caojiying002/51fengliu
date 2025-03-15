@@ -7,67 +7,76 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.jiyingcao.a51fengliu.R
+import com.jiyingcao.a51fengliu.api.RetrofitClient
+import com.jiyingcao.a51fengliu.databinding.StatefulViewpager2RecyclerViewBinding
+import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.DetailActivity
-import com.jiyingcao.a51fengliu.ui.SearchActivity
 import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
-import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout
-import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout.State.CONTENT
-import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout.State.ERROR
-import com.jiyingcao.a51fengliu.ui.widget.StatefulLayout.State.LOADING
-import com.jiyingcao.a51fengliu.util.FirstResumeLifecycleObserver
+import com.jiyingcao.a51fengliu.ui.showContentView
+import com.jiyingcao.a51fengliu.ui.showEmptyContent
+import com.jiyingcao.a51fengliu.ui.showErrorView
+import com.jiyingcao.a51fengliu.ui.showLoadingView
+import com.jiyingcao.a51fengliu.ui.showRealContent
 import com.jiyingcao.a51fengliu.util.showToast
-import com.jiyingcao.a51fengliu.viewmodel.MainViewModel
-import com.jiyingcao.a51fengliu.viewmodel.UiState0
+import com.jiyingcao.a51fengliu.viewmodel.HomeIntent
+import com.jiyingcao.a51fengliu.viewmodel.HomeState
+import com.jiyingcao.a51fengliu.viewmodel.HomeViewModel
+import com.jiyingcao.a51fengliu.viewmodel.HomeViewModelFactory
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
+import kotlinx.coroutines.launch
 
-class HomeSubFragment : Fragment(),
-    FirstResumeLifecycleObserver.FirstResumeListener {
+class HomeSubFragment : Fragment() {
 
-    private lateinit var statefulLayout: StatefulLayout
-    private lateinit var refreshLayout: SmartRefreshLayout
-    private lateinit var recyclerView: RecyclerView
+    private var _binding: StatefulViewpager2RecyclerViewBinding? = null
+    private val binding get() = _binding!!
 
-    private val viewModel: MainViewModel by viewModels()
-
-    private lateinit var recordAdapter: RecordAdapter
+    private val refreshLayout: SmartRefreshLayout get() = binding.refreshLayout
+    private val recyclerView: RecyclerView get() = binding.recyclerView
 
     /** daily热门，publish最新 */
     private lateinit var sort: String
-    /** 是否有数据已经加载 */
-    private var hasDataLoaded: Boolean = false
-    /** 当前已经加载成功的页数 */
-    private var currentPage: Int = 0
+
+    private val viewModel: HomeViewModel by viewModels {
+        HomeViewModelFactory(
+            RecordRepository.getInstance(RetrofitClient.apiService),
+            sort
+        )
+    }
+
+    private lateinit var recordAdapter: RecordAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // 添加监听器实现第一次 onResume 事件
-        lifecycle.addObserver(FirstResumeLifecycleObserver(this))
         sort = arguments?.getString(ARG_SORT) ?: "daily"
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.common_stateful_refresh_recycler_view, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = StatefulViewpager2RecyclerViewBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        statefulLayout = view.findViewById(R.id.stateful_layout)
-        refreshLayout = view.findViewById(R.id.refreshLayout)
-        recyclerView = view.findViewById(R.id.recyclerView)
-
+        setupRecyclerView()
+        setupSmartRefreshLayout()
+        setupFlowCollectors()
+    }
+    
+    private fun setupRecyclerView() {
         recordAdapter = RecordAdapter().apply {
             setOnItemClickListener { _, _, position ->
-                this@apply.getItem(position)?.let {
+                this.getItem(position)?.let {
                     DetailActivity.start(context, it.id)
                 }
             }
         }
+        
         recyclerView.apply {
             // 设置固定大小
             setHasFixedSize(true)
@@ -76,90 +85,114 @@ class HomeSubFragment : Fragment(),
             // 指定适配器
             adapter = recordAdapter
         }
+    }
+    
+    private fun setupSmartRefreshLayout() {
         refreshLayout.apply {
             setRefreshHeader(ClassicsHeader(context))
             setRefreshFooter(ClassicsFooter(context))
-            setOnRefreshListener { viewModel.fetchByPage(showFullScreenLoading = false, sort = sort) }
-            setOnLoadMoreListener { viewModel.fetchByPage(false, sort, currentPage+1) }
+            setOnRefreshListener { viewModel.processIntent(HomeIntent.Refresh) }
+            setOnLoadMoreListener { viewModel.processIntent(HomeIntent.LoadMore) }
             // setEnableLoadMore(false)  // 加载第一页成功前暂时禁用LoadMore
         }
+    }
 
-        //viewModel = ViewModelProvider(this)[MainViewModel::class.java]
-        viewModel.data.observe(viewLifecycleOwner) { state ->
-            when (state) {
-                is UiState0.Loading -> {
-                    // 显示加载动画
-                    if (!hasDataLoaded)
-                        statefulLayout.currentState = LOADING
-                }
-                is UiState0.Success -> {
-                    hasDataLoaded = true
-                    refreshLayout.finishRefresh()
-                    refreshLayout.finishLoadMore()
-                    statefulLayout.currentState = CONTENT
-
-                    val pageData = state.data
-                    val page = pageData.current
-                    val data = pageData.records
-
-                    // 记录页数
-                    currentPage = page
-                    // 显示数据
-                    if (page == 1) {
-                        recordAdapter.submitList(data)
-                        // refreshLayout.setEnableLoadMore(true)   // 第一页有数据了，可以启用LoadMore了
+    private fun setupFlowCollectors() {
+        // 监听ViewModel状态
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.state.collect { state ->
+                when (state) {
+                    is HomeState.Loading -> handleLoadingState(state)
+                    is HomeState.Error -> handleErrorState(state)
+                    is HomeState.Success -> {
+                        binding.showContentView()
+                        refreshLayout.finishRefresh()
+                        refreshLayout.finishLoadMore()
                     }
-                    else
-                        recordAdapter.addAll(data)
-                    // TODO 如果列表为空需要显示空状态
+                    else -> {}
                 }
-                is UiState0.Empty -> {
-                    // 不再使用
-                    //refreshLayout.finishRefresh()
+            }
+        }
+        
+        // 监听记录数据
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.records.collect { records ->
+                recordAdapter.submitList(records)
+                
+                // 如果没有数据，显示空状态
+                if (records.isEmpty()) {
+                    binding.showEmptyContent()
+                } else {
+                    binding.showRealContent()
                 }
-                is UiState0.Error -> {
-                    refreshLayout.finishRefresh()
-                    refreshLayout.finishLoadMore()
-                    // 显示错误信息
-                    if (!hasDataLoaded)
-                        statefulLayout.currentState = ERROR
-                    else
-                        view.context.showToast(state.message)
+            }
+        }
+        
+        // 监听是否还有更多数据
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.noMoreDataState.collect { noMoreData ->
+                refreshLayout.setNoMoreData(noMoreData)
+            }
+        }
+    }
+    
+    private fun handleLoadingState(loading: HomeState.Loading) {
+        when (loading) {
+            HomeState.Loading.FullScreen -> binding.showLoadingView()
+            HomeState.Loading.PullToRefresh -> { /* 下拉刷新加载处理 */ }
+            HomeState.Loading.LoadMore -> { /* 加载更多处理 */ }
+        }
+    }
+    
+    private fun handleErrorState(error: HomeState.Error) {
+        when (error) {
+            is HomeState.Error.FullScreen -> {
+                binding.showErrorView(error.message) {
+                    viewModel.processIntent(HomeIntent.Retry)
                 }
+            }
+            is HomeState.Error.PullToRefresh -> {
+                refreshLayout.finishRefresh(false)
+                requireContext().showToast(error.message)
+            }
+            is HomeState.Error.LoadMore -> {
+                refreshLayout.finishLoadMore(false)
+                requireContext().showToast(error.message)
             }
         }
     }
 
-    override fun onFirstResume(isRecreate: Boolean) {
-        // 重新创建时不加载数据
-        if (!isRecreate) {
-            // 第一次 onResume 事件发生时加载数据
-            viewModel.fetchByPage(showFullScreenLoading = true, sort = sort)
-        }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onResume() {
         super.onResume()
+        viewModel.setUIVisibility(true)
         onFragmentVisible()
     }
 
     override fun onPause() {
         super.onPause()
+        viewModel.setUIVisibility(false)
         onFragmentInvisible()
     }
 
     private fun onFragmentVisible() {
         // Fragment 变为可见时的逻辑
-        Log.d("HomeSubFragment", "${arguments?.getString(ARG_SORT)} is now visible")
+        Log.d(TAG, "${arguments?.getString(ARG_SORT)} is now visible")
     }
 
     private fun onFragmentInvisible() {
         // Fragment 变为不可见时的逻辑
-        Log.d("HomeSubFragment", "${arguments?.getString(ARG_SORT)} is now invisible")
+        Log.d(TAG, "${arguments?.getString(ARG_SORT)} is now invisible")
     }
 
     companion object {
+        private const val TAG = "HomeSubFragment"
         private const val ARG_SORT = "sort"
+        
         fun newInstance(sort: String): HomeSubFragment {
             return HomeSubFragment().apply {
                 arguments = Bundle().apply {

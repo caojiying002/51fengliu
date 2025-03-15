@@ -5,7 +5,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -14,7 +13,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.api.RetrofitClient
-import com.jiyingcao.a51fengliu.databinding.StatefulRefreshRecyclerViewBinding
 import com.jiyingcao.a51fengliu.databinding.StatefulViewpager2RecyclerViewBinding
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.DetailActivity
@@ -24,7 +22,6 @@ import com.jiyingcao.a51fengliu.ui.showEmptyContent
 import com.jiyingcao.a51fengliu.ui.showErrorView
 import com.jiyingcao.a51fengliu.ui.showLoadingView
 import com.jiyingcao.a51fengliu.ui.showRealContent
-import com.jiyingcao.a51fengliu.util.FirstResumeLifecycleObserver
 import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.CityIntent
@@ -37,8 +34,7 @@ import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
 import kotlinx.coroutines.launch
 
-class CityRecordsSubFragment : Fragment(),
-    FirstResumeLifecycleObserver.FirstResumeListener {
+class CityRecordsSubFragment : Fragment() {
 
     private var _binding: StatefulViewpager2RecyclerViewBinding? = null
     private val binding get() = _binding!!
@@ -77,8 +73,6 @@ class CityRecordsSubFragment : Fragment(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // 添加监听器实现第一次 onResume 事件
-        lifecycle.addObserver(FirstResumeLifecycleObserver(this))
         sort = arguments?.getString(ARG_SORT) ?: "publish"
     }
 
@@ -203,13 +197,6 @@ class CityRecordsSubFragment : Fragment(),
                 refreshLayout.finishLoadMore(false)
                 requireContext().showToast(error.message)
             }
-        }
-    }
-
-    override fun onFirstResume(isRecreate: Boolean) {
-        // 重新创建时不加载数据
-        if (!isRecreate) {
-            // 不需要额外处理，因为我们使用Flow收集器监听
         }
     }
 

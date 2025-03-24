@@ -161,7 +161,10 @@ class SearchActivity: BaseActivity() {
             displayCity(cityCode)
             cityCode?.let {
                 App.INSTANCE.showToast("City code selected: $cityCode")
-                viewModel.processIntent(SearchIntent.UpdateCity(cityCode))
+
+                // 更新城市时，要连用户输入的关键字一起传递
+                val keywords = binding.searchEditText.text.toString().trim()
+                viewModel.processIntent(SearchIntent.UpdateCityWithKeywords(cityCode, keywords))
             }
         }
     }

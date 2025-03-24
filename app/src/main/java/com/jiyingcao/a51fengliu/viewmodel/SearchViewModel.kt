@@ -52,7 +52,7 @@ sealed class SearchState {
 
 sealed class SearchIntent {
     data class UpdateKeywords(val keywords: String) : SearchIntent()
-    data class UpdateCity(val cityCode: String) : SearchIntent()
+    data class UpdateCityWithKeywords(val cityCode: String, val keywords: String) : SearchIntent()
     data object Refresh : SearchIntent()
     data object NextPage : SearchIntent()
     // TODO 几种样式的错误重试，如全屏错误重试、下拉加载错误重试等
@@ -111,7 +111,7 @@ class SearchViewModel(
     fun processIntent(intent: SearchIntent) {
         when (intent) {
             is SearchIntent.UpdateKeywords -> updateKeywords(intent.keywords)
-            is SearchIntent.UpdateCity -> updateCityCode(intent.cityCode)
+            is SearchIntent.UpdateCityWithKeywords -> updateCityWithKeywords(intent.cityCode, intent.keywords)
             SearchIntent.Refresh -> refresh()
             SearchIntent.NextPage -> nextPage()
         }
@@ -137,18 +137,30 @@ class SearchViewModel(
         )
     }
 
-    private fun updateCityCode(cityCode: String) {
-        if (_cityCode.value == cityCode) return
+    private fun updateCityWithKeywords(cityCode: String, keywords: String) {
+        var cityChanged = false
+        var keywordsChanged = false
 
-        _cityCode.value = cityCode
+        if (_cityCode.value != cityCode) {
+            cityChanged = true
+            _cityCode.value = cityCode
+        }
+        if (_keywords.value != keywords) {
+            keywordsChanged = true
+            _keywords.value = keywords
+        }
+
+        // 无事发生
+        if (!cityChanged && !keywordsChanged) return
+
         search0(
             RecordsRequest.forSearch(
-                _keywords.value.orEmpty(),
+                keywords,
                 cityCode,
                 1
             ),
             SearchLoadingType.FULL_SCREEN,
-            true    // 城市有变化，清空之前的搜索结果
+            true    // 城市或关键字有变化，清空之前的搜索结果
         )
     }
 

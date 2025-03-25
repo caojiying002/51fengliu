@@ -21,6 +21,7 @@ import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.widget.KeyboardDismissFrameLayout
+import com.jiyingcao.a51fengliu.util.ImeUtil
 import com.jiyingcao.a51fengliu.util.scrollToTopIfEmpty
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.to2LevelName
@@ -190,6 +191,9 @@ class SearchActivity: BaseActivity() {
             ) {
                 // 触发搜索点击
                 binding.clickSearch.performClick()
+                // 收起键盘并清除焦点
+                ImeUtil.hideIme(v)
+                v.clearFocus()
                 return@setOnEditorActionListener true
             }
             false

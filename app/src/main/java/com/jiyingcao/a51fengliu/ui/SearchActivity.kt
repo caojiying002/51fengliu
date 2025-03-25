@@ -12,7 +12,6 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
@@ -21,7 +20,7 @@ import com.jiyingcao.a51fengliu.databinding.StatefulRefreshRecyclerViewBinding
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
-import com.jiyingcao.a51fengliu.util.ImeUtil
+import com.jiyingcao.a51fengliu.ui.widget.KeyboardDismissFrameLayout
 import com.jiyingcao.a51fengliu.util.scrollToTopIfEmpty
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.to2LevelName
@@ -158,12 +157,10 @@ class SearchActivity: BaseActivity() {
     ) { result ->
         if (result.resultCode == RESULT_OK) {
             val cityCode = result.data?.getStringExtra("CITY_CODE")
-            Log.d("registerForActivityResult", "City code selected: $cityCode")
+            Log.d("ActivityResultCallback", "City code selected: $cityCode")
 
             displayCity(cityCode)
             cityCode?.let {
-                App.INSTANCE.showToast("City code selected: $cityCode")
-
                 // 更新城市时，要连用户输入的关键字一起传递
                 val keywords = binding.searchEditText.text.toString().trim()
                 viewModel.processIntent(SearchIntent.UpdateCityWithKeywords(cityCode, keywords))
@@ -181,12 +178,8 @@ class SearchActivity: BaseActivity() {
             chooseCityLauncher.launch(ChooseCityActivity.createIntent(this@SearchActivity))
         }
         binding.clickSearch.setOnClickListener { v ->
-            ImeUtil.hideIme(v)
-
-            val keywords = binding.searchEditText.text.toString().trim()
             // 关键字允许为空，相当于显示(某城市)所有数据
-            Log.d(TAG, "Search keywords=$keywords")
-            // 隐藏键盘
+            val keywords = binding.searchEditText.text.toString().trim()
             viewModel.processIntent(SearchIntent.UpdateKeywords(keywords))
         }
         binding.searchEditText.setOnEditorActionListener { v, actionId, event ->
@@ -201,6 +194,8 @@ class SearchActivity: BaseActivity() {
             }
             false
         }
+        // 用户触摸EditText以外的区域时，隐藏键盘并清除EditText的焦点
+        binding.main.addWatchedEditText(binding.searchEditText)
     }
 
     private fun setupSmartRefreshLayout() {

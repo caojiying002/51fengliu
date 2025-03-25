@@ -13,7 +13,7 @@ private val DEBUG_HTTP: Boolean = (true)
 private val USE_DEBUG_TOKEN: Boolean = (false)
 private val DEBUG_TOKEN: String = ""
 
-const val BASE_URL = "https://127can.info/" //"https://910.da576.xyz/"   //"https://309.16dress.xyz/"
+const val BASE_URL = "https://127hei.info/" //"https://127can.info/" //"https://910.da576.xyz/"
 
 object RetrofitClient {
 

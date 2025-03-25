@@ -22,6 +22,7 @@ import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.util.ImeUtil
+import com.jiyingcao.a51fengliu.util.scrollToTopIfEmpty
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.to2LevelName
 import com.jiyingcao.a51fengliu.viewmodel.SearchIntent
@@ -142,6 +143,7 @@ class SearchActivity: BaseActivity() {
 
     private fun updateRecords(records: List<RecordInfo>) {
         recordAdapter.submitList(records)
+        recyclerView.scrollToTopIfEmpty(records)
 
         // 如果没有数据，显示空状态
         if (records.isEmpty()) {

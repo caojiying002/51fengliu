@@ -12,6 +12,7 @@ import androidx.annotation.IdRes
 import androidx.annotation.LayoutRes
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.RecyclerView
 
 val Int.dp: Int
     get() = (this * Resources.getSystem().displayMetrics.density).toInt()
@@ -49,4 +50,8 @@ fun TextView.copyOnLongClick(
         copySuccess()
         true
     }
+}
+
+fun RecyclerView.scrollToTopIfEmpty(c: Collection<*>) {
+    if (c.isEmpty()) scrollToPosition(0)
 }

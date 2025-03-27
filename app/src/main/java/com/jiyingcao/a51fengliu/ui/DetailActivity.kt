@@ -32,6 +32,7 @@ import com.jiyingcao.a51fengliu.databinding.ContentDetail0Binding
 import com.jiyingcao.a51fengliu.databinding.ContentDetailBinding
 import com.jiyingcao.a51fengliu.glide.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.glide.GlideApp
+import com.jiyingcao.a51fengliu.glide.withSourceIndicator
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.common.BigImageViewerActivity
@@ -403,6 +404,7 @@ class DetailActivity : BaseActivity() {
                     }
 
                 })
+                //.withSourceIndicator(imageView)
                 .into(imageView)
             imageView.setOnClickListener { view ->
                 // 如果图片加载成功，才能点击查看大图

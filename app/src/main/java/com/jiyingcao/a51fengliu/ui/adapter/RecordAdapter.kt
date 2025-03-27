@@ -15,6 +15,7 @@ import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.databinding.ItemViewBinding
 import com.jiyingcao.a51fengliu.glide.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.glide.GlideApp
+import com.jiyingcao.a51fengliu.glide.withSourceIndicator
 import com.jiyingcao.a51fengliu.util.dp
 import com.jiyingcao.a51fengliu.util.timestampToDay
 import com.jiyingcao.a51fengliu.util.to2LevelName
@@ -46,6 +47,7 @@ class RecordAdapter : BaseQuickAdapter<RecordInfo, RecordAdapter.RecordViewHolde
                         .error(R.drawable.image_broken)
                         .transform(CenterCrop(), RoundedCorners(4.dp))
                         //.transition(DrawableTransitionOptions.withCrossFade())
+                        //.withSourceIndicator(it)
                         .into(it)
                 }
             }

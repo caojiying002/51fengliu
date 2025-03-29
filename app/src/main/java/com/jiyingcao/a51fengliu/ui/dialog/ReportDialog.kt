@@ -13,17 +13,20 @@ import android.view.WindowManager
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.databinding.DialogReportBinding
 import com.jiyingcao.a51fengliu.glide.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.glide.GlideApp
+import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.util.showToast
+import com.jiyingcao.a51fengliu.viewmodel.ReportState
+import com.jiyingcao.a51fengliu.viewmodel.ReportViewModel
+import com.jiyingcao.a51fengliu.viewmodel.ReportViewModelFactory
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import java.io.FileOutputStream
 
@@ -32,14 +35,13 @@ class ReportDialog : DialogFragment() {
     private val binding get() = _binding!!
     
     private var selectedImageUri: Uri? = null
-    private var uploadedImageUrl: String? = null
-    private var reportTitle: String = ""
-    private var isUploading = false
+    private var recordTitle: String = ""
+    private lateinit var viewModel: ReportViewModel
     
     private val pickMedia = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
             selectedImageUri = uri
-            uploadImage(uri)
+            convertUriToFileAndUpload(uri)
         }
     }
     
@@ -64,6 +66,16 @@ class ReportDialog : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
+        // Setup ViewModel
+        this.recordTitle = arguments?.getString(ARG_RECORD_TITLE) ?: ""
+        val infoId = arguments?.getString(ARG_RECORD_ID) ?: ""
+        val repository = RecordRepository.getInstance(RetrofitClient.apiService)
+        
+        viewModel = ViewModelProvider(
+            this,
+            ReportViewModelFactory(repository, infoId)
+        )[ReportViewModel::class.java]
+        
         // Set dialog width to match parent with margins
         dialog?.window?.apply {
             setLayout(
@@ -74,13 +86,11 @@ class ReportDialog : DialogFragment() {
         
         setupUI()
         setupClickListeners()
+        observeViewModel()
     }
     
     private fun setupUI() {
-        // Set report title if provided
-        if (reportTitle.isNotEmpty()) {
-            binding.etReportTitle.setText(reportTitle)
-        }
+        binding.etReportTitle.setText(recordTitle)
     }
     
     private fun setupClickListeners() {
@@ -91,28 +101,67 @@ class ReportDialog : DialogFragment() {
         
         // Image upload
         binding.tvUploadImage.setOnClickListener {
-            if (!isUploading) {
-                openPhotoPicker()
+            if (viewModel.isUploading.value) {
+                return@setOnClickListener
             }
+            openPhotoPicker()
         }
         
         // Delete image
         binding.ivDeleteImage.setOnClickListener {
+            viewModel.clearUploadedImage()
             resetUploadUI()
         }
         
         // Confirm report button
         binding.btnConfirmReport.setOnClickListener {
             val reason = binding.etReportReason.text.toString().trim()
-            
-            if (reason.isEmpty()) {
-                requireContext().showToast("请输入举报原因")
-                return@setOnClickListener
+            viewModel.submitReport(reason)
+        }
+    }
+    
+    private fun observeViewModel() {
+        // Observe state changes
+        lifecycleScope.launch {
+            viewModel.state.collect { state ->
+                when (state) {
+                    is ReportState.Initial -> {
+                        // Initial state, nothing to do
+                    }
+                    is ReportState.UploadingImage -> {
+                        showLoadingState()
+                    }
+                    is ReportState.ImageUploaded -> {
+                        displayUploadedImage(state.relativeUrl)
+                    }
+                    is ReportState.SubmittingReport -> {
+                        // Show loading state for report submission if needed
+                    }
+                    is ReportState.ReportSubmitted -> {
+                        // Will be handled by effect
+                    }
+                    is ReportState.Error -> {
+                        // Error will be shown as toast via effects
+                        if (viewModel.uploadedImageUrl.value == null) {
+                            resetUploadUI()
+                        }
+                    }
+                }
             }
-            
-            // TODO: Implement report submission when API is ready
-            requireContext().showToast("举报已提交，感谢您的反馈")
-            dismiss()
+        }
+        
+        // Observe side effects
+        lifecycleScope.launch {
+            viewModel.effect.collectLatest { effect ->
+                when (effect) {
+                    is com.jiyingcao.a51fengliu.viewmodel.ReportEffect.ShowToast -> {
+                        requireContext().showToast(effect.message)
+                    }
+                    is com.jiyingcao.a51fengliu.viewmodel.ReportEffect.DismissDialog -> {
+                        dismiss()
+                    }
+                }
+            }
         }
     }
     
@@ -120,27 +169,18 @@ class ReportDialog : DialogFragment() {
         pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
     }
     
-    private fun uploadImage(uri: Uri) {
-        isUploading = true
-        binding.tvUploadImage.isEnabled = false
-        
-        // Show loading state
-        showLoadingState()
-        
-        // Convert URI to File
+    private fun convertUriToFileAndUpload(uri: Uri) {
         lifecycleScope.launch {
             try {
                 val file = convertUriToFile(uri)
                 if (file != null) {
-                    uploadFileToServer(file)
+                    viewModel.uploadImage(file)
                 } else {
                     requireContext().showToast("图片处理失败")
-                    resetUploadUI()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                requireContext().showToast("图片上传失败")
-                resetUploadUI()
+                requireContext().showToast("图片处理失败")
             }
         }
     }
@@ -148,31 +188,6 @@ class ReportDialog : DialogFragment() {
     private fun showLoadingState() {
         binding.tvUploadImage.text = "上传中..."
         binding.tvUploadImage.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0)
-    }
-    
-    private suspend fun uploadFileToServer(file: File) {
-        val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
-        val body = MultipartBody.Part.createFormData("file", file.name, requestFile)
-        
-        try {
-            val response = RetrofitClient.apiService.postUpload(body)
-            if (response.isSuccessful()) {
-                response.data?.let { url ->
-                    uploadedImageUrl = url
-                    displayUploadedImage(url)
-                }
-            } else {
-                requireContext().showToast("上传失败: ${response.msg}")
-                resetUploadUI()
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            requireContext().showToast("上传失败，请稍后重试")
-            resetUploadUI()
-        } finally {
-            isUploading = false
-            binding.tvUploadImage.isEnabled = true
-        }
     }
     
     private fun displayUploadedImage(relativeUrl: String) {
@@ -190,11 +205,6 @@ class ReportDialog : DialogFragment() {
     }
     
     private fun resetUploadUI() {
-        // Reset data
-        selectedImageUri = null
-        uploadedImageUrl = null
-        isUploading = false
-        
         // Reset UI
         binding.tvUploadImage.apply {
             text = "上传图片"
@@ -226,16 +236,17 @@ class ReportDialog : DialogFragment() {
         }
     }
     
-    fun setReportTitle(title: String) {
-        this.reportTitle = title
-    }
-    
     companion object {
         const val TAG = "ReportDialog"
-        
-        fun newInstance(reportTitle: String): ReportDialog {
+        private const val ARG_RECORD_TITLE = "title"
+        private const val ARG_RECORD_ID = "id"
+
+        fun newInstance(title: String, id: String): ReportDialog {
             return ReportDialog().apply {
-                setReportTitle(reportTitle)
+                arguments = Bundle().apply {
+                    putString(ARG_RECORD_TITLE, title)
+                    putString(ARG_RECORD_ID, id)
+                }
             }
         }
     }

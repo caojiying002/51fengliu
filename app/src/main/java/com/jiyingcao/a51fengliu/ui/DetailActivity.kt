@@ -223,12 +223,14 @@ class DetailActivity : BaseActivity() {
 
         with(contentBinding) {
             clickReport.setOnClickListener {
-                val reportDialog = ReportDialog.newInstance(
-                    reportTitle = viewModel.state.value.let { 
-                        (it as? DetailState.Success)?.record?.title ?: "举报内容"
-                    }
-                )
-                reportDialog.show(supportFragmentManager, ReportDialog.TAG)
+                val record = (viewModel.state.value as? DetailState.Success)?.record
+                record?.let {
+                    val reportDialog = ReportDialog.newInstance(
+                        it.title,
+                        it.id
+                    )
+                    reportDialog.show(supportFragmentManager, ReportDialog.TAG)
+                }
             }
             clickFavorite.setOnClickListener {
                 val detailIntent =

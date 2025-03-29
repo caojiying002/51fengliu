@@ -3,9 +3,14 @@ package com.jiyingcao.a51fengliu.repository
 import com.jiyingcao.a51fengliu.api.ApiService
 import com.jiyingcao.a51fengliu.api.request.InfoIdRequest
 import com.jiyingcao.a51fengliu.api.request.RecordsRequest
+import com.jiyingcao.a51fengliu.api.request.ReportRequest
 import com.jiyingcao.a51fengliu.api.response.PageData
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import kotlinx.coroutines.flow.Flow
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
 
 class RecordRepository(
     private val apiService: ApiService
@@ -57,6 +62,27 @@ class RecordRepository(
         apiService.getFavorites(page)
     }
 
+    /**
+     * 上传图片
+     * @param file 要上传的文件
+     * @return Flow<Result<String>> 包含上传后图片URL的结果流
+     */
+    fun uploadImage(file: File): Flow<Result<String?>> = apiCall {
+        val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+        val body = MultipartBody.Part.createFormData("file", file.name, requestFile)
+        apiService.postUpload(body)
+    }
+
+    /**
+     * 提交举报
+     * @param infoId Record ID
+     * @param content 举报内容
+     * @param picture 图片URL（相对路径，不包含BASE_URL）
+     * @return Flow<Result<*>> 表示举报成功或失败的结果流
+     */
+    fun report(infoId: String, content: String, picture: String = ""): Flow<Result<*>> = apiCall {
+        apiService.postReport(ReportRequest(infoId, content, picture))
+    }
 
     companion object {
         // 用于单例模式实现

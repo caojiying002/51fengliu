@@ -3,7 +3,9 @@ package com.jiyingcao.a51fengliu.api
 import com.jiyingcao.a51fengliu.api.TokenPolicy.Policy
 import com.jiyingcao.a51fengliu.api.request.InfoIdRequest
 import com.jiyingcao.a51fengliu.api.request.LoginRequest
+import com.jiyingcao.a51fengliu.api.request.ReportRequest
 import com.jiyingcao.a51fengliu.api.response.*
+import okhttp3.MultipartBody
 import retrofit2.http.*
 
 interface ApiService {
@@ -66,4 +68,19 @@ interface ApiService {
     suspend fun getFavorites(
         @Query("page") page: Int = 1
     ): ApiResponse<PageData>
+
+    /** 上传图片（需登录） */
+    @TokenPolicy(Policy.REQUIRED)
+    @Multipart
+    @POST("/api/web/info/upload.json")
+    suspend fun postUpload(
+        @Part file: MultipartBody.Part
+    ): ApiResponse<String>
+
+    /** 举报（居然不登录也能举报） */
+    @TokenPolicy(Policy.OPTIONAL)
+    @POST("/api/web/info/report.json")
+    suspend fun postReport(
+        @Body body: ReportRequest
+    ): ApiResponse<Any> // TODO 我还不知道举报成功和失败返回什么数据
 }

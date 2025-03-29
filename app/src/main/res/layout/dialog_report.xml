@@ -94,19 +94,50 @@
                     android:textSize="16sp" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- 上传图片 - 使用TextView + drawableTop -->
-            <TextView
-                android:id="@+id/tv_upload_image"
+            <!-- 上传图片区域 -->
+            <FrameLayout
                 android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:background="#F5F5F5"
-                android:gravity="center"
-                android:drawableTop="@drawable/ic_upload_photo"
-                android:drawablePadding="8dp"
-                android:paddingTop="6dp"
-                android:text="上传图片"
-                android:textColor="@color/text_light"
-                android:textSize="12sp" />
+                android:layout_height="100dp">
+
+                <!-- 上传图片按钮 - 使用TextView + drawableTop -->
+                <TextView
+                    android:id="@+id/tv_upload_image"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="#F5F5F5"
+                    android:gravity="center"
+                    android:drawableTop="@drawable/ic_upload_photo"
+                    android:drawablePadding="8dp"
+                    android:paddingTop="36dp"
+                    android:text="上传图片"
+                    android:textColor="@color/text_light"
+                    android:textSize="12sp" />
+
+                <!-- 已上传图片的显示 - 默认隐藏 -->
+                <FrameLayout
+                    android:id="@+id/layout_uploaded_image"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:id="@+id/iv_uploaded_image"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop" />
+
+                    <!-- 删除按钮 -->
+                    <ImageView
+                        android:id="@+id/iv_delete_image"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:layout_margin="4dp"
+                        android:background="@drawable/bg_delete_circle"
+                        android:padding="6dp"
+                        android:src="@drawable/ic_delete" />
+                </FrameLayout>
+            </FrameLayout>
 
             <!-- 确认举报按钮 -->
             <TextView

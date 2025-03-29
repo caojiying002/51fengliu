@@ -37,6 +37,7 @@ import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.common.BigImageViewerActivity
 import com.jiyingcao.a51fengliu.ui.dialog.LoadingDialog
+import com.jiyingcao.a51fengliu.ui.dialog.ReportDialog
 import com.jiyingcao.a51fengliu.util.copyOnLongClick
 import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.dp
@@ -221,7 +222,14 @@ class DetailActivity : BaseActivity() {
         binding.titleBar.titleBarBack.setOnClickListener { finish() }
 
         with(contentBinding) {
-            clickReport.setOnClickListener {}
+            clickReport.setOnClickListener {
+                val reportDialog = ReportDialog.newInstance(
+                    reportTitle = viewModel.state.value.let { 
+                        (it as? DetailState.Success)?.record?.title ?: "举报内容"
+                    }
+                )
+                reportDialog.show(supportFragmentManager, ReportDialog.TAG)
+            }
             clickFavorite.setOnClickListener {
                 val detailIntent =
                     if (viewModel.isFavorited.value == true) DetailIntent.Unfavorite else DetailIntent.Favorite

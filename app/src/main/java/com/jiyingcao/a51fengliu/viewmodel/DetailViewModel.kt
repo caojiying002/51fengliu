@@ -56,8 +56,7 @@ sealed class DetailIntent {
     object PullToRefresh : DetailIntent()
     object Retry : DetailIntent()
     object Refresh : DetailIntent() // 用于登录成功后刷新。登录成功后刷新是一个特定场景，可能需要清除未登录态的缓存数据，也可能未来需要针对登录后刷新添加特殊逻辑（如同步用户相关数据等）
-    object Favorite : DetailIntent()
-    object Unfavorite : DetailIntent()
+    object ToggleFavorite : DetailIntent()
 }
 
 sealed class DetailEffect {
@@ -144,8 +143,7 @@ class DetailViewModel(
             DetailIntent.PullToRefresh -> pullToRefresh()
             DetailIntent.Retry -> retry()
             DetailIntent.Refresh -> refresh()    // 用于登录成功后刷新
-            DetailIntent.Favorite -> favorite()
-            DetailIntent.Unfavorite -> unfavorite()
+            DetailIntent.ToggleFavorite -> toggleFavorite()
         }
     }
 
@@ -193,32 +191,21 @@ class DetailViewModel(
         loadDetail(LoadingType0.FULL_SCREEN)
     }
 
-    private fun favorite() {
+    private fun toggleFavorite() {
         viewModelScope.launch(remoteLoginCoroutineContext) {
-            repository.favorite(infoId)
-                .collect { result ->
-                    result.onSuccess {
-                        _isFavorited.value = true
-                        _effect.send(DetailEffect.ShowToast("收藏成功"))
-                    }.onFailure { e ->
-                        if (!handleFailure(e))
-                            _effect.send(DetailEffect.ShowToast(e.toUserFriendlyMessage()))
-                    }
+            val wasFavorited = _isFavorited.value == true
+            val toggleFavoriteFlow =
+                if (wasFavorited) repository.unfavorite(infoId) else repository.favorite(infoId)
+            toggleFavoriteFlow.collect { result ->
+                result.onSuccess {
+                    _isFavorited.value = !wasFavorited
+                    val message = if (wasFavorited) "取消收藏成功" else "收藏成功"
+                    _effect.send(DetailEffect.ShowToast(message))
+                }.onFailure { e ->
+                    if (!handleFailure(e))
+                        _effect.send(DetailEffect.ShowToast(e.toUserFriendlyMessage()))
                 }
-        }
-    }
-    private fun unfavorite() {
-        viewModelScope.launch(remoteLoginCoroutineContext) {
-            repository.unfavorite(infoId)
-                .collect { result ->
-                    result.onSuccess {
-                        _isFavorited.value = false
-                        _effect.send(DetailEffect.ShowToast("取消收藏成功"))
-                    }.onFailure { e ->
-                        if (!handleFailure(e))
-                            _effect.send(DetailEffect.ShowToast(e.toUserFriendlyMessage()))
-                    }
-                }
+            }
         }
     }
 

@@ -233,9 +233,7 @@ class DetailActivity : BaseActivity() {
                 }
             }
             clickFavorite.setOnClickListener {
-                val detailIntent =
-                    if (viewModel.isFavorited.value == true) DetailIntent.Unfavorite else DetailIntent.Favorite
-                viewModel.processIntent(detailIntent)
+                viewModel.processIntent(DetailIntent.ToggleFavorite)
             }
 
             contactInfoNotLogin.clickLogin.setOnClickListener {

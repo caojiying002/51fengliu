@@ -5,7 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.jiyingcao.a51fengliu.ui.LoginActivity
+import com.jiyingcao.a51fengliu.ui.MainActivity
 
 class RemoteLoginDialog : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -14,7 +14,7 @@ class RemoteLoginDialog : DialogFragment() {
             .setMessage("您的账号已在其他设备登录")
             .setCancelable(false)
             .setPositiveButton("重新登录") { _, _ ->
-                val intent = Intent(requireContext(), LoginActivity::class.java).apply {
+                val intent = Intent(requireContext(), MainActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 }
                 startActivity(intent)

@@ -5,7 +5,7 @@ import android.content.Intent
 import com.jiyingcao.a51fengliu.ActivityManager.activityLifecycleCallbacks
 import com.jiyingcao.a51fengliu.ActivityManager.getCurrentActivity
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager
-import com.jiyingcao.a51fengliu.ui.LoginActivity
+import com.jiyingcao.a51fengliu.ui.MainActivity
 import com.jiyingcao.a51fengliu.ui.dialog.RemoteLoginDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,12 +31,6 @@ class App: Application() {
         applicationScope.launch {
             RemoteLoginManager.remoteLoginEvent
                 .collect {
-                    // 使用 Context.startActivity 需要添加 FLAG_ACTIVITY_NEW_TASK
-                    val intent = Intent(this@App, LoginActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    }
-
-                    // 使用 Activity Result API 的对话框
                     getCurrentActivity()?.let {
                         RemoteLoginDialog().show(it.supportFragmentManager, "remote_login")
                     }

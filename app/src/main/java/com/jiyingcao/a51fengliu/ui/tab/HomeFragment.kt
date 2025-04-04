@@ -5,8 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentTransaction
-import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
@@ -36,26 +34,10 @@ class HomeFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        updateChildFragmentLifecycle(viewPager.currentItem)
     }
 
     override fun onPause() {
         super.onPause()
-        updateChildFragmentLifecycle(-1) // 传入一个无效的位置，确保所有子Fragment都处于STARTED状态
-    }
-
-    private fun updateChildFragmentLifecycle(position: Int) {
-        val fragmentManager = childFragmentManager
-        var fragmentTransaction: FragmentTransaction? = null
-
-        fragmentManager.fragments.forEachIndexed { index, fragment ->
-            if (fragment is HomeSubFragment) {
-                if (fragmentTransaction == null)
-                    fragmentTransaction = fragmentManager.beginTransaction()
-                fragmentTransaction!!.setMaxLifecycle(fragment, if (index == position) Lifecycle.State.RESUMED else Lifecycle.State.STARTED)
-            }
-        }
-        fragmentTransaction?.commitNowAllowingStateLoss()
     }
 
     private fun setupViewPager() {
@@ -66,7 +48,7 @@ class HomeFragment : Fragment() {
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
-                updateChildFragmentLifecycle(position)
+                // 不再需要手动更新生命周期
             }
         })
     }

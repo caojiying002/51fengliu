@@ -1,7 +1,6 @@
 package com.jiyingcao.a51fengliu.ui.tab
 
 import android.app.Activity.RESULT_OK
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -10,9 +9,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
@@ -83,26 +80,10 @@ class CityRecordsFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        updateChildFragmentLifecycle(viewPager.currentItem)
     }
 
     override fun onPause() {
         super.onPause()
-        updateChildFragmentLifecycle(-1) // 传入一个无效的位置，确保所有子Fragment都处于STARTED状态
-    }
-
-    private fun updateChildFragmentLifecycle(position: Int) {
-        val fragmentManager = childFragmentManager
-        var fragmentTransaction: FragmentTransaction? = null
-
-        fragmentManager.fragments.forEachIndexed { index, fragment ->
-            if (fragment is CityRecordsSubFragment) {
-                if (fragmentTransaction == null)
-                    fragmentTransaction = fragmentManager.beginTransaction()
-                fragmentTransaction!!.setMaxLifecycle(fragment, if (index == position) Lifecycle.State.RESUMED else Lifecycle.State.STARTED)
-            }
-        }
-        fragmentTransaction?.commitNowAllowingStateLoss()
     }
 
     private fun setupViewPager() {
@@ -113,7 +94,7 @@ class CityRecordsFragment : Fragment() {
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
-                updateChildFragmentLifecycle(position)
+                // 不再需要手动更新生命周期
             }
         })
     }

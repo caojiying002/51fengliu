@@ -13,7 +13,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
@@ -93,31 +96,25 @@ class DetailViewModel(
     val effect = _effect.receiveAsFlow()
 
     init {
-        viewModelScope.launch {
-            _state.collect { detailState ->
-                when (detailState) {
-                    is DetailState.Success -> {
-                        _isFavorited.value = detailState.record.isFavorite
-                    }
-                    else -> {}
+        _state
+            .filterIsInstance<DetailState.Success>()
+            .onEach { success ->
+                _isFavorited.value = success.record.isFavorite
+            }
+            .launchIn(viewModelScope)
+
+        tokenManager.token
+            .map { token -> !token.isNullOrBlank() }
+            .distinctUntilChanged()
+            .onEach { isLoggedIn ->
+                val wasLoggedIn = _isLoggedIn.value
+                _isLoggedIn.value = isLoggedIn
+                if (isLoggedIn && wasLoggedIn == false) {
+                    _needsRefresh.value = true
+                    checkAndRefresh()
                 }
             }
-        }
-
-        viewModelScope.launch {
-            tokenManager.token
-                .map { token -> !token.isNullOrBlank() }
-                .distinctUntilChanged()
-                .collect { isLoggedIn ->
-                    val wasLoggedIn = _isLoggedIn.value
-                    _isLoggedIn.value = isLoggedIn
-                    // 标记需要刷新的条件：从未登录状态变为已登录状态
-                    if (isLoggedIn && wasLoggedIn == false) {
-                        _needsRefresh.value = true
-                        checkAndRefresh()
-                    }
-                }
-        }
+            .launchIn(viewModelScope)
     }
 
     private fun checkAndRefresh() {

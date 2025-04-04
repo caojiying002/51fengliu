@@ -14,8 +14,10 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityOptionsCompat
 import androidx.core.app.SharedElementCallback
 import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
@@ -29,10 +31,8 @@ import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.databinding.ActivityDetailBinding
 import com.jiyingcao.a51fengliu.databinding.ContentDetail0Binding
-import com.jiyingcao.a51fengliu.databinding.ContentDetailBinding
 import com.jiyingcao.a51fengliu.glide.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.glide.GlideApp
-import com.jiyingcao.a51fengliu.glide.withSourceIndicator
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.common.BigImageViewerActivity
@@ -49,8 +49,6 @@ import com.jiyingcao.a51fengliu.viewmodel.DetailIntent
 import com.jiyingcao.a51fengliu.viewmodel.DetailState
 import com.jiyingcao.a51fengliu.viewmodel.DetailViewModel
 import com.jiyingcao.a51fengliu.viewmodel.DetailViewModelFactory
-import com.scwang.smart.refresh.layout.SmartRefreshLayout
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class DetailActivity : BaseActivity() {
@@ -157,7 +155,7 @@ class DetailActivity : BaseActivity() {
 
     private fun setupFlowCollectors() {
         lifecycleScope.launch {
-//            repeatOnLifecycle(Lifecycle.State.STARTED) {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { state ->
                     when (state) {
                         is DetailState.Init -> {
@@ -188,27 +186,29 @@ class DetailActivity : BaseActivity() {
                         }
                     }
                 }
-//            }
+            }
         }
 
         // 更新收藏按钮状态
         lifecycleScope.launch {
-            viewModel.isFavorited.collect { isFavorited ->
-                contentBinding.clickFavorite.isSelected = isFavorited == true
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.isFavorited.collect { isFavorited ->
+                    contentBinding.clickFavorite.isSelected = isFavorited == true
+                }
             }
         }
 
         // Collect side effects
         lifecycleScope.launch {
-//            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.effect.collectLatest { effect ->
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.effect.collect { effect ->
                     when (effect) {
                         is DetailEffect.ShowLoadingDialog -> showLoadingDialog()
                         is DetailEffect.DismissLoadingDialog -> dismissLoadingDialog()
                         is DetailEffect.ShowToast -> showToast(effect.message)
                     }
                 }
-//            }
+            }
         }
     }
 

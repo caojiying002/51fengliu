@@ -15,6 +15,7 @@ data class LoginErrorData(
     val password: String?
 )
 
+@Deprecated("unused")
 sealed class LoginResult {
     data class Success(val token: String) : LoginResult()
     data class Error(

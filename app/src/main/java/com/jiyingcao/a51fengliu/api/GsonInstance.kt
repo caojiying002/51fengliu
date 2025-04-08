@@ -7,6 +7,7 @@ import com.google.gson.stream.*
 import com.jiyingcao.a51fengliu.api.response.ApiResponse
 import com.jiyingcao.a51fengliu.api.response.ApiResult
 import com.jiyingcao.a51fengliu.api.response.LoginErrorData
+import com.jiyingcao.a51fengliu.api.response.ReportErrorData
 import java.lang.reflect.Type
 
 private const val TAG = "GsonInstance"
@@ -15,6 +16,7 @@ object GsonInstance {
     val gson: Gson by lazy {
         GsonBuilder()
             .registerApiResponseType<String, LoginErrorData>()
+            .registerApiResponseType<String, ReportErrorData>()
             //.registerTypeAdapterFactory(NullStringToEmptyAdapterFactory())
             //.registerTypeAdapter(String::class.java, NullStringDeserializer())
             //.registerTypeAdapter(ItemData::class.java, NullObjectDeserializer(ItemData::class.java))

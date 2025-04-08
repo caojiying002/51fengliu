@@ -66,7 +66,7 @@ class LoginViewModel(
     }
 
     private fun login(username: String, password: String) {
-        viewModelScope.launch {
+        viewModelScope.launch { // TODO context
             _state.value = LoginState.Loading
             repository.login(username, password)
                 .collect { result ->

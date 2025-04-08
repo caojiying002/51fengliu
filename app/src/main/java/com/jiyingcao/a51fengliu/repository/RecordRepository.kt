@@ -4,16 +4,23 @@ import com.jiyingcao.a51fengliu.api.ApiService
 import com.jiyingcao.a51fengliu.api.request.InfoIdRequest
 import com.jiyingcao.a51fengliu.api.request.RecordsRequest
 import com.jiyingcao.a51fengliu.api.request.ReportRequest
+import com.jiyingcao.a51fengliu.api.response.ApiResult
 import com.jiyingcao.a51fengliu.api.response.PageData
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
+import com.jiyingcao.a51fengliu.domain.exception.ReportException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 
 class RecordRepository(
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO    // TODO 是否移除
 ) : BaseRepository() {
 
     /**
@@ -80,9 +87,30 @@ class RecordRepository(
      * @param picture 图片URL（相对路径，不包含BASE_URL）
      * @return Flow<Result<*>> 表示举报成功或失败的结果流
      */
-    fun report(infoId: String, content: String, picture: String = ""): Flow<Result<*>> = apiCall {
-        apiService.postReport(ReportRequest(infoId, content, picture))
-    }
+    fun report(infoId: String, content: String, picture: String = ""): Flow<Result<*>> = flow {
+        try {
+            val response = apiService.postReport(ReportRequest(infoId, content, picture))
+            when (val result = response.data) {
+                is ApiResult.Success -> {
+                    emit(Result.success(result.data))
+                }
+                is ApiResult.Error -> {
+                    emit(Result.failure(
+                        ReportException(
+                            code = result.code,
+                            message = result.msg,
+                            errorData = result.errorData
+                        )
+                    ))
+                }
+                null -> {
+                    emit(Result.failure(Exception("Empty response data")))
+                }
+            }
+        } catch (e: Exception) {
+            emit(Result.failure(e))
+        }
+    }.flowOn(dispatcher)
 
     companion object {
         // 用于单例模式实现

@@ -68,11 +68,13 @@ fun HttpException.toUserFriendlyMessage(): String {
 
 /**
  * 将[ApiException]转换为用户友好的消息
+ *
+ * 示例：“[-2] 已经举报过此信息”
  */
 fun ApiException.toUserFriendlyMessage(): String {
     return when (code) {
         ApiException.CODE_REMOTE_LOGIN -> "您的账号已在其他设备登录"
         ApiException.CODE_INVALID_RECORD_ID -> "您查找的信息不存在或已删除"
-        else -> "API错误码${code}：${messageTaggedByType()}"
+        else -> if (!message.isNullOrBlank()) "[$code] $message" else "API错误码$code：${messageTaggedByType()}"
     }
 }

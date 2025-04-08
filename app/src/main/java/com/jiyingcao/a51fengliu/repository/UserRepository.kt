@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.flowOn
 
 class UserRepository(
     private val apiService: ApiService,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO    // TODO 是否移除
 ) : BaseRepository() {
 
     /**

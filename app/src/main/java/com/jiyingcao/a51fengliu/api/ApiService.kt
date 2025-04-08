@@ -82,5 +82,5 @@ interface ApiService {
     @POST("/api/web/info/report.json")
     suspend fun postReport(
         @Body body: ReportRequest
-    ): ApiResponse<Any> // TODO 我还不知道举报成功和失败返回什么数据
+    ): ApiResponse<ApiResult<String, ReportErrorData>>
 }

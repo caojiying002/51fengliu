@@ -3,7 +3,9 @@ package com.jiyingcao.a51fengliu.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.jiyingcao.a51fengliu.api.response.ReportErrorData
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
+import com.jiyingcao.a51fengliu.domain.exception.ReportException
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import kotlinx.coroutines.channels.Channel
@@ -111,12 +113,12 @@ class ReportViewModel(
      * @param reason 举报原因
      */
     private fun submitReport(reason: String) {
-        if (reason.isEmpty()) {
+        /*if (reason.isEmpty()) {
             viewModelScope.launch {
                 _effect.send(ReportEffect.ShowToast("请输入举报原因"))
             }
             return
-        }
+        }*/
         
         _state.value = ReportState.Loading.SubmittingReport
         
@@ -132,8 +134,14 @@ class ReportViewModel(
                         },
                         onFailure = { e ->
                             if (!handleFailure(e)) {
-                                _state.value = ReportState.Error.ReportSubmissionError(e.toUserFriendlyMessage())
-                                _effect.send(ReportEffect.ShowToast("举报提交失败：${e.toUserFriendlyMessage()}"))
+                                if (e is ReportException && e.errorData is ReportErrorData) {
+                                    // 处理特定的举报错误
+                                    _state.value = ReportState.Error.ReportSubmissionError(e.errorData.content?: e.toUserFriendlyMessage())
+                                    _effect.send(ReportEffect.ShowToast(e.errorData.content?: "举报提交失败"))
+                                } else {
+                                    _state.value = ReportState.Error.ReportSubmissionError(e.toUserFriendlyMessage())
+                                    _effect.send(ReportEffect.ShowToast("举报提交失败：${e.toUserFriendlyMessage()}"))
+                                }
                             }
                         }
                     )

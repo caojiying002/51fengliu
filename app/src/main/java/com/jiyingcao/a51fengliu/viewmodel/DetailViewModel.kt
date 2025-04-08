@@ -10,6 +10,7 @@ import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 private enum class LoadingType0 {
@@ -53,6 +55,17 @@ sealed class DetailState {
     }
 }
 
+sealed class FavoriteButtonState {
+    /** 静止状态：已收藏或未收藏 */
+    data class Idle(val isFavorited: Boolean) : FavoriteButtonState()
+
+    /** 过渡状态：正在切换到收藏或未收藏 */
+    data class InProgress(val targetState: Boolean) : FavoriteButtonState()
+
+    // Error state (optional, if you want to show specific UI for errors)
+    //data class Error(val isFavorited: Boolean, val errorMessage: String) : FavoriteButtonState()
+}
+
 sealed class DetailIntent {
     /** [forceRefresh]一般用于区分从本地缓存加载还是从网络加载，目前APP没有本地缓存功能，可忽略 */
     class LoadDetail(val forceRefresh: Boolean = false) : DetailIntent()
@@ -66,7 +79,6 @@ sealed class DetailEffect {
     object ShowLoadingDialog : DetailEffect()
     object DismissLoadingDialog : DetailEffect()
     data class ShowToast(val message: String) : DetailEffect()
-    data class FavoriteStatusChanged(val isLoading: Boolean, val isFavorited: Boolean, val isSuccess: Boolean) : DetailEffect()
 }
 
 class DetailViewModel(
@@ -81,13 +93,17 @@ class DetailViewModel(
     private val _isLoggedIn = MutableStateFlow<Boolean?>(null)
     //val isLoggedIn: StateFlow<Boolean?> = _isLoggedIn.asStateFlow()
 
-    // 表示是否已经收藏的流
-    private val _isFavorited: MutableStateFlow<Boolean?> = MutableStateFlow(null)
-    val isFavorited: StateFlow<Boolean?> = _isFavorited.asStateFlow()
+    // 使用单一状态表示收藏按钮的状态
+    private val _favoriteButtonState = MutableStateFlow<FavoriteButtonState>(FavoriteButtonState.Idle(false))
+    val favoriteButtonState: StateFlow<FavoriteButtonState> = _favoriteButtonState.asStateFlow()
     
-    // 表示收藏/取消收藏操作是否正在进行中
-    private val _isFavoriteInProgress = MutableStateFlow(false)
-    val isFavoriteInProgress: StateFlow<Boolean> = _isFavoriteInProgress.asStateFlow()
+    // 便于兼容旧代码的辅助属性
+    val isFavorited: StateFlow<Boolean?> = _favoriteButtonState.map { state -> 
+        when (state) {
+            is FavoriteButtonState.Idle -> state.isFavorited
+            is FavoriteButtonState.InProgress -> state.targetState
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val _isUIVisible = MutableStateFlow(false)
 
@@ -103,8 +119,8 @@ class DetailViewModel(
     init {
         _state
             .filterIsInstance<DetailState.Success>()
-            .onEach { success ->
-                _isFavorited.value = success.record.isFavorite
+            .onEach {
+                _favoriteButtonState.value = FavoriteButtonState.Idle(it.record.isFavorite == true)
             }
             .launchIn(viewModelScope)
 
@@ -223,39 +239,38 @@ class DetailViewModel(
     }
 
     private fun toggleFavorite() {
-        // 如果正在进行收藏/取消收藏操作，则忽略本次点击
-        if (_isFavoriteInProgress.value) return
-        
+        // 获取当前按钮状态，如果正在进行中则忽略本次点击
+        val currentButtonState = _favoriteButtonState.value
+        if (_favoriteButtonState.value is FavoriteButtonState.InProgress)
+            return
+
+        assert(currentButtonState is FavoriteButtonState.Idle)
+
+        // 【注意】这里强制转换类型为 Idle，因为逻辑上它只能是 Idle。
+        // 如果未来 FavoriteButtonState 增加了其他状态（例如 Error），需要重新处理这段类型强转代码。
+        val wasFavorited = (currentButtonState as FavoriteButtonState.Idle).isFavorited
+        val targetState = !wasFavorited
+            
         viewModelScope.launch(remoteLoginCoroutineContext) {
-            val wasFavorited = _isFavorited.value == true
-            val newFavoriteState = !wasFavorited
-            
-            // 立即更新UI状态，不等待网络请求
-            _isFavorited.value = newFavoriteState
-            // 标记正在进行操作，并通知UI禁用按钮
-            _isFavoriteInProgress.value = true
-            _effect.send(DetailEffect.FavoriteStatusChanged(isLoading = true, isFavorited = newFavoriteState, isSuccess = true))
-            
+            // 立即更新UI状态为InProgress，不等待网络请求
+            _favoriteButtonState.value = FavoriteButtonState.InProgress(targetState)
+
             // 执行网络请求
             val toggleFavoriteFlow =
                 if (wasFavorited) repository.unfavorite(infoId) else repository.favorite(infoId)
-                
+
             toggleFavoriteFlow.collect { result ->
-                // 结束进行中状态
-                _isFavoriteInProgress.value = false
-                
                 result.onSuccess {
-                    // 网络请求成功，保持当前UI状态
+                    // 网络请求成功，更新为成功状态
+                    _favoriteButtonState.value = FavoriteButtonState.Idle(targetState)
                     val message = if (wasFavorited) "取消收藏成功" else "收藏成功"
                     _effect.send(DetailEffect.ShowToast(message))
-                    _effect.send(DetailEffect.FavoriteStatusChanged(isLoading = false, isFavorited = newFavoriteState, isSuccess = true))
                 }.onFailure { e ->
                     // 网络请求失败，恢复原状态
-                    _isFavorited.value = wasFavorited
+                    _favoriteButtonState.value = FavoriteButtonState.Idle(wasFavorited)
                     if (!handleFailure(e)) {
                         _effect.send(DetailEffect.ShowToast(e.toUserFriendlyMessage()))
                     }
-                    _effect.send(DetailEffect.FavoriteStatusChanged(isLoading = false, isFavorited = wasFavorited, isSuccess = false))
                 }
             }
         }

@@ -50,6 +50,7 @@ import com.jiyingcao.a51fengliu.viewmodel.DetailIntent
 import com.jiyingcao.a51fengliu.viewmodel.DetailState
 import com.jiyingcao.a51fengliu.viewmodel.DetailViewModel
 import com.jiyingcao.a51fengliu.viewmodel.DetailViewModelFactory
+import com.jiyingcao.a51fengliu.viewmodel.FavoriteButtonState
 import kotlinx.coroutines.launch
 
 class DetailActivity : BaseActivity() {
@@ -190,11 +191,26 @@ class DetailActivity : BaseActivity() {
             }
         }
 
-        // 更新收藏按钮状态
+        // 使用单一状态流更新收藏按钮
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.isFavorited.collect { isFavorited ->
-                    contentBinding.clickFavorite.isSelected = isFavorited == true
+                viewModel.favoriteButtonState.collect { state ->
+                    when (state) {
+                        is FavoriteButtonState.Idle -> {
+                            // 启用按钮点击事件并设置最新的 已收藏/未收藏 状态
+                            contentBinding.clickFavorite.isEnabled = true
+                            contentBinding.clickFavorite.alpha = 1.0f
+                            contentBinding.clickFavorite.isSelected = state.isFavorited
+                        }
+                        is FavoriteButtonState.InProgress -> {
+                            // 禁用点击
+                            contentBinding.clickFavorite.isEnabled = false
+                            contentBinding.clickFavorite.alpha = 0.7f
+
+                            // 提前设置成未来的 已收藏/未收藏 状态，如果网络请求失败会被 [Idle] 状态重置
+                            contentBinding.clickFavorite.isSelected = state.targetState
+                        }
+                    }
                 }
             }
         }
@@ -207,17 +223,7 @@ class DetailActivity : BaseActivity() {
                         is DetailEffect.ShowLoadingDialog -> showLoadingDialog()
                         is DetailEffect.DismissLoadingDialog -> dismissLoadingDialog()
                         is DetailEffect.ShowToast -> showToast(effect.message)
-                        is DetailEffect.FavoriteStatusChanged -> handleFavoriteStatusChanged(effect)
                     }
-                }
-            }
-        }
-        
-        // 监听收藏操作相关状态
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.isFavoriteInProgress.collect { isInProgress ->
-                    contentBinding.clickFavorite.isEnabled = !isInProgress
                 }
             }
         }
@@ -464,16 +470,7 @@ class DetailActivity : BaseActivity() {
         loadingDialog?.dismiss()
         loadingDialog = null
     }
-    
-    /**
-     * 处理收藏状态改变的效果
-     */
-    private fun handleFavoriteStatusChanged(effect: DetailEffect.FavoriteStatusChanged) {
-        with(contentBinding.clickFavorite) {
-            isSelected = effect.isFavorited
-            alpha = if (effect.isLoading) 0.6f else 1.0f
-        }
-    }
+
 
     companion object {
         private const val TAG = "DetailActivity"

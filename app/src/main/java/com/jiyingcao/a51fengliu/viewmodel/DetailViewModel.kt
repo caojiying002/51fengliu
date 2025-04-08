@@ -96,14 +96,6 @@ class DetailViewModel(
     // 使用单一状态表示收藏按钮的状态
     private val _favoriteButtonState = MutableStateFlow<FavoriteButtonState>(FavoriteButtonState.Idle(false))
     val favoriteButtonState: StateFlow<FavoriteButtonState> = _favoriteButtonState.asStateFlow()
-    
-    // 便于兼容旧代码的辅助属性
-    val isFavorited: StateFlow<Boolean?> = _favoriteButtonState.map { state -> 
-        when (state) {
-            is FavoriteButtonState.Idle -> state.isFavorited
-            is FavoriteButtonState.InProgress -> state.targetState
-        }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val _isUIVisible = MutableStateFlow(false)
 

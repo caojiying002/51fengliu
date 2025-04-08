@@ -250,8 +250,12 @@ class DetailActivity : BaseActivity() {
                 }
             }
             clickFavorite.setOnClickListener {
-                val currentState = viewModel.isFavorited.value == true
-                if (!currentState) { // 如果当前状态是未收藏，并且要变为收藏，则震动
+                val currentButtonState = viewModel.favoriteButtonState.value
+                if (currentButtonState !is FavoriteButtonState.Idle)
+                    return@setOnClickListener
+
+                if (!currentButtonState.isFavorited) {
+                    // 从未收藏变为收藏要震动，反之则不用
                     vibrate(this@DetailActivity)
                 }
                 viewModel.processIntent(DetailIntent.ToggleFavorite)

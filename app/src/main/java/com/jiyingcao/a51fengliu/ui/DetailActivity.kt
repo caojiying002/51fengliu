@@ -44,6 +44,7 @@ import com.jiyingcao.a51fengliu.util.dp
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.timestampToDay
 import com.jiyingcao.a51fengliu.util.to2LevelName
+import com.jiyingcao.a51fengliu.util.vibrate
 import com.jiyingcao.a51fengliu.viewmodel.DetailEffect
 import com.jiyingcao.a51fengliu.viewmodel.DetailIntent
 import com.jiyingcao.a51fengliu.viewmodel.DetailState
@@ -206,7 +207,17 @@ class DetailActivity : BaseActivity() {
                         is DetailEffect.ShowLoadingDialog -> showLoadingDialog()
                         is DetailEffect.DismissLoadingDialog -> dismissLoadingDialog()
                         is DetailEffect.ShowToast -> showToast(effect.message)
+                        is DetailEffect.FavoriteStatusChanged -> handleFavoriteStatusChanged(effect)
                     }
+                }
+            }
+        }
+        
+        // 监听收藏操作相关状态
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.isFavoriteInProgress.collect { isInProgress ->
+                    contentBinding.clickFavorite.isEnabled = !isInProgress
                 }
             }
         }
@@ -233,6 +244,10 @@ class DetailActivity : BaseActivity() {
                 }
             }
             clickFavorite.setOnClickListener {
+                val currentState = viewModel.isFavorited.value == true
+                if (!currentState) { // 如果当前状态是未收藏，并且要变为收藏，则震动
+                    vibrate(this@DetailActivity)
+                }
                 viewModel.processIntent(DetailIntent.ToggleFavorite)
             }
 
@@ -446,7 +461,18 @@ class DetailActivity : BaseActivity() {
     }
 
     private fun dismissLoadingDialog() {
-        loadingDialog?.dismissAllowingStateLoss()
+        loadingDialog?.dismiss()
+        loadingDialog = null
+    }
+    
+    /**
+     * 处理收藏状态改变的效果
+     */
+    private fun handleFavoriteStatusChanged(effect: DetailEffect.FavoriteStatusChanged) {
+        with(contentBinding.clickFavorite) {
+            isSelected = effect.isFavorited
+            alpha = if (effect.isLoading) 0.6f else 1.0f
+        }
     }
 
     companion object {

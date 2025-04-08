@@ -66,6 +66,7 @@ sealed class DetailEffect {
     object ShowLoadingDialog : DetailEffect()
     object DismissLoadingDialog : DetailEffect()
     data class ShowToast(val message: String) : DetailEffect()
+    data class FavoriteStatusChanged(val isLoading: Boolean, val isFavorited: Boolean, val isSuccess: Boolean) : DetailEffect()
 }
 
 class DetailViewModel(
@@ -83,6 +84,10 @@ class DetailViewModel(
     // 表示是否已经收藏的流
     private val _isFavorited: MutableStateFlow<Boolean?> = MutableStateFlow(null)
     val isFavorited: StateFlow<Boolean?> = _isFavorited.asStateFlow()
+    
+    // 表示收藏/取消收藏操作是否正在进行中
+    private val _isFavoriteInProgress = MutableStateFlow(false)
+    val isFavoriteInProgress: StateFlow<Boolean> = _isFavoriteInProgress.asStateFlow()
 
     private val _isUIVisible = MutableStateFlow(false)
 
@@ -218,18 +223,39 @@ class DetailViewModel(
     }
 
     private fun toggleFavorite() {
+        // 如果正在进行收藏/取消收藏操作，则忽略本次点击
+        if (_isFavoriteInProgress.value) return
+        
         viewModelScope.launch(remoteLoginCoroutineContext) {
             val wasFavorited = _isFavorited.value == true
+            val newFavoriteState = !wasFavorited
+            
+            // 立即更新UI状态，不等待网络请求
+            _isFavorited.value = newFavoriteState
+            // 标记正在进行操作，并通知UI禁用按钮
+            _isFavoriteInProgress.value = true
+            _effect.send(DetailEffect.FavoriteStatusChanged(isLoading = true, isFavorited = newFavoriteState, isSuccess = true))
+            
+            // 执行网络请求
             val toggleFavoriteFlow =
                 if (wasFavorited) repository.unfavorite(infoId) else repository.favorite(infoId)
+                
             toggleFavoriteFlow.collect { result ->
+                // 结束进行中状态
+                _isFavoriteInProgress.value = false
+                
                 result.onSuccess {
-                    _isFavorited.value = !wasFavorited
+                    // 网络请求成功，保持当前UI状态
                     val message = if (wasFavorited) "取消收藏成功" else "收藏成功"
                     _effect.send(DetailEffect.ShowToast(message))
+                    _effect.send(DetailEffect.FavoriteStatusChanged(isLoading = false, isFavorited = newFavoriteState, isSuccess = true))
                 }.onFailure { e ->
-                    if (!handleFailure(e))
+                    // 网络请求失败，恢复原状态
+                    _isFavorited.value = wasFavorited
+                    if (!handleFailure(e)) {
                         _effect.send(DetailEffect.ShowToast(e.toUserFriendlyMessage()))
+                    }
+                    _effect.send(DetailEffect.FavoriteStatusChanged(isLoading = false, isFavorited = wasFavorited, isSuccess = false))
                 }
             }
         }

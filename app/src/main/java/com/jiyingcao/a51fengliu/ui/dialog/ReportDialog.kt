@@ -23,6 +23,8 @@ import com.jiyingcao.a51fengliu.glide.GlideApp
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.ReportState
+import com.jiyingcao.a51fengliu.viewmodel.ReportEffect
+import com.jiyingcao.a51fengliu.viewmodel.ReportIntent
 import com.jiyingcao.a51fengliu.viewmodel.ReportViewModel
 import com.jiyingcao.a51fengliu.viewmodel.ReportViewModelFactory
 import kotlinx.coroutines.flow.collectLatest
@@ -109,14 +111,14 @@ class ReportDialog : DialogFragment() {
         
         // Delete image
         binding.ivDeleteImage.setOnClickListener {
-            viewModel.clearUploadedImage()
+            viewModel.processIntent(ReportIntent.ClearUploadedImage)
             resetUploadUI()
         }
         
         // Confirm report button
         binding.btnConfirmReport.setOnClickListener {
             val reason = binding.etReportReason.text.toString().trim()
-            viewModel.submitReport(reason)
+            viewModel.processIntent(ReportIntent.SubmitReport(reason))
         }
     }
     
@@ -128,23 +130,27 @@ class ReportDialog : DialogFragment() {
                     is ReportState.Initial -> {
                         // Initial state, nothing to do
                     }
-                    is ReportState.UploadingImage -> {
+                    is ReportState.Loading.UploadingImage -> {
                         showLoadingState()
                     }
-                    is ReportState.ImageUploaded -> {
+                    is ReportState.Loading.SubmittingReport -> {
+                        updateReportButtonState(false, "举报中...")
+                    }
+                    is ReportState.Success.ImageUploaded -> {
                         displayUploadedImage(state.relativeUrl)
                     }
-                    is ReportState.SubmittingReport -> {
-                        // Show loading state for report submission if needed
+                    is ReportState.Success.ReportSubmitted -> {
+                        updateReportButtonState(true)
+                        // 关闭Dialog由 [ReportEffect.DismissDialog] 处理
                     }
-                    is ReportState.ReportSubmitted -> {
-                        // Will be handled by effect
-                    }
-                    is ReportState.Error -> {
+                    is ReportState.Error.ImageUploadError -> {
                         // Error will be shown as toast via effects
                         if (viewModel.uploadedImageUrl.value == null) {
                             resetUploadUI()
                         }
+                    }
+                    is ReportState.Error.ReportSubmissionError -> {
+                        updateReportButtonState(true)
                     }
                 }
             }
@@ -154,10 +160,10 @@ class ReportDialog : DialogFragment() {
         lifecycleScope.launch {
             viewModel.effect.collectLatest { effect ->
                 when (effect) {
-                    is com.jiyingcao.a51fengliu.viewmodel.ReportEffect.ShowToast -> {
+                    is ReportEffect.ShowToast -> {
                         requireContext().showToast(effect.message)
                     }
-                    is com.jiyingcao.a51fengliu.viewmodel.ReportEffect.DismissDialog -> {
+                    is ReportEffect.DismissDialog -> {
                         dismiss()
                     }
                 }
@@ -174,7 +180,7 @@ class ReportDialog : DialogFragment() {
             try {
                 val file = convertUriToFile(uri)
                 if (file != null) {
-                    viewModel.uploadImage(file)
+                    viewModel.processIntent(ReportIntent.UploadImage(file))
                 } else {
                     requireContext().showToast("图片处理失败")
                 }
@@ -233,6 +239,17 @@ class ReportDialog : DialogFragment() {
         } catch (e: Exception) {
             e.printStackTrace()
             return null
+        }
+    }
+    
+    private fun updateReportButtonState(enabled: Boolean, text: String? = null) {
+        binding.btnConfirmReport.apply {
+            isEnabled = enabled
+            if (text != null) {
+                this.text = text
+            } else {
+                this.text = getString(R.string.confirm_report)
+            }
         }
     }
     

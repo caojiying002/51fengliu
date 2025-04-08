@@ -1,10 +1,9 @@
 package com.jiyingcao.a51fengliu.viewmodel
 
-import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import kotlinx.coroutines.channels.Channel
@@ -17,11 +16,24 @@ import java.io.File
 
 sealed class ReportState {
     object Initial : ReportState()
-    object UploadingImage : ReportState()
-    data class ImageUploaded(val relativeUrl: String) : ReportState()
-    object SubmittingReport : ReportState()
-    object ReportSubmitted : ReportState()
-    data class Error(val message: String) : ReportState()
+    sealed class Loading : ReportState() {
+        object UploadingImage : Loading()
+        object SubmittingReport : Loading()
+    }
+    sealed class Success : ReportState() {
+        data class ImageUploaded(val relativeUrl: String) : Success()
+        object ReportSubmitted : Success()
+    }
+    sealed class Error : ReportState() {
+        data class ImageUploadError(val message: String) : Error()
+        data class ReportSubmissionError(val message: String) : Error()
+    }
+}
+
+sealed class ReportIntent {
+    data class UploadImage(val file: File) : ReportIntent()
+    object ClearUploadedImage : ReportIntent()
+    data class SubmitReport(val reason: String) : ReportIntent()
 }
 
 sealed class ReportEffect {
@@ -32,7 +44,7 @@ sealed class ReportEffect {
 class ReportViewModel(
     private val repository: RecordRepository,
     private val infoId: String
-) : ViewModel() {
+) : BaseViewModel() {
     
     private val _state = MutableStateFlow<ReportState>(ReportState.Initial)
     val state: StateFlow<ReportState> = _state.asStateFlow()
@@ -46,35 +58,41 @@ class ReportViewModel(
     private val _effect = Channel<ReportEffect>()
     val effect = _effect.receiveAsFlow()
     
+    fun processIntent(intent: ReportIntent) {
+        when (intent) {
+            is ReportIntent.UploadImage -> uploadImage(intent.file)
+            is ReportIntent.ClearUploadedImage -> clearUploadedImage()
+            is ReportIntent.SubmitReport -> submitReport(intent.reason)
+        }
+    }
+    
     /**
      * 上传图片
      * @param file 要上传的图片文件
      */
-    fun uploadImage(file: File) {
+    private fun uploadImage(file: File) {
         if (_isUploading.value) return
         
         _isUploading.value = true
-        _state.value = ReportState.UploadingImage
+        _state.value = ReportState.Loading.UploadingImage
         
-        viewModelScope.launch {
+        viewModelScope.launch(remoteLoginCoroutineContext) {
             repository.uploadImage(file)
                 .collect { result ->
-                    result.fold(
-                        onSuccess = { url ->
-                            if (url != null) {
+                    result.mapCatching { requireNotNull(it) }
+                        .fold(
+                            onSuccess = { url ->
                                 _uploadedImageUrl.value = url
-                                _state.value = ReportState.ImageUploaded(url)
+                                _state.value = ReportState.Success.ImageUploaded(url)
                                 _effect.send(ReportEffect.ShowToast("图片上传成功"))
-                            } else {
-                                _state.value = ReportState.Error("图片上传失败：服务器未返回URL")
-                                _effect.send(ReportEffect.ShowToast("图片上传失败：服务器未返回URL"))
+                            },
+                            onFailure = { e ->
+                                if (!handleFailure(e)) {
+                                    _state.value = ReportState.Error.ImageUploadError(e.toUserFriendlyMessage())
+                                    _effect.send(ReportEffect.ShowToast("图片上传失败：${e.toUserFriendlyMessage()}"))
+                                }
                             }
-                        },
-                        onFailure = { e ->
-                            _state.value = ReportState.Error(e.toUserFriendlyMessage())
-                            _effect.send(ReportEffect.ShowToast("图片上传失败：${e.toUserFriendlyMessage()}"))
-                        }
-                    )
+                        )
                     _isUploading.value = false
                 }
         }
@@ -83,7 +101,7 @@ class ReportViewModel(
     /**
      * 清除上传的图片
      */
-    fun clearUploadedImage() {
+    private fun clearUploadedImage() {
         _uploadedImageUrl.value = null
         _state.value = ReportState.Initial
     }
@@ -92,7 +110,7 @@ class ReportViewModel(
      * 提交举报
      * @param reason 举报原因
      */
-    fun submitReport(reason: String) {
+    private fun submitReport(reason: String) {
         if (reason.isEmpty()) {
             viewModelScope.launch {
                 _effect.send(ReportEffect.ShowToast("请输入举报原因"))
@@ -100,21 +118,23 @@ class ReportViewModel(
             return
         }
         
-        _state.value = ReportState.SubmittingReport
+        _state.value = ReportState.Loading.SubmittingReport
         
-        viewModelScope.launch {
-            val picture = _uploadedImageUrl.value ?: ""
+        viewModelScope.launch(remoteLoginCoroutineContext) {
+            val picture = _uploadedImageUrl.value.orEmpty()
             repository.report(infoId, reason, picture)
                 .collect { result ->
                     result.fold(
                         onSuccess = {
-                            _state.value = ReportState.ReportSubmitted
+                            _state.value = ReportState.Success.ReportSubmitted
                             _effect.send(ReportEffect.ShowToast("举报已提交，感谢您的反馈"))
                             _effect.send(ReportEffect.DismissDialog)
                         },
                         onFailure = { e ->
-                            _state.value = ReportState.Error(e.toUserFriendlyMessage())
-                            _effect.send(ReportEffect.ShowToast("举报提交失败：${e.toUserFriendlyMessage()}"))
+                            if (!handleFailure(e)) {
+                                _state.value = ReportState.Error.ReportSubmissionError(e.toUserFriendlyMessage())
+                                _effect.send(ReportEffect.ShowToast("举报提交失败：${e.toUserFriendlyMessage()}"))
+                            }
                         }
                     )
                 }

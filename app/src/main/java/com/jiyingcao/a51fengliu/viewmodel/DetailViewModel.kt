@@ -8,6 +8,7 @@ import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineCont
 import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.RecordRepository
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -106,6 +107,10 @@ class DetailViewModel(
     private val _effect = Channel<DetailEffect>()
     val effect = _effect.receiveAsFlow()
 
+    // Job tracking
+    private var detailLoadJob: Job? = null
+    private var favoriteToggleJob: Job? = null
+
     init {
         _state
             .filterIsInstance<DetailState.Success>()
@@ -185,7 +190,8 @@ class DetailViewModel(
     }
 
     private fun loadDetail(loadingType: DetailLoadingType = DetailLoadingType.FULL_SCREEN) {
-        viewModelScope.launch(remoteLoginCoroutineContext) {
+        detailLoadJob?.cancel()
+        detailLoadJob = viewModelScope.launch(remoteLoginCoroutineContext) {
             _state.value = loadingType.toLoadingState()
             repository.getDetail(infoId)
                 .collect { result ->
@@ -240,15 +246,17 @@ class DetailViewModel(
         // 如果未来 FavoriteButtonState 增加了其他状态（例如 Error），需要重新处理这段类型强转代码。
         val wasFavorited = (currentButtonState as FavoriteButtonState.Idle).isFavorited
         val targetState = !wasFavorited
-            
-        viewModelScope.launch(remoteLoginCoroutineContext) {
+
+        // 上面基于 FavoriteButtonState.InProgress 的状态检查已经可以避免发送重复请求，
+        // 这里仍然保留了 Job?.cancel() 的模式符合最佳实践，并且符合代码一致性。
+        // The existing check prevents multiple clicks, but we can also handle job cancellation
+        favoriteToggleJob?.cancel()
+        favoriteToggleJob = viewModelScope.launch(remoteLoginCoroutineContext) {
             // 立即更新UI状态为InProgress，不等待网络请求
             _favoriteButtonState.value = FavoriteButtonState.InProgress(targetState)
 
-            // 执行网络请求
             val toggleFavoriteFlow =
                 if (wasFavorited) repository.unfavorite(infoId) else repository.favorite(infoId)
-
             toggleFavoriteFlow.collect { result ->
                 result.onSuccess {
                     // 网络请求成功，更新为成功状态
@@ -268,6 +276,8 @@ class DetailViewModel(
 
     override fun onCleared() {
         super.onCleared()
+        detailLoadJob?.cancel()
+        favoriteToggleJob?.cancel()
         hasLoadedData = false
     }
 }

@@ -10,7 +10,6 @@ import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -19,25 +18,24 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-private enum class LoadingType0 {
+private enum class DetailLoadingType {
     FULL_SCREEN,
     PULL_TO_REFRESH,
     FLOAT
 }
 
-private fun LoadingType0.toLoadingState(): DetailState.Loading = when (this) {
-    LoadingType0.FULL_SCREEN -> DetailState.Loading.FullScreen
-    LoadingType0.PULL_TO_REFRESH -> DetailState.Loading.PullToRefresh
-    LoadingType0.FLOAT -> DetailState.Loading.Float
+private fun DetailLoadingType.toLoadingState(): DetailState.Loading = when (this) {
+    DetailLoadingType.FULL_SCREEN -> DetailState.Loading.FullScreen
+    DetailLoadingType.PULL_TO_REFRESH -> DetailState.Loading.PullToRefresh
+    DetailLoadingType.FLOAT -> DetailState.Loading.Float
 }
 
-private fun LoadingType0.toErrorState(message: String): DetailState.Error = when (this) {
-    LoadingType0.FULL_SCREEN -> DetailState.Error.FullScreen(message)
-    LoadingType0.PULL_TO_REFRESH -> DetailState.Error.PullToRefresh(message)
-    LoadingType0.FLOAT -> DetailState.Error.Float(message)
+private fun DetailLoadingType.toErrorState(message: String): DetailState.Error = when (this) {
+    DetailLoadingType.FULL_SCREEN -> DetailState.Error.FullScreen(message)
+    DetailLoadingType.PULL_TO_REFRESH -> DetailState.Error.PullToRefresh(message)
+    DetailLoadingType.FLOAT -> DetailState.Error.Float(message)
 }
 
 sealed class DetailState {
@@ -186,7 +184,7 @@ class DetailViewModel(
         }
     }
 
-    private fun loadDetail(loadingType: LoadingType0 = LoadingType0.FULL_SCREEN) {
+    private fun loadDetail(loadingType: DetailLoadingType = DetailLoadingType.FULL_SCREEN) {
         viewModelScope.launch(remoteLoginCoroutineContext) {
             _state.value = loadingType.toLoadingState()
             repository.getDetail(infoId)
@@ -204,7 +202,7 @@ class DetailViewModel(
     }
 
     private fun pullToRefresh() {
-        loadDetail(LoadingType0.PULL_TO_REFRESH)
+        loadDetail(DetailLoadingType.PULL_TO_REFRESH)
     }
 
     /**
@@ -217,7 +215,7 @@ class DetailViewModel(
      * 目前和[loadDetail0]只有加载样式上的区别
      */
     private fun refresh() { // TODO 根据登录后刷新的语义，最好能重命名
-        loadDetail(LoadingType0.FLOAT)
+        loadDetail(DetailLoadingType.FLOAT)
     }
 
     /**
@@ -227,7 +225,7 @@ class DetailViewModel(
      * - 方便后续添加重试相关的特殊逻辑（如重试次数限制）
      */
     private fun retry() {
-        loadDetail(LoadingType0.FULL_SCREEN)
+        loadDetail(DetailLoadingType.FULL_SCREEN)
     }
 
     private fun toggleFavorite() {

@@ -169,13 +169,12 @@ class HomeSubFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.setUIVisibility(true)
+        viewModel.processIntent(HomeIntent.InitialLoad)
         onFragmentVisible()
     }
 
     override fun onPause() {
         super.onPause()
-        viewModel.setUIVisibility(false)
         onFragmentInvisible()
     }
 

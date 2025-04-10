@@ -70,8 +70,6 @@ class HomeViewModel(
     private val _noMoreDataState = MutableStateFlow(false)
     val noMoreDataState = _noMoreDataState.asStateFlow()
 
-    private val _isUIVisible = MutableStateFlow(false)
-    
     /** 标记是否需要初始化加载，当首次UI可见时加载 */
     private var pendingInitialLoad = true
     
@@ -98,17 +96,6 @@ class HomeViewModel(
     private val _records = MutableStateFlow<List<RecordInfo>>(emptyList())
     val records = _records.asStateFlow()
     
-    init {
-        // 监听UI可见性变化，当变为可见且有待加载数据时加载数据
-        viewModelScope.launch {
-            _isUIVisible.collect { isVisible ->
-                if (isVisible) {
-                    checkAndLoadPendingData()
-                }
-            }
-        }
-    }
-    
     /**
      * 修改[data]列表并同时更新[_records]流。
      */
@@ -125,14 +112,13 @@ class HomeViewModel(
     private fun checkAndLoadPendingData() {
         // 如果有待初始化加载的数据，则加载第一页
         if (pendingInitialLoad) {
-            processIntent(HomeIntent.InitialLoad) // 实际调用 fetchData(1)
+            fetchData(1)
             pendingInitialLoad = false
         }
-    }
-    
+    }    
     fun processIntent(intent: HomeIntent) {
         when (intent) {
-            HomeIntent.InitialLoad -> fetchData(1)
+            HomeIntent.InitialLoad -> checkAndLoadPendingData()
             HomeIntent.Retry -> retry()
             HomeIntent.Refresh -> refresh()
             HomeIntent.LoadMore -> loadMore()
@@ -202,11 +188,6 @@ class HomeViewModel(
         }
     }
 
-    fun setUIVisibility(isVisible: Boolean) {
-        _isUIVisible.value = isVisible
-        // 其他逻辑写在对_isUIVisible的流监听中，仅当从不可见变为可见时才检查并加载第一页数据
-    }
-    
     override fun onCleared() {
         super.onCleared()
         fetchJob?.cancel()

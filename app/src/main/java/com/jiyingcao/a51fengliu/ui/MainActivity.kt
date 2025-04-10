@@ -1,6 +1,8 @@
 package com.jiyingcao.a51fengliu.ui
 
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -48,11 +50,23 @@ class MainActivity : BaseActivity() {
 
         setupTabs()
 
-        // 从 savedInstanceState 恢复当前选中的 Tab，或使用默认值
-        currentTabTag = savedInstanceState?.getString(KEY_CURRENT_TAB) ?: TAG_HOME
+        // 检查是否是重新登录
+        currentTabTag =
+            if (intent.getBooleanExtra("IS_RELOGIN", false)) {
+                TAG_PROFILE
+            } else {
+                // 从 savedInstanceState 恢复当前选中的 Tab，或使用默认值
+                savedInstanceState?.getString(KEY_CURRENT_TAB) ?: TAG_HOME
+            }
         // 加载相应的 Fragment 并更新 Tab 状态
         loadFragment(currentTabTag)
         updateTabStates(currentTabTag)
+        Log.d("MainActivity", "onCreate() called, this = $this")
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        Log.d("MainActivity", "onNewIntent() called")
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

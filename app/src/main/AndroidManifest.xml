@@ -63,6 +63,11 @@
             android:exported="${activityExported}"
             android:screenOrientation="${screenOrientation}" />
         <activity
+            android:name=".ui.PostInfoActivity"
+            android:exported="${activityExported}"
+            android:screenOrientation="${screenOrientation}"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
+        <activity
             android:name=".ui.common.WebViewActivity"
             android:exported="${activityExported}"
             android:screenOrientation="${screenOrientation}" />

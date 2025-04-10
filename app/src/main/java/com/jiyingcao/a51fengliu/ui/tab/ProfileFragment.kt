@@ -22,6 +22,7 @@ import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.ui.FavoriteActivity
 import com.jiyingcao.a51fengliu.ui.LoginActivity
+import com.jiyingcao.a51fengliu.ui.PostInfoActivity
 import com.jiyingcao.a51fengliu.ui.dialog.LoadingDialog
 import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.showToast
@@ -147,6 +148,9 @@ class ProfileFragment : Fragment() {
         }
         binding.tvLogout.setOnClickListener {
             viewModel.processIntent(ProfileIntent.Logout)
+        }
+        binding.tvPostInfo.setOnClickListener {
+            startActivity(PostInfoActivity.createIntent(requireContext()))
         }
         binding.tvMyFavorite.setOnClickListener {
             startActivity(FavoriteActivity.createIntent(requireContext()))

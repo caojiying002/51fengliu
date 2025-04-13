@@ -391,10 +391,15 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/default_horizontal_space"
             android:layout_marginTop="@dimen/divider_height_half"
-            android:layout_marginBottom="12dp"
+            android:layout_marginBottom="2dp"
             android:textSize="@dimen/text_default"
             android:textColor="@color/text_content"
             android:background="@drawable/corner_solid_white_padding"
             tools:text="整体能打个9分吧，长得比我还高一点，估计有170以上，身材高挑，腿细长细长的，技术一般以上，综合性价比挺高的，喜欢身材好的可以约" />
+
+        <Space
+            android:id="@id/system_bottom_bar_space"
+            android:layout_width="match_parent"
+            android:layout_height="0dp" />
     </LinearLayout>
 </ScrollView>

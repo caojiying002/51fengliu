@@ -74,6 +74,8 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.bumptech.glide)
     implementation(libs.bumptech.glide.okhttp3integration)
+    implementation(libs.coil)
+    implementation(libs.coil.network.okhttp)
     implementation(libs.smartrefreshlayout.kernel)
     implementation(libs.smartrefreshlayout.header)
     implementation(libs.smartrefreshlayout.footer)

@@ -1,8 +1,8 @@
 [versions]
 agp = "8.9.1"
-kotlin = "1.9.24"
-ksp = "1.9.24-1.0.20" # 确保与kotlin版本匹配
-coroutines = "1.9.0"
+kotlin = "2.0.21"
+ksp = "2.0.21-1.0.28" # 确保与kotlin版本匹配
+coroutines = "1.10.1"
 coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -16,15 +16,16 @@ recyclerview = "1.4.0"
 viewpager2 = "1.1.0"
 lifecycle = "2.8.7"
 datastore = "1.1.4"
-room = "2.6.1"
+room = "2.7.0"
 retrofit = "2.11.0"
 okhttp = "4.12.0"
-okio = "3.9.0"
+okio = "3.10.2"
 gson = "2.13.0"
 glide = "4.16.0"
+coil = "3.1.0"
 smartrefresh = "2.1.1"
 brvah = "4.1.4"
-photoview = "1.0.1"
+photoview = "1.0.3"
 flexbox = "3.0.0"
 
 [libraries]
@@ -63,6 +64,10 @@ gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 bumptech-glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 bumptech-glide-okhttp3integration = { group = "com.github.bumptech.glide", name = "okhttp3-integration", version.ref = "glide" }
 bumptech-glide-compiler = { group = "com.github.bumptech.glide", name = "compiler", version.ref = "glide" }
+
+# Coil
+coil = { group = "io.coil-kt.coil3", name = "coil", version.ref = "coil" }
+coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
 
 # Widgets/Layouts
 smartrefreshlayout-kernel = { group = "io.github.scwang90", name = "refresh-layout-kernel", version.ref = "smartrefresh" }

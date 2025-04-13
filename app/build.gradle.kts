@@ -1,12 +1,12 @@
 plugins {
-    alias(libs.plugins.androidApplication)
-    alias(libs.plugins.jetbrainsKotlinAndroid)
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
     id("kotlin-kapt")
 }
 
 android {
     namespace = "com.jiyingcao.a51fengliu"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.jiyingcao.a51fengliu"
@@ -73,7 +73,6 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.bumptech.glide)
     implementation(libs.bumptech.glide.okhttp3integration)
-    implementation(libs.jsoup)
     implementation(libs.smartrefreshlayout.kernel)
     implementation(libs.smartrefreshlayout.header)
     implementation(libs.smartrefreshlayout.footer)

@@ -1,31 +1,30 @@
 [versions]
-agp = "8.7.3"
+agp = "8.9.1"
 kotlin = "1.9.24"
-kotlinx-coroutines = "1.8.1"
-coreKtx = "1.13.1"
+kotlinx-coroutines = "1.9.0"
+coreKtx = "1.16.0"
 junit = "4.13.2"
-junitVersion = "1.1.5"
-espressoCore = "3.5.1"
+junitVersion = "1.2.1"
+espressoCore = "3.6.1"
 appcompat = "1.7.0"
 material = "1.12.0"
-activity = "1.9.2"
-fragment = "1.8.4"
-constraintlayout = "2.1.4"
-recyclerview = "1.3.2"
+activity = "1.10.1"
+fragment = "1.8.6"
+constraintlayout = "2.2.1"
+recyclerview = "1.4.0"
 viewpager2 = "1.1.0"
-lifecycle = "2.8.6"
-datastore = "1.1.1"
+lifecycle = "2.8.7"
+datastore = "1.1.4"
 room = "2.6.1"
-retrofit = "2.9.0"
+retrofit = "2.11.0"
 okhttp = "4.12.0"
 okio = "3.9.0"
-gson = "2.11.0"
+gson = "2.13.0"
 glide = "4.16.0"
-smartrefresh = "2.1.0"
+smartrefresh = "2.1.1"
 brvah = "4.1.4"
 photoview = "1.0.1"
 flexbox = "3.0.0"
-jsoup = "1.17.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -73,9 +72,9 @@ photoview = { group = "io.getstream", name = "photoview", version.ref = "photovi
 flexbox = { group = "com.google.android.flexbox", name = "flexbox", version.ref = "flexbox" }
 
 # Others
-jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
+#jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
 
 [plugins]
-androidApplication = { id = "com.android.application", version.ref = "agp" }
-jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 

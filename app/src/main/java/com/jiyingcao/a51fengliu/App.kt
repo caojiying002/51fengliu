@@ -1,12 +1,9 @@
 package com.jiyingcao.a51fengliu
 
 import android.app.Application
-import android.content.Intent
 import com.jiyingcao.a51fengliu.ActivityManager.activityLifecycleCallbacks
-import com.jiyingcao.a51fengliu.ActivityManager.getCurrentActivity
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager
-import com.jiyingcao.a51fengliu.ui.MainActivity
-import com.jiyingcao.a51fengliu.ui.dialog.RemoteLoginDialog
+import com.jiyingcao.a51fengliu.ui.common.RemoteLoginActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -31,9 +28,7 @@ class App: Application() {
         applicationScope.launch {
             RemoteLoginManager.remoteLoginEvent
                 .collect {
-                    getCurrentActivity()?.let {
-                        RemoteLoginDialog().show(it.supportFragmentManager, "remote_login")
-                    }
+                    RemoteLoginActivity.start(applicationContext)
                 }
         }
     }

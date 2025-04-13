@@ -35,4 +35,7 @@
     <style name="Theme.App.BigImageViewer" parent="Theme.App.Fullscreen">
         <item name="android:windowBackground">@android:color/black</item>
     </style>
+
+    <!-- 异地登录的Dialog样式主题 -->
+    <style name="Theme.App.RemoteLogin" parent="Theme.Material3.DayNight.Dialog.Alert" />
 </resources>

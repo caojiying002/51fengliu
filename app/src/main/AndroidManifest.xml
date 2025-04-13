@@ -67,13 +67,24 @@
             android:exported="${activityExported}"
             android:screenOrientation="${screenOrientation}"
             android:windowSoftInputMode="adjustResize|stateHidden" />
-        <activity
-            android:name=".ui.common.WebViewActivity"
-            android:exported="${activityExported}"
-            android:screenOrientation="${screenOrientation}" />
+
+        <!-- 全屏查看大图 -->
         <activity
             android:name=".ui.common.BigImageViewerActivity"
-            android:theme="@style/Theme.App.BigImageViewer"
+            android:exported="${activityExported}"
+            android:screenOrientation="${screenOrientation}"
+            android:theme="@style/Theme.App.BigImageViewer" />
+
+        <!-- 异地登录的Dialog样式Activity -->
+        <activity
+            android:name=".ui.common.RemoteLoginActivity"
+            android:exported="${activityExported}"
+            android:screenOrientation="${screenOrientation}"
+            android:theme="@style/Theme.App.RemoteLogin" />
+
+        <!-- 打开WebView浏览网页 -->
+        <activity
+            android:name=".ui.common.WebViewActivity"
             android:exported="${activityExported}"
             android:screenOrientation="${screenOrientation}" />
     </application>

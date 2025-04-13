@@ -1,7 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    id("kotlin-kapt")
+    alias(libs.plugins.ksp)
+    id("kotlin-kapt") // 暂时保留，直到所有ksp依赖迁移完成
 }
 
 android {
@@ -79,8 +80,8 @@ dependencies {
     implementation(libs.brvah)
     implementation(libs.photoview)
     implementation(libs.flexbox)
+    ksp(libs.androidx.room.compiler)
     kapt(libs.bumptech.glide.compiler)
-    kapt(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

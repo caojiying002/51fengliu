@@ -1,7 +1,8 @@
 [versions]
 agp = "8.9.1"
 kotlin = "1.9.24"
-kotlinx-coroutines = "1.9.0"
+ksp = "1.9.24-1.0.20" # 确保与kotlin版本匹配
+coroutines = "1.9.0"
 coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -28,7 +29,7 @@ flexbox = "3.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 # Test
@@ -77,4 +78,5 @@ flexbox = { group = "com.google.android.flexbox", name = "flexbox", version.ref 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 

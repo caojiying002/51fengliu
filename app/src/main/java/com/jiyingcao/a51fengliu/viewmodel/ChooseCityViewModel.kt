@@ -18,14 +18,10 @@ sealed class ChooseCityIntent {
     object BackToProvince : ChooseCityIntent()
 }
 
-data class ChooseCityState(
-    val isProvinceLevel: Boolean = true,
-    val provinceList: List<City> = emptyList(),
-    val cityList: List<City> = emptyList(),
-    val selectedProvince: City? = null,
-    val selectedCity: City? = null,
-    val title: String = "请选择省份"
-)
+sealed class ChooseCityState {
+    data class ProvinceList(val provinces: List<City>) : ChooseCityState()
+    data class CityList(val province: City, val cities: List<City>) : ChooseCityState()
+}
 
 sealed class ChooseCityEffect {
     data class CitySelected(val city: City) : ChooseCityEffect()
@@ -33,15 +29,8 @@ sealed class ChooseCityEffect {
 
 class ChooseCityViewModel : ViewModel() {
 
-    private val _state = MutableStateFlow(
-        ChooseCityState(
-            isProvinceLevel = true,
-            provinceList = provinceList,
-            cityList = emptyList(),
-            selectedProvince = null,
-            selectedCity = null,
-            title = "请选择省市"
-        )
+    private val _state = MutableStateFlow<ChooseCityState>(
+        ChooseCityState.ProvinceList(provinceList)
     )
     val state: StateFlow<ChooseCityState> = _state
 
@@ -51,42 +40,22 @@ class ChooseCityViewModel : ViewModel() {
     fun processIntent(intent: ChooseCityIntent) {
         when (intent) {
             is ChooseCityIntent.Load -> {
-                _state.value = _state.value.copy(
-                    isProvinceLevel = true,
-                    provinceList = provinceList,
-                    cityList = emptyList(),
-                    selectedProvince = null,
-                    selectedCity = null,
-                    title = "请选择省市"
-                )
+                _state.value = ChooseCityState.ProvinceList(provinceList)
             }
             is ChooseCityIntent.SelectProvince -> {
                 val province = provinceList[intent.index]
-                _state.value = _state.value.copy(
-                    isProvinceLevel = false,
-                    selectedProvince = province,
-                    cityList = getCitiesForProvince(province.code),
-                    title = province.name
-                )
+                val cities = getCitiesForProvince(province.code)
+                _state.value = ChooseCityState.CityList(province, cities)
             }
             is ChooseCityIntent.SelectCity -> {
                 val currentState = _state.value
-                if (!currentState.isProvinceLevel
-                    && currentState.selectedProvince != null
-                    && currentState.cityList.isNotEmpty()) {
-
-                    val city = currentState.cityList[intent.index]
-                    _state.value = _state.value.copy(selectedCity = city)
+                if (currentState is ChooseCityState.CityList) {
+                    val city = currentState.cities[intent.index]
                     viewModelScope.launch { _effect.send(ChooseCityEffect.CitySelected(city)) }
                 }
             }
             is ChooseCityIntent.BackToProvince -> {
-                _state.value = _state.value.copy(
-                    isProvinceLevel = true,
-                    selectedProvince = null,
-                    cityList = emptyList(),
-                    title = "请选择省市"
-                )
+                _state.value = ChooseCityState.ProvinceList(provinceList)
             }
         }
     }

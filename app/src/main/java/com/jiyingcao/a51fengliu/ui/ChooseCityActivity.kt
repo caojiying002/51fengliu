@@ -14,6 +14,7 @@ import com.jiyingcao.a51fengliu.util.City
 import com.jiyingcao.a51fengliu.viewmodel.ChooseCityEffect
 import com.jiyingcao.a51fengliu.viewmodel.ChooseCityIntent
 import com.jiyingcao.a51fengliu.viewmodel.ChooseCityViewModel
+import com.jiyingcao.a51fengliu.viewmodel.ChooseCityState
 import kotlinx.coroutines.launch
 
 class ChooseCityActivity: BaseActivity() {
@@ -34,7 +35,7 @@ class ChooseCityActivity: BaseActivity() {
     }
 
     override fun onBackPressed() {
-        if (!viewModel.state.value.isProvinceLevel) {
+        if (viewModel.state.value is ChooseCityState.CityList) {
             viewModel.processIntent(ChooseCityIntent.BackToProvince)
         } else {
             super.onBackPressed()
@@ -48,11 +49,13 @@ class ChooseCityActivity: BaseActivity() {
     private fun setupRecyclerView() {
         cityAdapter = CityAdapter().apply {
             setOnItemClickListener { _, _, position ->
-                val state = viewModel.state.value
-                if (state.isProvinceLevel) {
-                    viewModel.processIntent(ChooseCityIntent.SelectProvince(position))
-                } else {
-                    viewModel.processIntent(ChooseCityIntent.SelectCity(position))
+                when (viewModel.state.value) {
+                    is ChooseCityState.ProvinceList -> {
+                        viewModel.processIntent(ChooseCityIntent.SelectProvince(position))
+                    }
+                    is ChooseCityState.CityList -> {
+                        viewModel.processIntent(ChooseCityIntent.SelectCity(position))
+                    }
                 }
             }
         }
@@ -66,8 +69,16 @@ class ChooseCityActivity: BaseActivity() {
     private fun setupFlowCollectors() {
         lifecycleScope.launch {
             viewModel.state.collect { state ->
-                updateTitle(state.title)
-                updateList(if (state.isProvinceLevel) state.provinceList else state.cityList)
+                when (state) {
+                    is ChooseCityState.ProvinceList -> {
+                        updateTitle("请选择省市")
+                        updateList(state.provinces)
+                    }
+                    is ChooseCityState.CityList -> {
+                        updateTitle(state.province.name)
+                        updateList(state.cities)
+                    }
+                }
             }
         }
         lifecycleScope.launch {
@@ -82,8 +93,6 @@ class ChooseCityActivity: BaseActivity() {
     }
 
     private fun updateList(cities: List<City>) {
-        // 更新 RecyclerView 的数据
-        // 在 RecyclerView 的点击监听中调用 viewModel.onItemClick(city)
         cityAdapter.submitList(cities)
         // TODO 数据更新后，重置列表滚动位置到顶部
         //binding.recyclerView.scrollToPosition(0)

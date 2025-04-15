@@ -104,7 +104,7 @@
                     android:id="@+id/tv_upload_image"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="#F5F5F5"
+                    android:background="@color/background"
                     android:gravity="center"
                     android:drawableTop="@drawable/ic_upload_photo"
                     android:drawablePadding="8dp"

@@ -18,6 +18,8 @@
     <color name="text_dark_gray">#333333</color>
     <color name="text_light_gray">#999999</color>
 
+    <color name="divider">#eeeeee</color>
+
     <!-- 文字颜色 -->
     <color name="main_tab_default">#424242</color>
     <color name="text_item_title">#262626</color><!-- 用于列表项标题 -->

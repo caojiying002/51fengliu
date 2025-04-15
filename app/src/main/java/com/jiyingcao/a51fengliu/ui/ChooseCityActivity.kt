@@ -6,8 +6,11 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.databinding.ActivityChooseCityBinding
 import com.jiyingcao.a51fengliu.ui.adapter.CityAdapter
 import com.jiyingcao.a51fengliu.ui.adapter.CityAdapter2
@@ -78,6 +81,11 @@ class ChooseCityActivity: BaseActivity() {
             adapter = cityAdapter
             // 禁用动画
             itemAnimator = null
+
+            // Add divider decoration
+            val divider = DividerItemDecoration(context, DividerItemDecoration.VERTICAL)
+            divider.setDrawable(ContextCompat.getDrawable(context, R.drawable.recyclerview_divider)!!)
+            addItemDecoration(divider)
         }
     }
 

@@ -11,6 +11,8 @@ import com.jiyingcao.a51fengliu.databinding.ActivityChooseCityBinding
 import com.jiyingcao.a51fengliu.ui.adapter.CityAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.util.City
+import com.jiyingcao.a51fengliu.viewmodel.ChooseCityEffect
+import com.jiyingcao.a51fengliu.viewmodel.ChooseCityIntent
 import com.jiyingcao.a51fengliu.viewmodel.ChooseCityViewModel
 import kotlinx.coroutines.launch
 
@@ -25,11 +27,15 @@ class ChooseCityActivity: BaseActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityChooseCityBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.titleBar.titleBarBack.setOnClickListener { this.onBackPressed() }
 
         cityAdapter = CityAdapter().apply {
             setOnItemClickListener { _, _, position ->
-                this.getItem(position)?.let {
-                    viewModel.onItemClick(it)
+                val state = viewModel.state.value
+                if (state.isProvinceLevel) {
+                    viewModel.processIntent(ChooseCityIntent.SelectProvince(position))
+                } else {
+                    viewModel.processIntent(ChooseCityIntent.SelectCity(position))
                 }
             }
         }
@@ -40,17 +46,45 @@ class ChooseCityActivity: BaseActivity() {
         }
 
         setupFlowCollectors()
+
+        viewModel.processIntent(ChooseCityIntent.Load)
     }
 
     override fun onBackPressed() {
-        if (!viewModel.isProvinceLevelFlow.value) {
-            viewModel.backToProvinceLevel()
+        if (!viewModel.state.value.isProvinceLevel) {
+            viewModel.processIntent(ChooseCityIntent.BackToProvince)
         } else {
             super.onBackPressed()
         }
     }
 
     private fun setupFlowCollectors() {
+        lifecycleScope.launch {
+            viewModel.state.collect { state ->
+                // 设置标题
+                binding.titleBar.titleBarBack.text = state.title
+                // 设置列表
+                updateList(if (state.isProvinceLevel) state.provinceList else state.cityList)
+            }
+        }
+        lifecycleScope.launch {
+            viewModel.effect.collect { effect ->
+                when (effect) {
+                    is ChooseCityEffect.CitySelected -> {
+                        val selectedCity = effect.city
+                        Log.d(TAG, "City selected: ${selectedCity.name}, code = ${selectedCity.code}")
+                        setResult(RESULT_OK, Intent().apply {
+                            putExtra("CITY_CODE", selectedCity.code)
+                        })
+                        finish()
+                    }
+                }
+            }
+        }
+    }
+
+    @Deprecated("use setupFlowCollectors()")
+    private fun setupFlowCollectors0() {
         // 观察当前是否在省级选择
         lifecycleScope.launch {
             viewModel.isProvinceLevelFlow.collect { isProvinceLevel ->
@@ -86,8 +120,8 @@ class ChooseCityActivity: BaseActivity() {
         // 更新 RecyclerView 的数据
         // 在 RecyclerView 的点击监听中调用 viewModel.onItemClick(city)
         cityAdapter.submitList(cities)
-        // 数据更新后，重置列表滚动位置到顶部
-        binding.recyclerView.scrollToPosition(0)
+        // TODO 数据更新后，重置列表滚动位置到顶部
+        //binding.recyclerView.scrollToPosition(0)
     }
 
     private fun updateTitle(title: String) {

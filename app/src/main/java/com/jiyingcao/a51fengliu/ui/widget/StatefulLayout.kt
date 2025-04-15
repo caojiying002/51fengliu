@@ -8,6 +8,7 @@ import android.widget.FrameLayout
 import androidx.annotation.LayoutRes
 import com.jiyingcao.a51fengliu.R
 
+@Deprecated("不再使用")
 class StatefulLayout @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : FrameLayout(context, attrs, defStyleAttr) {

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="toolbar_height">64dp</dimen>
+    <dimen name="toolbar_height">56dp</dimen>
 
     <!-- 页面默认的边距，也就是每个页面内容区域到屏幕边缘的距离 -->
     <dimen name="default_horizontal_space">8dp</dimen>

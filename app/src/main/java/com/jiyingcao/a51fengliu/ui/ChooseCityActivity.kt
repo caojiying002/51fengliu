@@ -9,6 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.jiyingcao.a51fengliu.databinding.ActivityChooseCityBinding
 import com.jiyingcao.a51fengliu.ui.adapter.CityAdapter
+import com.jiyingcao.a51fengliu.ui.adapter.CityAdapter2
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.util.City
 import com.jiyingcao.a51fengliu.util.provinceList
@@ -21,7 +22,10 @@ import kotlinx.coroutines.launch
 class ChooseCityActivity: BaseActivity() {
     private lateinit var binding: ActivityChooseCityBinding
 
-    private lateinit var cityAdapter: CityAdapter
+    private lateinit var cityAdapter: CityAdapter2
+
+    /** 省级列表的滚动位置，点击进入市级列表时保存，从市级列表返回时恢复滚动位置 */
+    private var provinceScrollPosition = 0
 
     private val viewModel: ChooseCityViewModel by viewModels()
 
@@ -47,8 +51,8 @@ class ChooseCityActivity: BaseActivity() {
     }
 
     private fun setupRecyclerView() {
-        cityAdapter = CityAdapter().apply {
-            setOnItemClickListener { _, _, position ->
+        cityAdapter = CityAdapter2().apply {
+            setOnItemClickListener { _, position ->
                 when (viewModel.state.value) {
                     is ChooseCityState.ProvinceList -> {
                         viewModel.processIntent(ChooseCityIntent.SelectProvince(position))
@@ -63,6 +67,8 @@ class ChooseCityActivity: BaseActivity() {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
             adapter = cityAdapter
+            // 禁用动画
+            itemAnimator = null
         }
     }
 
@@ -72,9 +78,12 @@ class ChooseCityActivity: BaseActivity() {
                 when (state) {
                     ChooseCityState.ProvinceList -> {
                         updateTitle("请选择省市")
-                        updateList(provinceList)    // 直接使用全局常量 provinceList
+                        updateList(provinceList)
                     }
                     is ChooseCityState.CityList -> {
+                        // 从省到市之前，保存省列表的滚动位置以供将来恢复
+                        provinceScrollPosition = (binding.recyclerView.layoutManager as LinearLayoutManager)
+                            .findFirstVisibleItemPosition()
                         updateTitle(state.province.name)
                         updateList(state.cities)
                     }
@@ -93,9 +102,16 @@ class ChooseCityActivity: BaseActivity() {
     }
 
     private fun updateList(cities: List<City>) {
-        cityAdapter.submitList(cities)
-        // TODO 数据更新后，重置列表滚动位置到顶部
-        //binding.recyclerView.scrollToPosition(0)
+        cityAdapter.submitList(cities) {
+            // After list update is complete
+            if (viewModel.state.value is ChooseCityState.CityList) {
+                // 市级列表滚动到顶端
+                binding.recyclerView.scrollToPosition(0)
+            } else {
+                // 省级列表恢复之前的滚动位置
+                binding.recyclerView.scrollToPosition(provinceScrollPosition)
+            }
+        }
     }
 
     private fun updateTitle(title: String) {

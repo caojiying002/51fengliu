@@ -27,8 +27,25 @@ class ChooseCityActivity: BaseActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityChooseCityBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        binding.titleBar.titleBarBack.setOnClickListener { this.onBackPressed() }
+        setupClickListeners()
+        setupRecyclerView()
+        setupFlowCollectors()
+        viewModel.processIntent(ChooseCityIntent.Load)
+    }
 
+    override fun onBackPressed() {
+        if (!viewModel.state.value.isProvinceLevel) {
+            viewModel.processIntent(ChooseCityIntent.BackToProvince)
+        } else {
+            super.onBackPressed()
+        }
+    }
+
+    private fun setupClickListeners() {
+        binding.titleBar.titleBarBack.setOnClickListener { this.onBackPressed() }
+    }
+
+    private fun setupRecyclerView() {
         cityAdapter = CityAdapter().apply {
             setOnItemClickListener { _, _, position ->
                 val state = viewModel.state.value
@@ -44,26 +61,12 @@ class ChooseCityActivity: BaseActivity() {
             layoutManager = LinearLayoutManager(context)
             adapter = cityAdapter
         }
-
-        setupFlowCollectors()
-
-        viewModel.processIntent(ChooseCityIntent.Load)
-    }
-
-    override fun onBackPressed() {
-        if (!viewModel.state.value.isProvinceLevel) {
-            viewModel.processIntent(ChooseCityIntent.BackToProvince)
-        } else {
-            super.onBackPressed()
-        }
     }
 
     private fun setupFlowCollectors() {
         lifecycleScope.launch {
             viewModel.state.collect { state ->
-                // 设置标题
-                binding.titleBar.titleBarBack.text = state.title
-                // 设置列表
+                updateTitle(state.title)
                 updateList(if (state.isProvinceLevel) state.provinceList else state.cityList)
             }
         }
@@ -71,46 +74,8 @@ class ChooseCityActivity: BaseActivity() {
             viewModel.effect.collect { effect ->
                 when (effect) {
                     is ChooseCityEffect.CitySelected -> {
-                        val selectedCity = effect.city
-                        Log.d(TAG, "City selected: ${selectedCity.name}, code = ${selectedCity.code}")
-                        setResult(RESULT_OK, Intent().apply {
-                            putExtra("CITY_CODE", selectedCity.code)
-                        })
-                        finish()
+                        setResultOkAndFinish(effect.city)
                     }
-                }
-            }
-        }
-    }
-
-    @Deprecated("use setupFlowCollectors()")
-    private fun setupFlowCollectors0() {
-        // 观察当前是否在省级选择
-        lifecycleScope.launch {
-            viewModel.isProvinceLevelFlow.collect { isProvinceLevel ->
-                if (isProvinceLevel) {
-                    updateTitle("请选择省市")
-                } else {
-                    viewModel.getSelectedProvince()?.let { updateTitle(it.name) }
-                }
-            }
-        }
-        // 观察并显示当前列表（自动在省级和市级列表间切换）
-        lifecycleScope.launch {
-            viewModel.currentListFlow.collect { cities ->
-                updateList(cities)
-            }
-        }
-        // 观察选中的城市
-        lifecycleScope.launch {
-            viewModel.selectedCity.collect { city ->
-                city?.let {
-                    // 城市被选中，进行下一步操作
-                    Log.d(TAG, "City selected: ${it.name}, code = ${it.code}")
-                    setResult(RESULT_OK, Intent().apply {
-                        putExtra("CITY_CODE", it.code)
-                    })
-                    finish()
                 }
             }
         }
@@ -126,6 +91,14 @@ class ChooseCityActivity: BaseActivity() {
 
     private fun updateTitle(title: String) {
         binding.titleBar.titleBarBack.text = title
+    }
+
+    private fun setResultOkAndFinish(city: City) {
+        Log.d(TAG, "City selected: ${city.name}, code = ${city.code}")
+        setResult(RESULT_OK, Intent().apply {
+            putExtra("CITY_CODE", city.code)
+        })
+        finish()
     }
 
     companion object {

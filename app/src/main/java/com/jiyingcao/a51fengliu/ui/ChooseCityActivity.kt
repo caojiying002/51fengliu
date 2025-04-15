@@ -7,17 +7,15 @@ import android.util.Log
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.jiyingcao.a51fengliu.databinding.TitleBarRecyclerViewBinding
+import com.jiyingcao.a51fengliu.databinding.ActivityChooseCityBinding
 import com.jiyingcao.a51fengliu.ui.adapter.CityAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.util.City
-import com.jiyingcao.a51fengliu.util.administrativeDivisions
-import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.ChooseCityViewModel
 import kotlinx.coroutines.launch
 
 class ChooseCityActivity: BaseActivity() {
-    private lateinit var binding: TitleBarRecyclerViewBinding
+    private lateinit var binding: ActivityChooseCityBinding
 
     private lateinit var cityAdapter: CityAdapter
 
@@ -25,7 +23,7 @@ class ChooseCityActivity: BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = TitleBarRecyclerViewBinding.inflate(layoutInflater)
+        binding = ActivityChooseCityBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         cityAdapter = CityAdapter().apply {
@@ -56,7 +54,11 @@ class ChooseCityActivity: BaseActivity() {
         // 观察当前是否在省级选择
         lifecycleScope.launch {
             viewModel.isProvinceLevelFlow.collect { isProvinceLevel ->
-                Log.d(TAG, (if (isProvinceLevel) "选择省份" else "选择城市"))
+                if (isProvinceLevel) {
+                    updateTitle("请选择省市")
+                } else {
+                    viewModel.getSelectedProvince()?.let { updateTitle(it.name) }
+                }
             }
         }
         // 观察并显示当前列表（自动在省级和市级列表间切换）
@@ -89,7 +91,7 @@ class ChooseCityActivity: BaseActivity() {
     }
 
     private fun updateTitle(title: String) {
-        // 更新页面标题
+        binding.titleBar.titleBarBack.text = title
     }
 
     companion object {

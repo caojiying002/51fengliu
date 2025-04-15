@@ -34,7 +34,7 @@ class ChooseCityViewModel : ViewModel() {
      * 当前应该显示的列表（省级或者市级列表）
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    val currentListFlow = _selectedProvinceIndexFlow
+    val currentListFlow: StateFlow<List<City>> = _selectedProvinceIndexFlow
         .flatMapLatest { index ->
             flow {
                 emit(if (index == -1) provinceList else getCitiesForProvince(provinceList[index].code))

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -33,21 +34,29 @@ class ChooseCityActivity: BaseActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityChooseCityBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        setupBackPressedCallback()
         setupClickListeners()
         setupRecyclerView()
         setupFlowCollectors()
     }
 
-    override fun onBackPressed() {
-        if (viewModel.state.value is ChooseCityState.CityList) {
-            viewModel.processIntent(ChooseCityIntent.BackToProvince)
-        } else {
-            super.onBackPressed()
-        }
+    private fun setupBackPressedCallback() {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (viewModel.state.value is ChooseCityState.CityList) {
+                    viewModel.processIntent(ChooseCityIntent.BackToProvince)
+                } else {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        })
     }
 
     private fun setupClickListeners() {
-        binding.titleBar.titleBarBack.setOnClickListener { this.onBackPressed() }
+        binding.titleBar.titleBarBack.setOnClickListener {
+            onBackPressedDispatcher.onBackPressed()
+        }
     }
 
     private fun setupRecyclerView() {

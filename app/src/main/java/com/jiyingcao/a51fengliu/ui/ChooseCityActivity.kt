@@ -11,6 +11,7 @@ import com.jiyingcao.a51fengliu.databinding.ActivityChooseCityBinding
 import com.jiyingcao.a51fengliu.ui.adapter.CityAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.util.City
+import com.jiyingcao.a51fengliu.util.provinceList
 import com.jiyingcao.a51fengliu.viewmodel.ChooseCityEffect
 import com.jiyingcao.a51fengliu.viewmodel.ChooseCityIntent
 import com.jiyingcao.a51fengliu.viewmodel.ChooseCityViewModel
@@ -31,7 +32,6 @@ class ChooseCityActivity: BaseActivity() {
         setupClickListeners()
         setupRecyclerView()
         setupFlowCollectors()
-        viewModel.processIntent(ChooseCityIntent.Load)
     }
 
     override fun onBackPressed() {
@@ -70,9 +70,9 @@ class ChooseCityActivity: BaseActivity() {
         lifecycleScope.launch {
             viewModel.state.collect { state ->
                 when (state) {
-                    is ChooseCityState.ProvinceList -> {
+                    ChooseCityState.ProvinceList -> {
                         updateTitle("请选择省市")
-                        updateList(state.provinces)
+                        updateList(provinceList)    // 直接使用全局常量 provinceList
                     }
                     is ChooseCityState.CityList -> {
                         updateTitle(state.province.name)

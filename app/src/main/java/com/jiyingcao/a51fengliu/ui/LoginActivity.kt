@@ -131,12 +131,21 @@ class LoginActivity: BaseActivity() {
         binding.tilPassword.error = null
     }
 
+    // 在登录成功处理逻辑中
+    private fun handleLoginSuccess() {
+        // 设置返回结果
+        setResult(RESULT_OK)
+        finish()
+    }
+
     private fun navigateToMainActivity() {
         lifecycleScope.launch {
             val savedToken = TokenManager.getInstance().getToken()
             Log.d(TAG, "登录成功，Token已保存: $savedToken")
         }
         showToast("登录成功")
+        // 设置返回结果
+        setResult(RESULT_OK)
         finish()
     }
 
@@ -219,6 +228,8 @@ class LoginActivity: BaseActivity() {
 
     companion object {
         private const val TAG = "LoginActivity"
+
+        const val EXTRA_IS_INTERCEPTED = "extra_is_intercepted"
 
         @JvmStatic
         fun createIntent(context: Context) = Intent(context, LoginActivity::class.java)

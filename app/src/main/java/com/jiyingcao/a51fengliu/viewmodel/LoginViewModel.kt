@@ -45,7 +45,7 @@ sealed class LoginIntent {
 // 副作用
 sealed class LoginEffect {
     data class ShowToast(val message: String) : LoginEffect()
-    object NavigateToMain : LoginEffect()   // TODO 不一定要跳转到 MainActivity，是否应该由调用方决定？
+    object NavigateToMain : LoginEffect()   // TODO 改成更合适的语义命名
 }
 
 class LoginViewModel(

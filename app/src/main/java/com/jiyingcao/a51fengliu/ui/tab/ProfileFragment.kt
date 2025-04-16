@@ -20,6 +20,7 @@ import com.jiyingcao.a51fengliu.viewmodel.ProfileViewModel
 import com.jiyingcao.a51fengliu.viewmodel.ProfileViewModelFactory
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.data.TokenManager
+import com.jiyingcao.a51fengliu.navigation.LoginInterceptor
 import com.jiyingcao.a51fengliu.ui.FavoriteActivity
 import com.jiyingcao.a51fengliu.ui.LoginActivity
 import com.jiyingcao.a51fengliu.ui.PostInfoActivity
@@ -45,9 +46,15 @@ class ProfileFragment : Fragment() {
 
     private var loadingDialog: LoadingDialog? = null
 
+    private lateinit var loginInterceptor: LoginInterceptor
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupViewModel()
+        // 初始化登录拦截器
+        loginInterceptor = LoginInterceptor().apply {
+            register(this@ProfileFragment)
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -150,10 +157,14 @@ class ProfileFragment : Fragment() {
             viewModel.processIntent(ProfileIntent.Logout)
         }
         binding.tvPostInfo.setOnClickListener {
-            startActivity(PostInfoActivity.createIntent(requireContext()))
+            loginInterceptor.execute {
+                startActivity(PostInfoActivity.createIntent(requireContext()))
+            }
         }
         binding.tvMyFavorite.setOnClickListener {
-            startActivity(FavoriteActivity.createIntent(requireContext()))
+            loginInterceptor.execute {
+                startActivity(FavoriteActivity.createIntent(requireContext()))
+            }
         }
     }
 

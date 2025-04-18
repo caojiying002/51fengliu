@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/auth_navigation"
+    app:startDestination="@id/loginFragment">
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.jiyingcao.a51fengliu.ui.auth.LoginFragment"
+        android:label="登录"
+        tools:layout="@layout/fragment_login" >
+        <action
+            android:id="@+id/action_login_to_register"
+            app:destination="@id/registerFragment"
+            app:enterAnim="@animator/nav_default_enter_anim"
+            app:exitAnim="@animator/nav_default_exit_anim" />
+        <action
+            android:id="@+id/action_login_to_forgot_password"
+            app:destination="@id/forgotPasswordFragment"
+            app:enterAnim="@animator/nav_default_enter_anim"
+            app:exitAnim="@animator/nav_default_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/registerFragment"
+        android:name="com.jiyingcao.a51fengliu.ui.auth.RegisterFragment"
+        android:label="注册"
+        tools:layout="@layout/fragment_register" />
+
+    <fragment
+        android:id="@+id/forgotPasswordFragment"
+        android:name="com.jiyingcao.a51fengliu.ui.auth.ForgotPasswordFragment"
+        android:label="找回密码"
+        tools:layout="@layout/fragment_forgot_password" />
+</navigation>

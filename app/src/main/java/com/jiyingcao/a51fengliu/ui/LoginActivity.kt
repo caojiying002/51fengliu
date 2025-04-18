@@ -32,6 +32,7 @@ import com.jiyingcao.a51fengliu.viewmodel.LoginViewModel
 import com.jiyingcao.a51fengliu.viewmodel.LoginViewModelFactory
 import kotlinx.coroutines.launch
 
+/** TODO 改成LoginFragment并添加到AuthActivity */
 class LoginActivity: BaseActivity() {
     private lateinit var binding: ActivityLoginBinding
 
@@ -111,6 +112,13 @@ class LoginActivity: BaseActivity() {
 
             viewModel.processIntent(LoginIntent.Login(username, password))
         }
+        binding.tvRegisterTip.setOnClickListener {
+            // TODO 注册
+        }
+        binding.tvForgetPasswordTip.setOnClickListener {
+            // TODO 忘记密码
+        }
+
     }
 
     private fun showError(errorType: LoginErrorType, code: Int) {

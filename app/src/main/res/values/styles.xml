@@ -9,11 +9,10 @@
         <item name="android:textColor">@color/white</item>
     </style>
 
-    <!-- Base style for menu grid items -->
-    <style name="MenuGridItem">
+    <!-- Base style for ProfileFragment grid items -->
+    <style name="ProfileGridItem">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_columnWeight">1</item>
         <item name="android:drawablePadding">12dp</item>
         <item name="android:gravity">center</item>
         <item name="android:textSize">@dimen/text_default</item>

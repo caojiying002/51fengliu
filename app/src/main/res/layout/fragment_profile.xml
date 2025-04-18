@@ -89,79 +89,88 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- 固定的按钮区域，采用4列的网格布局 -->
-    <GridLayout
+    <androidx.gridlayout.widget.GridLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:columnCount="4"
         android:layout_marginHorizontal="@dimen/default_horizontal_space"
         android:layout_marginVertical="@dimen/divider_height_half"
         android:background="@drawable/corner_solid_white_no_padding"
         android:paddingHorizontal="8dp"
         android:paddingVertical="16dp"
-        android:useDefaultMargins="false">
+        app:columnCount="4"
+        app:useDefaultMargins="false">
 
         <!-- 信息发布 -->
         <TextView
             android:id="@+id/tv_post_info"
-            style="@style/MenuGridItem"
+            style="@style/ProfileGridItem"
+            app:layout_columnWeight="1"
             android:drawableTop="@drawable/ic_post_info"
             android:text="信息发布" />
 
         <!-- 我的信息 -->
         <TextView
             android:id="@+id/tv_my_info"
-            style="@style/MenuGridItem"
+            style="@style/ProfileGridItem"
+            app:layout_columnWeight="1"
             android:drawableTop="@drawable/ic_my_info"
             android:text="我的信息" />
 
         <!-- 我的收藏 -->
         <TextView
             android:id="@+id/tv_my_favorite"
-            style="@style/MenuGridItem"
+            style="@style/ProfileGridItem"
+            app:layout_columnWeight="1"
             android:drawableTop="@drawable/ic_my_favorite"
             android:text="@string/my_favorite" />
 
         <!-- VIP升级 -->
         <TextView
             android:id="@+id/tv_vip_upgrade"
-            style="@style/MenuGridItem"
+            style="@style/ProfileGridItem"
+            app:layout_columnWeight="1"
             android:drawableTop="@drawable/ic_vip_upgrade"
             android:text="VIP升级" />
 
         <!-- 修改资料 -->
         <TextView
             android:id="@+id/tv_edit_profile"
-            style="@style/MenuGridItem"
+            style="@style/ProfileGridItem"
+            app:layout_columnWeight="1"
             android:drawableTop="@drawable/ic_edit_profile"
             android:text="修改资料" />
 
         <!-- 积分规则 -->
         <TextView
             android:id="@+id/tv_points_rule"
-            style="@style/MenuGridItem"
+            style="@style/ProfileGridItem"
+            app:layout_columnWeight="1"
             android:drawableTop="@drawable/ic_points_rule"
             android:text="积分规则" />
 
         <!-- 鉴别指南 -->
         <TextView
             android:id="@+id/tv_guide"
-            style="@style/MenuGridItem"
+            style="@style/ProfileGridItem"
+            app:layout_columnWeight="1"
             android:drawableTop="@drawable/ic_guide"
             android:text="鉴别指南" />
 
         <!-- 联系我们 -->
         <TextView
             android:id="@+id/tv_contact"
-            style="@style/MenuGridItem"
+            style="@style/ProfileGridItem"
+            app:layout_columnWeight="1"
             android:drawableTop="@drawable/ic_contact"
             android:text="联系我们" />
 
         <!-- 退出登录 -->
         <TextView
             android:id="@+id/tv_logout"
-            style="@style/MenuGridItem"
+            style="@style/ProfileGridItem"
+            app:layout_columnWeight="1"
             android:drawableTop="@drawable/ic_logout"
             android:text="退出登录"
             android:visibility="gone" />
-    </GridLayout>
+    </androidx.gridlayout.widget.GridLayout>
 </LinearLayout>

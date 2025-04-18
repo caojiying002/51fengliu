@@ -34,6 +34,7 @@ import com.jiyingcao.a51fengliu.databinding.ContentDetail0Binding
 import com.jiyingcao.a51fengliu.glide.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.glide.GlideApp
 import com.jiyingcao.a51fengliu.repository.RecordRepository
+import com.jiyingcao.a51fengliu.ui.auth.AuthActivity
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.common.BigImageViewerActivity
 import com.jiyingcao.a51fengliu.ui.dialog.LoadingDialog
@@ -262,7 +263,7 @@ class DetailActivity : BaseActivity() {
             }
 
             contactInfoNotLogin.clickLogin.setOnClickListener {
-                LoginActivity.start(this@DetailActivity)
+                AuthActivity.start(this@DetailActivity)
             }
 
             // （不是正式功能，方便截图用的）长按隐藏警告信息

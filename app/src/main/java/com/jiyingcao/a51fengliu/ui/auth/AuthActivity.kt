@@ -6,6 +6,9 @@ import android.os.Bundle
 import com.jiyingcao.a51fengliu.databinding.ActivityAuthBinding
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 
+/**
+ * 登录、注册、忘记密码流程，具体逻辑由各自Fragment控制。
+ */
 class AuthActivity: BaseActivity() {
     private lateinit var binding: ActivityAuthBinding
 

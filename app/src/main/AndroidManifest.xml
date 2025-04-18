@@ -54,12 +54,6 @@
             android:windowSoftInputMode="adjustResize|stateHidden"
             android:exported="${activityExported}"
             android:screenOrientation="${screenOrientation}" />
-        <!-- TODO remove LoginActivity -->
-        <activity
-            android:name=".ui.LoginActivity"
-            android:windowSoftInputMode="adjustResize|stateHidden"
-            android:exported="${activityExported}"
-            android:screenOrientation="${screenOrientation}" />
         <activity
             android:name=".ui.PostInfoActivity"
             android:exported="${activityExported}"

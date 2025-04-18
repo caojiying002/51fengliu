@@ -11,7 +11,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.jiyingcao.a51fengliu.data.LoginStateManager
-import com.jiyingcao.a51fengliu.ui.LoginActivity
+import com.jiyingcao.a51fengliu.ui.auth.AuthActivity
 
 /**
  * 登录拦截器
@@ -97,10 +97,10 @@ class LoginInterceptor {
     private class LoginContract : ActivityResultContract<LoginRequestData, Boolean>() {
 
         override fun createIntent(context: Context, input: LoginRequestData): Intent =
-            LoginActivity.createIntent(context).apply {
+            AuthActivity.createIntent(context).apply {
                 input.extras?.let { putExtras(it) }
                 // 添加标记，表示这是拦截后的登录
-                putExtra(LoginActivity.EXTRA_IS_INTERCEPTED, true)
+                putExtra(AuthActivity.EXTRA_IS_INTERCEPTED, true)
             }
 
         override fun parseResult(resultCode: Int, intent: Intent?): Boolean {

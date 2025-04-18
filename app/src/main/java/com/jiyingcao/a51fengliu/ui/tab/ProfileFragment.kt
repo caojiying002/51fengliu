@@ -22,7 +22,7 @@ import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.navigation.LoginInterceptor
 import com.jiyingcao.a51fengliu.ui.FavoriteActivity
-import com.jiyingcao.a51fengliu.ui.LoginActivity
+import com.jiyingcao.a51fengliu.ui.auth.AuthActivity
 import com.jiyingcao.a51fengliu.ui.PostInfoActivity
 import com.jiyingcao.a51fengliu.ui.dialog.LoadingDialog
 import com.jiyingcao.a51fengliu.util.dataStore
@@ -151,7 +151,7 @@ class ProfileFragment : Fragment() {
             viewModel.processIntent(ProfileIntent.LoadProfile)  // 如果有不同的UI样式，需要定义新Intent类型 ProfileIntent.Refresh
         }
         binding.profileNotLogin.clickLogin.setOnClickListener {
-            startActivity(LoginActivity.createIntent(requireContext()))
+            startActivity(AuthActivity.createIntent(requireContext()))
         }
         binding.tvLogout.setOnClickListener {
             viewModel.processIntent(ProfileIntent.Logout)

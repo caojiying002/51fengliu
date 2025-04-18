@@ -16,6 +16,10 @@ class AuthActivity: BaseActivity() {
     }
 
     companion object {
+        private const val TAG = "AuthActivity"
+
+        const val EXTRA_IS_INTERCEPTED = "extra_is_intercepted"
+
         @JvmStatic
         fun createIntent(context: Context) = Intent(context, AuthActivity::class.java)
 

@@ -80,6 +80,7 @@ dependencies {
     implementation(libs.bumptech.glide)
     implementation(libs.bumptech.glide.okhttp3integration)
     implementation(libs.coil)
+    implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
     implementation(libs.smartrefreshlayout.kernel)
     implementation(libs.smartrefreshlayout.header)

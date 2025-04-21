@@ -85,6 +85,7 @@ bumptech-glide-compiler = { group = "com.github.bumptech.glide", name = "compile
 
 # Coil
 coil = { group = "io.coil-kt.coil3", name = "coil", version.ref = "coil" }
+coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
 
 # Widgets/Layouts

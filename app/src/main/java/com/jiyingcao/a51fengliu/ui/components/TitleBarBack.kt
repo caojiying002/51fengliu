@@ -22,15 +22,15 @@ import com.jiyingcao.a51fengliu.ui.theme.spacingLarge
 
 @Composable
 fun TitleBarBack(
+    modifier: Modifier = Modifier,
     text: String = "返回",
-    onBackClick: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
+    onBackClick: (() -> Unit)? = null
 ) {
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(ToolbarHeight)
-            .padding(spacingLarge),
+            .padding(horizontal = spacingLarge),
         contentAlignment = Alignment.CenterStart
     ) {
         Row(

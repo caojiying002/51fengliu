@@ -12,6 +12,7 @@ val DefaultHorizontalSpace = 8.dp
 // Text sizes
 val TextDefaultSize = 14.dp
 val ButtonTextDefaultSize = 15.dp
+val TitleBarBackTextSize = 18.dp
 
 // Home screen specific
 val HomeIconSize = 32.dp

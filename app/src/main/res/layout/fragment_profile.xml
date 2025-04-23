@@ -40,7 +40,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/default_horizontal_space"
         android:layout_marginVertical="@dimen/divider_height_half"
-        android:background="@drawable/cornered_surface_white_padding"
+        android:background="@drawable/cornered_surface_padding"
         android:visibility="gone"
         layout="@layout/include_profile_not_login" />
 
@@ -51,7 +51,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/default_horizontal_space"
         android:layout_marginVertical="@dimen/divider_height_half"
-        android:background="@drawable/cornered_surface_white_padding"
+        android:background="@drawable/cornered_surface_padding"
         android:visibility="visible" >
 
         <!-- 布局说明：控制loading和error和`profile_info`一样宽高。 -->

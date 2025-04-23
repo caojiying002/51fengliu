@@ -14,7 +14,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/cornered_surface_white_padding"
+        android:background="@drawable/cornered_surface_padding"
         android:lineSpacingExtra="5dp"
         android:text="@string/intro_anti_fraud"
         android:textColor="@color/text_default"

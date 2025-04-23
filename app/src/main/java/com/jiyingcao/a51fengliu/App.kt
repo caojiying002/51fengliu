@@ -2,6 +2,7 @@ package com.jiyingcao.a51fengliu
 
 import android.app.Application
 import com.jiyingcao.a51fengliu.ActivityManager.activityLifecycleCallbacks
+import com.jiyingcao.a51fengliu.config.AppConfig
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager
 import com.jiyingcao.a51fengliu.ui.common.RemoteLoginActivity
 import kotlinx.coroutines.CoroutineScope
@@ -19,6 +20,7 @@ class App: Application() {
         super.onCreate()
         INSTANCE = this
 
+        AppConfig.init(this)
         registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
         registerActivityLifecycleCallbacks(EdgeToEdgeWindowInsetsCallbacks)
         initRemoteLoginHandler()

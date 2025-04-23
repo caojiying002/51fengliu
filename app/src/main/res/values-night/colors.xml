@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 夜间模式基础颜色 -->
+    <color name="background">#121212</color>
+    <color name="primary">#ff6cab</color>  <!-- 稍微亮一点的粉色，在暗背景上更醒目 -->
+
+    <!-- 夜间模式文字颜色 -->
+    <color name="on_primary">#000000</color>
+    <color name="on_background">#e1e1e1</color>
+
+    <!-- 其他夜间模式颜色 -->
+    <color name="surface">#1e1e1e</color>
+    <color name="on_surface">#e1e1e1</color>
+</resources>

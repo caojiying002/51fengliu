@@ -1,8 +1,37 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.App" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
+        <!-- 主要颜色设置 -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@color/on_primary</item>
+
+        <!-- 背景颜色设置 -->
+        <item name="android:colorBackground">@color/background</item>
+        <item name="colorOnBackground">@color/on_background</item>
+
+        <!-- 表面颜色设置 -->
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/on_surface</item>
+
+        <!-- 状态栏和导航栏设置 - 夜间模式下使用深色 -->
+        <item name="android:statusBarColor">@color/background</item>
+        <item name="android:navigationBarColor">@color/background</item>
+
+        <!-- 夜间模式下状态栏图标应为浅色 -->
+        <item name="android:windowLightStatusBar">false</item>
+
+        <!-- Material 3 组件颜色设置 -->
+        <item name="colorPrimaryContainer">#3d3a3d</item>  <!-- 更深的容器颜色 -->
+        <item name="colorOnPrimaryContainer">#ffd7eb</item>  <!-- 更亮的文本颜色 -->
+        <item name="colorSecondaryContainer">#3d3a3d</item>
+        <item name="colorOnSecondaryContainer">#ffd7eb</item>
+
+        <!-- 项目并没有使用Toolbar或者ActionBar，这两个样式设置不会产生任何效果，也不会造成任何问题 -->
+        <item name="toolbarStyle">@style/Widget.Material3.Toolbar</item>
+        <item name="actionBarStyle">@style/Widget.Material3.ActionBar.Solid</item>
+
+        <!-- 这两个传统属性增强兼容性，特别是在应用启动和使用旧UI组件时 -->
         <item name="android:windowBackground">@color/background</item>
-        <item name="colorPrimary">@color/dark_primary</item>
+        <item name="android:textColorPrimary">@color/on_background</item>
     </style>
 </resources>

@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="8dp"
     android:layout_marginVertical="@dimen/divider_height_half"
-    android:background="@drawable/corner_solid_white_no_padding" >
+    android:background="@drawable/cornered_surface_no_padding" >
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/itemContent"

@@ -2,7 +2,7 @@
 <resources>
     <!-- 夜间模式基础颜色 -->
     <color name="background">#121212</color>
-    <color name="primary">#ff6cab</color>  <!-- 稍微亮一点的粉色，在暗背景上更醒目 -->
+    <color name="primary">#ff6cab</color><!-- 稍微亮一点的粉色，在暗背景上更醒目 -->
 
     <!-- 夜间模式文字颜色 -->
     <color name="on_primary">#000000</color>
@@ -17,4 +17,6 @@
     <color name="text_content">#cccccc</color>
     <color name="text_light">#a0a0a0</color><!-- 用于发布时间等次要信息 -->
     <color name="text_strong">@color/primary</color>
+    <color name="text_item_title">#f0f0f0</color><!-- 用于列表项标题，比on_surface稍亮但不是纯白 -->
+    <color name="text_price">@color/white</color><!-- 价格使用纯白色，突出显示 -->
 </resources>

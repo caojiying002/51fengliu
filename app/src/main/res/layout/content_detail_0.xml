@@ -19,7 +19,7 @@
             android:layout_marginHorizontal="@dimen/default_horizontal_space"
             android:layout_marginTop="0dp"
             android:layout_marginBottom="@dimen/divider_height_half"
-            android:background="@drawable/corner_solid_white_no_padding"
+            android:background="@drawable/cornered_surface_no_padding"
             android:paddingVertical="8dp"
             android:paddingHorizontal="8dp"
             app:layout_constraintTop_toTopOf="parent">
@@ -106,7 +106,7 @@
             android:layout_marginVertical="@dimen/divider_height_half"
             android:paddingTop="8dp"
             android:paddingBottom="10dp"
-            android:background="@drawable/corner_solid_white_no_padding">
+            android:background="@drawable/cornered_surface_no_padding">
 
             <TextView
                 android:id="@+id/title"
@@ -353,7 +353,7 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/default_horizontal_space"
             android:layout_marginVertical="@dimen/divider_height_half"
-            android:background="@drawable/corner_solid_white_padding"
+            android:background="@drawable/cornered_surface_white_padding"
             android:lineSpacingExtra="0dp"
             android:textSize="@dimen/text_default"
             android:textColor="@color/text_warning_yellow"
@@ -394,7 +394,7 @@
             android:layout_marginBottom="2dp"
             android:textSize="@dimen/text_default"
             android:textColor="@color/text_content"
-            android:background="@drawable/corner_solid_white_padding"
+            android:background="@drawable/cornered_surface_white_padding"
             tools:text="整体能打个9分吧，长得比我还高一点，估计有170以上，身材高挑，腿细长细长的，技术一般以上，综合性价比挺高的，喜欢身材好的可以约" />
 
         <Space

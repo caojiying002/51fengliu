@@ -4,23 +4,29 @@
         <!-- 主要颜色设置 -->
         <item name="colorPrimary">@color/primary</item>
         <item name="colorOnPrimary">@color/on_primary</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/on_surface</item>
 
         <!-- 背景颜色设置 -->
         <item name="android:colorBackground">@color/background</item>
         <item name="colorOnBackground">@color/on_background</item>
 
-        <!-- 表面颜色设置 -->
-        <item name="colorSurface">@color/surface</item>
-        <item name="colorOnSurface">@color/on_surface</item>
-
         <!-- 状态栏和导航栏设置 -->
         <item name="android:statusBarColor">@color/background</item>
         <item name="android:navigationBarColor">@color/background</item>
 
+        <!-- 这两个传统属性增强兼容性，特别是在应用启动和使用旧UI组件时 -->
+        <item name="android:windowBackground">@color/background</item>
+        <item name="android:textColorPrimary">@color/on_background</item>
+
         <!-- 确保状态栏图标在浅色背景上显示为深色 -->
         <item name="android:windowLightStatusBar">true</item>
 
-        <!-- Material 3 组件颜色设置 -->
+        <!-- 自定义 Material 3 颜色 -->
+        <item name="colorError">@color/error</item>
+        <item name="colorOutline">@color/outline</item>
+
+        <!-- 其他 Material 3 组件颜色设置 -->
         <item name="colorPrimaryContainer">@color/background</item>
         <item name="colorOnPrimaryContainer">@color/on_background</item>
         <item name="colorSecondaryContainer">@color/background</item>
@@ -29,14 +35,6 @@
         <!-- 项目并没有使用Toolbar或者ActionBar，这两个样式设置不会产生任何效果，也不会造成任何问题 -->
         <item name="toolbarStyle">@style/Widget.Material3.Toolbar</item>
         <item name="actionBarStyle">@style/Widget.Material3.ActionBar.Solid</item>
-
-        <!-- 这两个传统属性增强兼容性，特别是在应用启动和使用旧UI组件时 -->
-        <item name="android:windowBackground">@color/background</item>
-        <item name="android:textColorPrimary">@color/on_background</item>
-
-        <!-- 自定义 Material 3 颜色 -->
-        <item name="colorError">@color/md_theme_error</item>
-        <item name="colorOutline">@color/md_theme_outline</item>
 
         <!-- 输入框错误文本样式 -->
         <item name="textInputStyle">@style/Widget.App.TextInputLayout</item>

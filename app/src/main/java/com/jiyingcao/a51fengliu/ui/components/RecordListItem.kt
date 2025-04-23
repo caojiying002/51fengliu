@@ -70,7 +70,7 @@ fun RecordListItem(
             Text(
                 text = createTime,
                 style = MaterialTheme.typography.bodySmall.copy(
-                    color = Color(0xFF999999), // @color/text_weak
+                    color = Color(0xFFA3A3A3), // @color/text_light
                     fontSize = 12.sp
                 ),
                 maxLines = 1
@@ -79,7 +79,7 @@ fun RecordListItem(
             Text(
                 text = process,
                 style = MaterialTheme.typography.bodyMedium.copy(
-                    color = Color(0xFF666666), // @color/text_default
+                    color = Color(0xFF525252), // @color/text_content
                     fontSize = 14.sp
                 ),
                 maxLines = 2

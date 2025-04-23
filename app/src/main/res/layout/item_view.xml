@@ -87,6 +87,7 @@
             android:textColor="@color/primary"
             android:textSize="@dimen/text_default"
             app:drawableLeftCompat="@drawable/icon_dz"
+            app:drawableTint="@color/primary"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/itemProcess"
             tools:text="广东-深圳市"

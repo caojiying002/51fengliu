@@ -63,7 +63,7 @@
                     android:paddingEnd="12dp"
                     android:singleLine="true"
                     android:textColor="@color/text_item_title"
-                    android:textColorHint="@color/text_default"
+                    android:textColorHint="@color/outline"
                     android:textCursorDrawable="@drawable/cursor_strong"
                     android:textSize="18dp" />
 

@@ -24,9 +24,6 @@ val MdThemeError = Color(0xFFD32F2F)
 //val DarkPrimary = Color(0xFFF5F5F5)
 
 val TextStrong = Color(0xFFEC4899)
-val TextDefault = Color(0xFF666666)
-val TextDarkGray = Color(0xFF333333)
-val TextLightGray = Color(0xFF999999)
 
 val Divider = Color(0xFFEEEEEE)
 

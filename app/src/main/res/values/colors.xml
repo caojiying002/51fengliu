@@ -13,7 +13,7 @@
 
     <!-- 其他可能需要的颜色 -->
     <color name="surface">#ffffff</color>
-    <color name="on_surface">#262626</color><!-- #1c1b1f -->
+    <color name="on_surface">#222222</color><!-- #1c1b1f -->
 
     <color name="md_theme_primary">#ec4899</color>
     <color name="md_theme_outline">#666666</color>
@@ -28,10 +28,10 @@
 
     <!-- 文字颜色 -->
     <color name="main_tab_default">#424242</color>
-    <color name="text_item_title">@color/on_surface</color><!-- 用于列表项标题 -->
-    <color name="text_title">#222222</color><!-- 用于详情页标题 -->
+    <color name="text_title">@color/on_surface</color><!-- 用于详情页标题 -->
     <color name="text_content">#525252</color>
     <color name="text_light">#a3a3a3</color><!-- 用于发布时间等次要信息 -->
+    <color name="text_item_title">#262626</color><!-- 用于列表项标题 -->
     <color name="text_price">@color/black</color><!-- 价格使用纯黑色 -->
     <color name="text_warning_yellow">#de983f</color>
 

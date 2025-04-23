@@ -5,22 +5,22 @@
     android:viewportWidth="200"
     android:viewportHeight="150">
     
-    <!-- Background with rounded corners -->
+    <!-- Background with rounded corners - keeping background color -->
     <path
-        android:fillColor="#f5f5f5"
+        android:fillColor="@color/background"
         android:pathData="M8,0L192,0A8,8 0,0 1,200 8L200,142A8,8 0,0 1,192 150L8,150A8,8 0,0 1,0 142L0,8A8,8 0,0 1,8 0z" />
     
-    <!-- Broken image icon -->
+    <!-- Broken image icon - using text_light color for visibility in both themes -->
     <path
-        android:fillColor="#CCCCCC"
+        android:fillColor="@color/text_light"
         android:pathData="M110,30 L160,30 L160,100 L130,70 L110,90 Z" />
     <path
-        android:fillColor="#CCCCCC"
+        android:fillColor="@color/text_light"
         android:pathData="M40,50 L90,50 L105,70 L85,90 L40,120 Z" />
     <path
-        android:fillColor="#CCCCCC"
+        android:fillColor="@color/text_light"
         android:pathData="M40,30 L95,30 L75,50 L40,50 Z" />
     <path
-        android:fillColor="#CCCCCC"
+        android:fillColor="@color/text_light"
         android:pathData="M110,90 L130,110 L110,120 L90,120 L70,100 L90,90 Z" />
 </vector>

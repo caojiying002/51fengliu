@@ -61,7 +61,7 @@ fun RecordListItem(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium.copy(
-                    color = Color(0xFF222222), // @color/text_strong
+                    color = Color(0xFF222222), // @color/text_item_title
                     fontWeight = FontWeight.Bold
                 ),
                 maxLines = 1
@@ -97,7 +97,7 @@ fun RecordListItem(
                 Text(
                     text = dz,
                     style = MaterialTheme.typography.bodySmall.copy(
-                        color = Color(0xFF222222), // @color/text_strong
+                        color = Color(0xFFEC4899), // @color/primary
                         fontSize = 14.sp
                     ),
                     maxLines = 1

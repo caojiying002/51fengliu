@@ -21,10 +21,10 @@
             android:gravity="center_vertical"
             android:text="选择地区"
             android:textSize="18dp"
-            android:textColor="@color/text_strong"
+            android:textColor="@color/primary"
             android:drawablePadding="10dp"
-            android:drawableEnd="@drawable/expand_down"
-            android:drawableTint="@color/text_strong" />
+            app:drawableEndCompat="@drawable/expand_down"
+            app:drawableTint="@color/primary" />
 
     </FrameLayout>
 
@@ -32,7 +32,7 @@
         android:id="@+id/tabLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:tabTextColor="@color/text_strong"
+        app:tabTextColor="@color/primary"
         android:background="@color/surface" />
 
     <androidx.viewpager2.widget.ViewPager2

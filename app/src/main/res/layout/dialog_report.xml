@@ -18,7 +18,7 @@
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:text="我要举报"
-            android:textColor="@color/text_strong"
+            android:textColor="@color/primary"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -89,9 +89,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="120dp"
                     android:gravity="top"
-                    android:inputType="textMultiLine"
-                    android:textColor="@color/text_strong"
-                    android:textSize="16sp" />
+                    android:inputType="textMultiLine" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- 上传图片区域 -->

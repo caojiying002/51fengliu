@@ -16,7 +16,6 @@
     <color name="text_title">@color/on_surface</color><!-- 用于详情页标题 -->
     <color name="text_content">#cccccc</color>
     <color name="text_light">#a0a0a0</color><!-- 用于发布时间等次要信息 -->
-    <color name="text_strong">@color/primary</color>
     <color name="text_item_title">#f0f0f0</color><!-- 用于列表项标题，比on_surface稍亮但不是纯白 -->
     <color name="text_price">@color/white</color><!-- 价格使用纯白色，突出显示 -->
 

@@ -212,7 +212,7 @@ class LoginFragment : BaseFragment() {
         // 设置颜色和点击
         spannableString.apply {
             setSpan(
-                ForegroundColorSpan(textView.context.getColor(R.color.text_strong)),
+                ForegroundColorSpan(textView.context.getColor(R.color.primary)),
                 start,
                 end,
                 SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE

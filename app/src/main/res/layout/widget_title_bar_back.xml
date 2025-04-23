@@ -22,10 +22,10 @@
             android:gravity="center_vertical"
             android:text="返回"
             android:textSize="18dp"
-            android:textColor="@color/text_strong"
+            android:textColor="@color/primary"
             android:drawablePadding="8dp"
             android:drawableStart="@drawable/ic_back"
-            android:drawableTint="@color/text_strong" />
+            android:drawableTint="@color/primary" />
     </FrameLayout>
 
 </LinearLayout>

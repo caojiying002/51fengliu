@@ -224,7 +224,7 @@ class ProfileFragment : Fragment() {
             if (profile.isVip == true) {
                 titleText.text = getString(R.string.vip_welcome)
                 membershipStatus.text = "VIP会员"
-                membershipStatus.setTextColor(resources.getColor(R.color.text_strong, context?.theme))
+                membershipStatus.setTextColor(resources.getColor(R.color.primary, context?.theme))
 
                 permanentMemberGroup.isVisible = true
                 normalMemberGroup.isVisible = false

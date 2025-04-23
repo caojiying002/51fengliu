@@ -19,7 +19,6 @@
     <color name="md_theme_outline">#666666</color>
     <color name="md_theme_error">#d32f2f</color>
 
-    <color name="text_strong">@color/md_theme_primary</color>
     <color name="text_default">#666666</color>
     <color name="text_dark_gray">#333333</color>
     <color name="text_light_gray">#999999</color>

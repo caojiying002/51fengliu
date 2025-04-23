@@ -19,4 +19,7 @@
     <color name="text_strong">@color/primary</color>
     <color name="text_item_title">#f0f0f0</color><!-- 用于列表项标题，比on_surface稍亮但不是纯白 -->
     <color name="text_price">@color/white</color><!-- 价格使用纯白色，突出显示 -->
+
+    <!-- 分隔线 -->
+    <color name="divider">#383838</color>
 </resources>

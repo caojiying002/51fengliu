@@ -8,7 +8,13 @@
     <color name="on_primary">#000000</color>
     <color name="on_background">#e1e1e1</color>
 
-    <!-- 其他夜间模式颜色 -->
-    <color name="surface">#1e1e1e</color>
-    <color name="on_surface">#e1e1e1</color>
+    <!-- 其他夜间模式颜色 - 增强对比度 -->
+    <color name="surface">#2a2a2a</color>
+    <color name="on_surface">#e6e6e6</color>
+
+    <!-- 文字颜色 -->
+    <color name="text_item_title">@color/on_surface</color><!-- 用于列表项标题 -->
+    <color name="text_content">#cccccc</color>
+    <color name="text_light">#a0a0a0</color><!-- 用于发布时间等次要信息 -->
+    <color name="text_strong">@color/primary</color>
 </resources>

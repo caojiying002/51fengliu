@@ -17,7 +17,7 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/white">
+        android:background="@color/surface">
 
         <com.jiyingcao.a51fengliu.ui.widget.KeyboardDismissFrameLayout
             android:id="@+id/keyboard_dismiss_layout"
@@ -217,8 +217,13 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingVertical="20dp"
-                    android:layout_marginBottom="32dp"
+                    android:layout_marginBottom="8dp"
                     android:text="提交" />
+
+                <Space
+                    android:id="@id/system_bottom_bar_space"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp" />
 
             </LinearLayout>
         </com.jiyingcao.a51fengliu.ui.widget.KeyboardDismissFrameLayout>

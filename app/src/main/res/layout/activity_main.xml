@@ -23,7 +23,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:background="#FFFFFF" >
+        android:background="@color/surface" >
 
         <LinearLayout
             android:id="@+id/real_bottom_navigation_area"

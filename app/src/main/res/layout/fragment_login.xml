@@ -17,7 +17,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="@color/white">
+        android:background="@color/surface">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -111,7 +111,7 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginBottom="12dp"
                 android:textSize="@dimen/text_default"
-                android:textColorLink="@color/text_strong"
+                android:textColorLink="@color/primary"
                 android:textColorHighlight="@android:color/transparent"
                 tools:text="您还不是51风流会员，立即注册" />
 
@@ -122,7 +122,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:textSize="@dimen/text_default"
-                android:textColorLink="@color/text_strong"
+                android:textColorLink="@color/primary"
                 android:textColorHighlight="@android:color/transparent"
                 tools:text="忘记密码，点此找回" />
 

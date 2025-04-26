@@ -1,14 +1,37 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <style name="Base.Theme.App" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Only override what's different in dark mode -->
+        <!-- Keep ALL these attributes for proper dark theme initialization -->
+        <!-- 主要颜色设置 -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@color/on_primary</item>
+        <item name="colorPrimaryInverse">@color/primary</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/on_surface</item>
+        <item name="colorSurfaceVariant">@color/surface</item>
 
-        <!-- 夜间模式下状态栏图标应为浅色 -->
+        <!-- 背景颜色设置 -->
+        <item name="android:colorBackground">@color/background</item>
+        <item name="colorOnBackground">@color/on_background</item>
+
+        <!-- 状态栏和导航栏设置 -->
+        <item name="android:statusBarColor">@color/background</item>
+        <item name="android:navigationBarColor">@color/background</item>
+
+        <!-- 这两个传统属性增强兼容性，特别是在应用启动和使用旧UI组件时 -->
+        <item name="android:windowBackground">@color/background</item>
+        <item name="android:textColorPrimary">@color/on_background</item>
+
+        <!-- 确保状态栏图标在深色背景上显示为浅色 -->
         <item name="android:windowLightStatusBar">false</item>
 
-        <!-- Material 3 组件颜色设置 -->
-        <item name="colorPrimaryContainer">#3d3a3d</item>
-        <item name="colorOnPrimaryContainer">#ffd7eb</item>
-        <item name="colorSecondaryContainer">#3d3a3d</item>
-        <item name="colorOnSecondaryContainer">#ffd7eb</item>
+        <!-- 自定义 Material 3 颜色 -->
+        <item name="colorError">@color/error</item>
+        <item name="colorOutline">@color/outline</item>
+
+        <!-- 其他 Material 3 组件颜色设置 -->
+        <item name="colorPrimaryContainer">@color/background</item>
+        <item name="colorOnPrimaryContainer">@color/on_background</item>
+        <item name="colorSecondaryContainer">@color/background</item>
+        <item name="colorOnSecondaryContainer">@color/on_background</item>
     </style>
 </resources>

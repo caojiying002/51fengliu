@@ -8,44 +8,51 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val LightColorScheme = lightColorScheme(
-    //primary = Purple40,
+    // Primary colors
+    primary = Primary,
+    onPrimary = Color.White,
+    primaryContainer = Background,
+    onPrimaryContainer = OnBackground,
+    
+    // Background and surface colors
+    background = Background,
+    onBackground = OnBackground,
+    surface = Surface,
+    onSurface = OnSurface,
+    surfaceVariant = Surface,
+    onSurfaceVariant = OnSurface,
+    
+    // Secondary colors (keeping some original colors)
     secondary = PurpleGrey40,
     tertiary = Pink40,
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
-    primary = MdThemePrimary,
-    onPrimary = Color.White,
-    background = Background,
-    onBackground = Color.Black,
-    error = MdThemeError,
-    outline = MdThemeOutline,
-    surface = Color.White,
-    onSurface = Color.Black,
-    // 可根据需要继续补充
+    
+    // Other important colors
+    error = Error,
+    outline = Outline,
 )
 
 private val DarkColorScheme = darkColorScheme(
-    //primary = Purple80,
+    // Primary colors
+    primary = PrimaryDark,
+    onPrimary = Color.Black,
+    primaryContainer = BackgroundDark,
+    onPrimaryContainer = OnBackgroundDark,
+    
+    // Background and surface colors
+    background = BackgroundDark,
+    onBackground = OnBackgroundDark,
+    surface = SurfaceDark,
+    onSurface = OnSurfaceDark,
+    surfaceVariant = SurfaceDark,
+    onSurfaceVariant = OnSurfaceDark,
+    
+    // Secondary colors (keeping some original colors)
     secondary = PurpleGrey80,
     tertiary = Pink80,
-
-    primary = MdThemePrimary,
-    onPrimary = Color.Black,
-    background = Background,
-    onBackground = Color.White,
-    error = MdThemeError,
-    outline = MdThemeOutline,
-    surface = Color.Black,
-    onSurface = Color.White,
-    // 可根据需要继续补充
+    
+    // Other important colors
+    error = ErrorDark,
+    outline = OutlineDark,
 )
 
 @Composable
@@ -60,7 +67,6 @@ fun AppTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }

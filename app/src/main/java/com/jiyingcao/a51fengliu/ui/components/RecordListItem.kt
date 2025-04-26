@@ -28,7 +28,7 @@ import coil3.compose.AsyncImage
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.ui.theme.TextContent
 import com.jiyingcao.a51fengliu.ui.theme.TextItemTitle
-import com.jiyingcao.a51fengliu.ui.theme.TextStrong
+import com.jiyingcao.a51fengliu.ui.theme.Primary
 
 @Composable
 fun RecordListItem(

@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.ui.theme.AppTheme
-import com.jiyingcao.a51fengliu.ui.theme.TextStrong
+import com.jiyingcao.a51fengliu.ui.theme.Primary
 import com.jiyingcao.a51fengliu.ui.theme.TitleBarBackTextSize
 import com.jiyingcao.a51fengliu.ui.theme.ToolbarHeight
 import com.jiyingcao.a51fengliu.ui.theme.spacingLarge
@@ -40,14 +40,14 @@ fun TitleBarBack(
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.ic_back),
                 contentDescription = text,
-                tint = TextStrong,
+                tint = Primary,
                 modifier = Modifier
                     .size(24.dp)
                     .padding(end = 8.dp)
             )
             Text(
                 text = text,
-                color = TextStrong,
+                color = Primary,
                 fontSize = 18.sp,
                 textAlign = TextAlign.Center
             )

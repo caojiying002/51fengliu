@@ -42,16 +42,6 @@
         <item name="textInputStyle">@style/Widget.App.TextInputLayout</item>
     </style>
 
-    <style name="Widget.App.TextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">
-        <!-- 自定义错误文本外观 -->
-        <item name="errorTextAppearance">@style/TextAppearance.App.Error</item>
-    </style>
-
-    <style name="TextAppearance.App.Error" parent="TextAppearance.Material3.BodySmall">
-        <item name="android:textColor">?attr/colorError</item>
-        <item name="android:textSize">14dp</item>
-    </style>
-
     <style name="Theme.App" parent="Base.Theme.App" />
 
     <style name="Theme.App.Fullscreen" parent="Base.Theme.App">

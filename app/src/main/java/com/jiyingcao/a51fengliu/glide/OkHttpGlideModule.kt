@@ -15,7 +15,8 @@ import java.util.concurrent.TimeUnit.SECONDS
 
 private const val DEBUG_IMAGE_LOADING = false
 
-private const val USER_AGENT = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36"
+private const val REFERER = "https://ysalgfhqd3.com"
+private const val USER_AGENT = "Dart/3.0 (dart:io)"
 // User-Agent on Firefox, Windows
 // "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
 
@@ -36,7 +37,7 @@ class OkHttpGlideModule: AppGlideModule() {
                 // if (originalRequest.url.toString().startsWith(BASE_IMAGE_URL))
                 val originalRequest = chain.request()
                 val requestWithHeaders = originalRequest.newBuilder()
-                    .header("Referer", BASE_URL)
+                    .header("Referer", REFERER)
                     .header("User-Agent", USER_AGENT)
                     .build()
                 return@addInterceptor chain.proceed(requestWithHeaders)

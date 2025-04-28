@@ -13,7 +13,7 @@ private val DEBUG_HTTP: Boolean = (true)
 private val USE_DEBUG_TOKEN: Boolean = (false)
 private val DEBUG_TOKEN: String = ""
 
-const val BASE_URL = "https://127hei.info/" //"https://127can.info/" //"https://910.da576.xyz/"
+const val BASE_URL = "https://1c802685d.n5api.xyz"  //"https://127hei.info"  //"https://131bai.cc" //"https://127can.info/"
 
 object RetrofitClient {
 
@@ -39,6 +39,12 @@ object RetrofitClient {
                     )
                 }
             )
+            .addInterceptor { chain ->
+                val requestWithHeaders = chain.request().newBuilder()
+                    .header("User-Agent", "Dart/3.0 (dart:io)")
+                    .build()
+                return@addInterceptor chain.proceed(requestWithHeaders)
+            }
             .connectTimeout(15, SECONDS)
             .readTimeout(15, SECONDS)
             .writeTimeout(15, SECONDS)

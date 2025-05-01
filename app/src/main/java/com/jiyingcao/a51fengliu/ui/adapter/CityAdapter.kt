@@ -13,12 +13,15 @@ class CityAdapter : ListAdapter<City, CityAdapter.CityViewHolder>(CityDiffCallba
 
     private var onItemClickListener: ((View, Int) -> Unit)? = null
 
-    inner class CityViewHolder(private val binding: ItemCityBinding) : RecyclerView.ViewHolder(binding.root) {
+    class CityViewHolder(
+        private val binding: ItemCityBinding,
+        private val adapter: CityAdapter
+    ) : RecyclerView.ViewHolder(binding.root) {
         init {
             itemView.setOnClickListener { view ->
                 val position = bindingAdapterPosition
                 if (position != RecyclerView.NO_POSITION) {
-                    onItemClickListener?.invoke(view, position)
+                    adapter.onItemClickListener?.invoke(view, position)
                 }
             }
         }
@@ -30,7 +33,7 @@ class CityAdapter : ListAdapter<City, CityAdapter.CityViewHolder>(CityDiffCallba
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CityViewHolder {
         val binding = ItemCityBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return CityViewHolder(binding)
+        return CityViewHolder(binding, this)
     }
 
     override fun onBindViewHolder(holder: CityViewHolder, position: Int) {

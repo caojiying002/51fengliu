@@ -146,13 +146,12 @@ class CityRecordsSubFragment : Fragment() {
         // 监听记录数据
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.records.collect { records ->
-                // 使用BRVAH的普通方法设置列表数据，无法使用回调
-                recordAdapter.submitList(records)
-                
-                // 如果需要重置滚动位置（切换过城市），则滚动到顶部
-                if (shouldResetScroll) {
-                    recyclerView.scrollToPosition(0)
-                    shouldResetScroll = false
+                recordAdapter.submitList(records) {
+                    // 如果需要重置滚动位置（切换过城市），则滚动到顶部
+                    if (shouldResetScroll) {
+                        recyclerView.scrollToPosition(0)
+                        shouldResetScroll = false
+                    }
                 }
                 
                 // 如果没有数据，显示空状态

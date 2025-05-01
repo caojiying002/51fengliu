@@ -142,8 +142,12 @@ class SearchActivity: BaseActivity() {
     }
 
     private fun updateRecords(records: List<RecordInfo>) {
-        recordAdapter.submitList(records)
-        recyclerView.scrollToTopIfEmpty(records)
+        recordAdapter.submitList(records) {
+            // 如果数据列表为空，将RecyclerView滚动到最顶端
+            if (records.isEmpty()) {
+                recyclerView.scrollToPosition(0)
+            }
+        }
 
         // 如果没有数据，显示空状态
         if (records.isEmpty()) {

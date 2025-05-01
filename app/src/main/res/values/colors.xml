@@ -19,6 +19,7 @@
 
     <!-- 分隔线 -->
     <color name="divider">#eeeeee</color>
+    <color name="item_pressed">@color/divider</color>
 
     <!-- 文字颜色 -->
     <color name="text_title">@color/on_surface</color><!-- 用于详情页标题 -->

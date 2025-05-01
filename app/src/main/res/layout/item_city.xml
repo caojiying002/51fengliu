@@ -9,7 +9,9 @@
     android:paddingHorizontal="@dimen/default_horizontal_space"
     android:gravity="start|center_vertical"
     android:lines="1"
-    android:background="@color/surface"
+    android:background="@drawable/selector_item_background"
     android:textColor="@color/text_content"
     android:textSize="15dp"
+    android:clickable="true"
+    android:focusable="true"
     tools:text="北京市" />

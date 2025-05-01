@@ -24,6 +24,7 @@
 
     <!-- 分隔线 -->
     <color name="divider">#383838</color>
+    <color name="item_pressed">@color/divider</color>
 
     <!-- 图标颜色 -->
     <color name="icon_search_default">#b0b0b0</color>

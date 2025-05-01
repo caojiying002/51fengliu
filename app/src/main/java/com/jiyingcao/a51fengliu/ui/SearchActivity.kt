@@ -214,10 +214,8 @@ class SearchActivity: BaseActivity() {
 
     private fun setupRecyclerView() {
         recordAdapter = RecordAdapter().apply {
-            setOnItemClickListener { _, _, position ->
-                this.getItem(position)?.let {
-                    DetailActivity.start(context, it.id)
-                }
+            setOnItemClickListener { record, position ->
+                DetailActivity.start(this@SearchActivity, record.id)
             }
         }
         recyclerView.apply {

@@ -482,11 +482,13 @@ class DetailActivity : BaseActivity() {
         private const val KEY_EXTRA_RECORD_ID = "RECORD_ID"
 
         @JvmStatic
+        fun createIntent(context: Context, id: String): Intent =
+            Intent(context, DetailActivity::class.java)
+                .putExtra(KEY_EXTRA_RECORD_ID, id)
+
+        @JvmStatic
         fun start(context: Context, id: String) {
-            val intent = Intent(context, DetailActivity::class.java).apply {
-                putExtra(KEY_EXTRA_RECORD_ID, id)
-            }
-            context.startActivity(intent)
+            context.startActivity(createIntent(context, id))
         }
 
         private fun Intent.getRecordId(): String? = getStringExtra(KEY_EXTRA_RECORD_ID)

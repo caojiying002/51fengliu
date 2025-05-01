@@ -57,10 +57,8 @@ class FavoriteActivity : BaseActivity() {
 
     private fun setupRecyclerView() {
         recordAdapter = RecordAdapter().apply {
-            setOnItemClickListener { _, _, position ->
-                getItem(position)?.let {
-                    DetailActivity.start(context, it.id)
-                }
+            setOnItemClickListener { record, position ->
+                DetailActivity.start(this@FavoriteActivity, record.id)
             }
         }
         

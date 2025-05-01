@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 /**
  * 全局登录状态变化事件
@@ -57,14 +58,19 @@ class LoginStateManager private constructor(private val tokenManager: TokenManag
      * true: 已登录
      * false: 未登录
      */
-    val isLoggedIn: StateFlow<Boolean> = tokenManager.token
-        .map { !it.isNullOrBlank() }
-        .distinctUntilChanged()
-        .stateIn(
-            scope = managerScope,
-            started = SharingStarted.Eagerly,
-            initialValue = false
-        )
+    val isLoggedIn: StateFlow<Boolean> = runBlocking {
+        // 用正确的值初始化isLoggedIn流
+        val initialValue = !tokenManager.getToken().isNullOrBlank()
+        
+        tokenManager.token
+            .map { !it.isNullOrBlank() }
+            .distinctUntilChanged()
+            .stateIn(
+                scope = managerScope,
+                started = SharingStarted.Eagerly,
+                initialValue = initialValue
+            )
+    }
 
     /**
      * 登录事件流 - 可用于接收登录/登出事件

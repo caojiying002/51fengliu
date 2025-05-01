@@ -49,6 +49,30 @@ class ViewPager2NestedScrollingLayout @JvmOverloads constructor(
         // 方向判断的阈值系数，用于确定垂直或水平滑动
         // Direction determination threshold coefficient, used to determine vertical or horizontal scrolling
         private const val DIRECTION_DETERMINATION_FACTOR = 1.2f
+        
+        // 默认禁用调试日志
+        // Debug logs disabled by default
+        private var debugLogsEnabled = false
+        
+        /**
+         * 设置是否启用调试日志
+         * Enable or disable debug logging
+         * 
+         * @param enabled true to enable debug logs, false to disable
+         */
+        fun setDebugLogsEnabled(enabled: Boolean) {
+            debugLogsEnabled = enabled
+        }
+        
+        /**
+         * 内部日志打印方法
+         * Internal logging method
+         */
+        private fun log(message: String) {
+            if (debugLogsEnabled) {
+                Log.d(TAG, message)
+            }
+        }
     }
 
     // 触摸阈值，滑动必须超过这个距离才被视为有效滑动
@@ -165,11 +189,11 @@ class ViewPager2NestedScrollingLayout @JvmOverloads constructor(
                         if (abs(biasedDiffY) > abs(diffX) || abs(deltaY) > abs(deltaX) * DIRECTION_DETERMINATION_FACTOR) {
                             isVerticalScrolling = true
                             viewPager?.isUserInputEnabled = false
-                            Log.d(TAG, "检测到垂直滚动，禁用 ViewPager2")
+                            log("检测到垂直滚动，禁用 ViewPager2")
                         } else if (abs(diffX) > abs(diffY) * DIRECTION_DETERMINATION_FACTOR) {
                             isHorizontalScrolling = true
                             viewPager?.isUserInputEnabled = true
-                            Log.d(TAG, "检测到水平滚动，启用 ViewPager2")
+                            log("检测到水平滚动，启用 ViewPager2")
                         }
                     }
                 }

@@ -118,7 +118,7 @@ class CityRecordsSubFragment : Fragment() {
         // 监听选择的城市
         viewLifecycleOwner.lifecycleScope.launch {
             selectedCityViewModel.selectedCity.collect { cityCode ->
-                AppLogger.d(TAG, "City code selected: $cityCode")
+                AppLogger.d(TAG, "$TAG@${this@CityRecordsSubFragment.hashCode()}: city code selected: $cityCode")
                 cityCode?.let {
                     // StateFlow保证值不会重复发射，所以每次收到新的城市代码时都需要重置滚动
                     shouldResetScroll = true

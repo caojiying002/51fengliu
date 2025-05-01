@@ -13,7 +13,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.databinding.ActivityChooseCityBinding
 import com.jiyingcao.a51fengliu.ui.adapter.CityAdapter
-import com.jiyingcao.a51fengliu.ui.adapter.CityAdapter2
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.util.City
 import com.jiyingcao.a51fengliu.util.provinceList
@@ -26,7 +25,7 @@ import kotlinx.coroutines.launch
 class ChooseCityActivity: BaseActivity() {
     private lateinit var binding: ActivityChooseCityBinding
 
-    private lateinit var cityAdapter: CityAdapter2
+    private lateinit var cityAdapter: CityAdapter
 
     /** 省级列表的滚动位置，点击进入市级列表时保存，从市级列表返回时恢复滚动位置 */
     private var provinceScrollPosition = 0
@@ -63,7 +62,7 @@ class ChooseCityActivity: BaseActivity() {
     }
 
     private fun setupRecyclerView() {
-        cityAdapter = CityAdapter2().apply {
+        cityAdapter = CityAdapter().apply {
             setOnItemClickListener { _, position ->
                 when (viewModel.state.value) {
                     is ChooseCityState.ProvinceList -> {

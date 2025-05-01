@@ -85,7 +85,6 @@ dependencies {
     implementation(libs.smartrefreshlayout.kernel)
     implementation(libs.smartrefreshlayout.header)
     implementation(libs.smartrefreshlayout.footer)
-    implementation(libs.brvah)
     implementation(libs.photoview)
     implementation(libs.flexbox)
     ksp(libs.androidx.room.compiler)

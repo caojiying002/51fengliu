@@ -3,7 +3,6 @@ package com.jiyingcao.a51fengliu.ui
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
@@ -14,6 +13,7 @@ import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.databinding.ActivityChooseCityBinding
 import com.jiyingcao.a51fengliu.ui.adapter.CityAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
+import com.jiyingcao.a51fengliu.util.AppLogger
 import com.jiyingcao.a51fengliu.util.City
 import com.jiyingcao.a51fengliu.util.provinceList
 import com.jiyingcao.a51fengliu.viewmodel.ChooseCityEffect
@@ -135,7 +135,7 @@ class ChooseCityActivity: BaseActivity() {
     }
 
     private fun setResultOkAndFinish(city: City) {
-        Log.d(TAG, "City selected: ${city.name}, code = ${city.code}")
+        AppLogger.d(TAG, "City selected: ${city.name}, code = ${city.code}")
         setResult(RESULT_OK, Intent().apply {
             putExtra("CITY_CODE", city.code)
         })

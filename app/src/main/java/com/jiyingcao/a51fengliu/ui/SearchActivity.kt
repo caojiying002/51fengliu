@@ -3,7 +3,6 @@ package com.jiyingcao.a51fengliu.ui
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,6 +20,7 @@ import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.widget.KeyboardDismissFrameLayout
+import com.jiyingcao.a51fengliu.util.AppLogger
 import com.jiyingcao.a51fengliu.util.ImeUtil
 import com.jiyingcao.a51fengliu.util.scrollToTopIfEmpty
 import com.jiyingcao.a51fengliu.util.showToast
@@ -162,7 +162,7 @@ class SearchActivity: BaseActivity() {
     ) { result ->
         if (result.resultCode == RESULT_OK) {
             val cityCode = result.data?.getStringExtra("CITY_CODE")
-            Log.d("ActivityResultCallback", "City code selected: $cityCode")
+            AppLogger.d("ActivityResultCallback", "City code selected: $cityCode")
 
             displayCity(cityCode)
             cityCode?.let {

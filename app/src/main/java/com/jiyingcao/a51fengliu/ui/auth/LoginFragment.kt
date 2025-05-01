@@ -7,7 +7,6 @@ import android.text.TextPaint
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.text.style.ForegroundColorSpan
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,6 +22,7 @@ import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.databinding.FragmentLoginBinding
 import com.jiyingcao.a51fengliu.repository.UserRepository
 import com.jiyingcao.a51fengliu.ui.base.BaseFragment
+import com.jiyingcao.a51fengliu.util.AppLogger
 import com.jiyingcao.a51fengliu.util.ImeUtil
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.LoginEffect
@@ -152,7 +152,7 @@ class LoginFragment : BaseFragment() {
         // TODO 这里只是为了打印,需要移除
         viewLifecycleOwner.lifecycleScope.launch {
             val savedToken = TokenManager.getInstance().getToken()
-            Log.d(TAG, "登录成功，Token已保存: $savedToken")
+            AppLogger.d(TAG, "登录成功，Token已保存: $savedToken")
         }
         requireActivity().apply {
             showToast("登录成功")

@@ -2,7 +2,6 @@ package com.jiyingcao.a51fengliu.ui.tab
 
 import android.app.Activity.RESULT_OK
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,6 +19,7 @@ import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.ui.ChooseCityActivity
 import com.jiyingcao.a51fengliu.ui.widget.ViewPager2TouchInterceptor
+import com.jiyingcao.a51fengliu.util.AppLogger
 import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.to2LevelName
@@ -75,7 +75,7 @@ class CityRecordsFragment : Fragment() {
         ViewPager2TouchInterceptor.setupNestedScrollableViews(viewPager)
         
         // 日志输出
-        Log.d(TAG, "ViewPager2TouchInterceptor setup complete")
+        AppLogger.d(TAG, "ViewPager2TouchInterceptor setup complete")
     }
 
     override fun onResume() {
@@ -143,7 +143,7 @@ class CityRecordsFragment : Fragment() {
     ) { result ->
         if (result.resultCode == RESULT_OK) {
             val cityCode = result.data?.getStringExtra("CITY_CODE")
-            Log.d("registerForActivityResult", "City code selected: $cityCode")
+            AppLogger.d("registerForActivityResult", "City code selected: $cityCode")
             cityCode?.let {
                 App.INSTANCE.showToast("City code selected: $cityCode")
                 viewModel.setCity(it)

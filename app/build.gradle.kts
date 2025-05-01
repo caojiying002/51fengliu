@@ -13,7 +13,7 @@ android {
     defaultConfig {
         applicationId = "com.jiyingcao.a51fengliu"
         minSdk = 24
-        targetSdk = 32
+        targetSdk = 33
         versionCode = 1
         versionName = "1.0"
 
@@ -37,6 +37,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // 正式打release包不应该用debug版本的keystore，这里只是为了能在Android Studio中运行release包
+            // 有时候需要查看release包运行起来的一些特性，比如日志打印是否隐藏
+            //signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {

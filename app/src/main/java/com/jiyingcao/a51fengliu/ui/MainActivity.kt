@@ -2,7 +2,6 @@ package com.jiyingcao.a51fengliu.ui
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -12,6 +11,7 @@ import androidx.lifecycle.Lifecycle
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.tab.*
+import com.jiyingcao.a51fengliu.util.AppLogger
 
 class MainActivity : BaseActivity() {
 
@@ -61,12 +61,12 @@ class MainActivity : BaseActivity() {
         // 加载相应的 Fragment 并更新 Tab 状态
         loadFragment(currentTabTag)
         updateTabStates(currentTabTag)
-        Log.d("MainActivity", "onCreate() called, this = $this")
+        AppLogger.d("MainActivity", "onCreate() called, this = $this")
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        Log.d("MainActivity", "onNewIntent() called")
+        AppLogger.d("MainActivity", "onNewIntent() called")
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

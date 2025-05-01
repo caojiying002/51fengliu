@@ -1,6 +1,5 @@
 package com.jiyingcao.a51fengliu.api
 
-import android.util.Log
 import com.google.gson.*
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.*
@@ -8,6 +7,7 @@ import com.jiyingcao.a51fengliu.api.response.ApiResponse
 import com.jiyingcao.a51fengliu.api.response.ApiResult
 import com.jiyingcao.a51fengliu.api.response.LoginErrorData
 import com.jiyingcao.a51fengliu.api.response.ReportErrorData
+import com.jiyingcao.a51fengliu.util.AppLogger
 import java.lang.reflect.Type
 
 private const val TAG = "GsonInstance"
@@ -91,10 +91,10 @@ class NullStringToEmptyAdapterFactory : TypeAdapterFactory {
                         if (field.type == String::class.java) {
                             val key = field.name
                             if (!jsonObject.has(key)) {
-                                Log.w(TAG, "Non-exist key: [$key], in JsonObject: $jsonObjectToString")
+                                AppLogger.w(TAG, "Non-exist key: [$key], in JsonObject: $jsonObjectToString")
                                 jsonObject.add(key, JsonPrimitive(""))
                             } else if(jsonObject.get(key).isJsonNull) {
-                                Log.w(TAG, "Null value for key: [$key], in JsonObject: $jsonObjectToString")
+                                AppLogger.w(TAG, "Null value for key: [$key], in JsonObject: $jsonObjectToString")
                                 jsonObject.add(key, JsonPrimitive(""))
                             }
                         }

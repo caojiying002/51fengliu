@@ -1,6 +1,5 @@
 package com.jiyingcao.a51fengliu.viewmodel
 
-import android.util.Log
 import androidx.annotation.GuardedBy
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

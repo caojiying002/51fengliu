@@ -1,7 +1,6 @@
 package com.jiyingcao.a51fengliu.ui.tab
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,7 +9,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.databinding.StatefulViewpager2RecyclerViewBinding
 import com.jiyingcao.a51fengliu.repository.RecordRepository
@@ -21,6 +19,7 @@ import com.jiyingcao.a51fengliu.ui.showEmptyContent
 import com.jiyingcao.a51fengliu.ui.showErrorView
 import com.jiyingcao.a51fengliu.ui.showLoadingView
 import com.jiyingcao.a51fengliu.ui.showRealContent
+import com.jiyingcao.a51fengliu.util.AppLogger
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.HomeIntent
 import com.jiyingcao.a51fengliu.viewmodel.HomeState
@@ -178,12 +177,12 @@ class HomeSubFragment : Fragment() {
 
     private fun onFragmentVisible() {
         // Fragment 变为可见时的逻辑
-        Log.d(TAG, "${arguments?.getString(ARG_SORT)} is now visible")
+        AppLogger.d(TAG, "${arguments?.getString(ARG_SORT)} is now visible")
     }
 
     private fun onFragmentInvisible() {
         // Fragment 变为不可见时的逻辑
-        Log.d(TAG, "${arguments?.getString(ARG_SORT)} is now invisible")
+        AppLogger.d(TAG, "${arguments?.getString(ARG_SORT)} is now invisible")
     }
 
     companion object {

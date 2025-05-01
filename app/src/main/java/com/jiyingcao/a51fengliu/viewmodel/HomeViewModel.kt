@@ -1,6 +1,5 @@
 package com.jiyingcao.a51fengliu.viewmodel
 
-import android.util.Log
 import androidx.annotation.GuardedBy
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -11,6 +10,7 @@ import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.RecordRepository
+import com.jiyingcao.a51fengliu.util.AppLogger
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -166,7 +166,7 @@ class HomeViewModel(
                 if (!handleFailure(e)) {
                     _state.value = loadingType.toErrorState(e.toUserFriendlyMessage())
                 }
-                Log.w(TAG, "网络请求失败: ", e)
+                AppLogger.w(TAG, "网络请求失败: ", e)
             }
     }
 

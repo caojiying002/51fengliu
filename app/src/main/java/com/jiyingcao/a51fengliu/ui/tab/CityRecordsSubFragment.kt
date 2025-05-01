@@ -1,7 +1,6 @@
 package com.jiyingcao.a51fengliu.ui.tab
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -22,6 +21,7 @@ import com.jiyingcao.a51fengliu.ui.showEmptyContent
 import com.jiyingcao.a51fengliu.ui.showErrorView
 import com.jiyingcao.a51fengliu.ui.showLoadingView
 import com.jiyingcao.a51fengliu.ui.showRealContent
+import com.jiyingcao.a51fengliu.util.AppLogger
 import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.CityIntent
@@ -118,7 +118,7 @@ class CityRecordsSubFragment : Fragment() {
         // 监听选择的城市
         viewLifecycleOwner.lifecycleScope.launch {
             selectedCityViewModel.selectedCity.collect { cityCode ->
-                Log.d(TAG, "City code selected: $cityCode")
+                AppLogger.d(TAG, "City code selected: $cityCode")
                 cityCode?.let {
                     // StateFlow保证值不会重复发射，所以每次收到新的城市代码时都需要重置滚动
                     shouldResetScroll = true
@@ -216,12 +216,12 @@ class CityRecordsSubFragment : Fragment() {
 
     private fun onFragmentVisible() {
         // Fragment 变为可见时的逻辑
-        Log.d(TAG, "${arguments?.getString(ARG_SORT)} is now visible")
+        AppLogger.d(TAG, "${arguments?.getString(ARG_SORT)} is now visible")
     }
 
     private fun onFragmentInvisible() {
         // Fragment 变为不可见时的逻辑
-        Log.d(TAG, "${arguments?.getString(ARG_SORT)} is now invisible")
+        AppLogger.d(TAG, "${arguments?.getString(ARG_SORT)} is now invisible")
     }
 
     companion object {

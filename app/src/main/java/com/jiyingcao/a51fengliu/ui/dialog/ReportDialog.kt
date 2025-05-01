@@ -17,8 +17,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.RetrofitClient
+import com.jiyingcao.a51fengliu.config.AppConfig.Network.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.databinding.DialogReportBinding
-import com.jiyingcao.a51fengliu.glide.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.glide.GlideApp
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.util.showToast

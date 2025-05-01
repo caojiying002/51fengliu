@@ -18,8 +18,8 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
+import com.jiyingcao.a51fengliu.config.AppConfig.Network.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.databinding.ActivityBigImageViewerBinding
-import com.jiyingcao.a51fengliu.glide.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.glide.GlideApp
 import com.jiyingcao.a51fengliu.glide.glideSaveImage
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity

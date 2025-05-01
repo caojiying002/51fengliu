@@ -1,6 +1,7 @@
 package com.jiyingcao.a51fengliu.api
 
 import com.jiyingcao.a51fengliu.api.parse.ApiCallAdapterFactory
+import com.jiyingcao.a51fengliu.config.AppConfig
 import com.jiyingcao.a51fengliu.data.TokenManager
 import java.util.concurrent.TimeUnit.SECONDS
 import okhttp3.OkHttpClient
@@ -8,28 +9,22 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-private val DEBUG_HTTP: Boolean = (true)
-
-private val USE_DEBUG_TOKEN: Boolean = (false)
-private val DEBUG_TOKEN: String = ""
-
-const val BASE_URL = "https://1c802685d.n5api.xyz"  //"https://127hei.info"  //"https://131bai.cc" //"https://127can.info/"
-
 object RetrofitClient {
 
     private val okHttpClient by lazy {
-        OkHttpClient.Builder()
-            .addInterceptor(HttpLoggingInterceptor().apply {
-                level = when (DEBUG_HTTP) {
-                    true -> HttpLoggingInterceptor.Level.BODY
-                    false -> HttpLoggingInterceptor.Level.HEADERS
-                }
-            })
-            .addInterceptor(
-                if (USE_DEBUG_TOKEN) {
-                    // 【只在测试环境下使用】可以手动指定一个固定的Token方便开发，不需要反复登录
+        OkHttpClient.Builder().apply {
+            // 按需打印网络日志
+            if (AppConfig.Debug.isHttpLoggingEnabled()) {
+                addInterceptor(HttpLoggingInterceptor().apply {
+                    level = HttpLoggingInterceptor.Level.BODY
+                })
+            }
+
+            addInterceptor(
+                if (AppConfig.Debug.useDebugToken()) {
+                    // 开发阶段可以指定某个debug token避免登录，加速开发
                     DebugAuthInterceptor(
-                        debugToken = DEBUG_TOKEN,
+                        debugToken = AppConfig.Debug.DEFAULT_DEBUG_TOKEN,
                         enabled = true
                     )
                 } else {
@@ -39,22 +34,26 @@ object RetrofitClient {
                     )
                 }
             )
-            .addInterceptor { chain ->
+
+            // 后端API要求指定User-Agent，不然会返回HTTP 403
+            addInterceptor { chain ->
                 val requestWithHeaders = chain.request().newBuilder()
-                    .header("User-Agent", "Dart/3.0 (dart:io)")
+                    .header("User-Agent", AppConfig.Network.USER_AGENT)
                     .build()
-                return@addInterceptor chain.proceed(requestWithHeaders)
+                chain.proceed(requestWithHeaders)
             }
-            .connectTimeout(15, SECONDS)
-            .readTimeout(15, SECONDS)
-            .writeTimeout(15, SECONDS)
-            .build()
+
+            // 超时设置
+            connectTimeout(AppConfig.Network.CONNECT_TIMEOUT, SECONDS)
+            readTimeout(AppConfig.Network.READ_TIMEOUT, SECONDS)
+            writeTimeout(AppConfig.Network.WRITE_TIMEOUT, SECONDS)
+        }.build()
     }
 
     val retrofit: Retrofit by lazy {
         Retrofit.Builder()
             .client(okHttpClient)
-            .baseUrl(BASE_URL)
+            .baseUrl(AppConfig.Network.BASE_URL)
             .addCallAdapterFactory(ApiCallAdapterFactory())
             .addConverterFactory(GsonConverterFactory.create(GsonInstance.gson))
             //.addCallAdapterFactory(CoroutineCallAdapterFactory())

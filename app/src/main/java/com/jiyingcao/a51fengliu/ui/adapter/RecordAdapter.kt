@@ -11,8 +11,8 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
+import com.jiyingcao.a51fengliu.config.AppConfig.Network.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.databinding.ItemRecordBinding
-import com.jiyingcao.a51fengliu.glide.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.glide.GlideApp
 import com.jiyingcao.a51fengliu.glide.withSourceIndicator
 import com.jiyingcao.a51fengliu.util.dp

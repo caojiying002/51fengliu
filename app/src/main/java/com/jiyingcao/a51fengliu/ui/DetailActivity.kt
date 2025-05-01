@@ -28,10 +28,10 @@ import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
+import com.jiyingcao.a51fengliu.config.AppConfig.Network.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.databinding.ActivityDetailBinding
 import com.jiyingcao.a51fengliu.databinding.ContentDetail0Binding
-import com.jiyingcao.a51fengliu.glide.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.glide.GlideApp
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.auth.AuthActivity

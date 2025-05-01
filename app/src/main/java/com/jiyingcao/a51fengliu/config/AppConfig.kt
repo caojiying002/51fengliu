@@ -1,6 +1,7 @@
 package com.jiyingcao.a51fengliu.config
 
 import android.content.Context
+import com.jiyingcao.a51fengliu.glide.HostInvariantGlideUrl
 
 /**
  * 应用全局配置类
@@ -34,6 +35,17 @@ object AppConfig {
          * 图片API需要验证请求来源，否则会下载失败（可能是为了防盗链）
          */
         const val REFERER = "https://ysalgfhqd3.com"
+
+        /**
+         * 创建一个带有主机无关缓存键的图片URL
+         * 即使BASE_IMAGE_URL的主机部分变化，缓存仍然有效
+         *
+         * @param imagePath 图片路径（不包含基本URL）
+         * @return 可以传递给Glide的HostInvariantGlideUrl
+         */
+        fun createImageUrl(imagePath: String): HostInvariantGlideUrl {
+            return HostInvariantGlideUrl(BASE_IMAGE_URL + imagePath)
+        }
     }
 
     /**

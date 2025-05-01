@@ -28,11 +28,14 @@ import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
+import com.jiyingcao.a51fengliu.config.AppConfig
 import com.jiyingcao.a51fengliu.config.AppConfig.Network.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.databinding.ActivityDetailBinding
 import com.jiyingcao.a51fengliu.databinding.ContentDetail0Binding
 import com.jiyingcao.a51fengliu.glide.GlideApp
+import com.jiyingcao.a51fengliu.glide.HostInvariantGlideUrl
+import com.jiyingcao.a51fengliu.glide.withSourceIndicator
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.auth.AuthActivity
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
@@ -407,10 +410,13 @@ class DetailActivity : BaseActivity() {
 
             val fullUrl = BASE_IMAGE_URL + subUrl
             imageView.visibility = VISIBLE
-            imageView.tag = fullUrl
+            imageView.tag = fullUrl  // 仍然保存字符串URL作为tag
+
+            // 使用HostInvariantGlideUrl但保留原始URL用于映射
+            val glideUrl = HostInvariantGlideUrl(fullUrl)
 
             GlideApp.with(this)
-                .load(fullUrl)
+                .load(glideUrl)  // 改用HostInvariantGlideUrl
                 .placeholder(R.drawable.placeholder)
                 .error(R.drawable.image_broken)
                 .transform(CenterCrop(), RoundedCorners(4.dp))
@@ -422,7 +428,10 @@ class DetailActivity : BaseActivity() {
                         target: Target<Drawable>,
                         isFirstResource: Boolean
                     ): Boolean {
-                        if (model != null && model is String) { imageLoadedMap[model] = false }
+                        // 确保model是HostInvariantGlideUrl并获取原始URL
+                        if (model != null && model is HostInvariantGlideUrl) { 
+                            imageLoadedMap[model.originalUrl] = false 
+                        }
                         return false
                     }
 
@@ -433,7 +442,10 @@ class DetailActivity : BaseActivity() {
                         dataSource: DataSource,
                         isFirstResource: Boolean
                     ): Boolean {
-                        if (model is String) { imageLoadedMap[model] = true }
+                        // 确保model是HostInvariantGlideUrl并获取原始URL
+                        if (model is HostInvariantGlideUrl) { 
+                            imageLoadedMap[model.originalUrl] = true 
+                        }
                         return false
                     }
 

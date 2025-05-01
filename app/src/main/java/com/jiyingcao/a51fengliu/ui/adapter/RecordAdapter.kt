@@ -11,9 +11,11 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
+import com.jiyingcao.a51fengliu.config.AppConfig
 import com.jiyingcao.a51fengliu.config.AppConfig.Network.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.databinding.ItemRecordBinding
 import com.jiyingcao.a51fengliu.glide.GlideApp
+import com.jiyingcao.a51fengliu.glide.HostInvariantGlideUrl
 import com.jiyingcao.a51fengliu.glide.withSourceIndicator
 import com.jiyingcao.a51fengliu.util.dp
 import com.jiyingcao.a51fengliu.util.timestampToDay
@@ -65,8 +67,10 @@ class RecordAdapter : ListAdapter<RecordInfo, RecordAdapter.RecordViewHolder>(Re
                         it.visibility = GONE
                     } else {
                         it.visibility = VISIBLE
+                        // 主机无关缓存键的图片URL
+                        val glideUrl: HostInvariantGlideUrl = AppConfig.Network.createImageUrl(item.coverPicture)
                         GlideApp.with(it.context)
-                            .load(BASE_IMAGE_URL + item.coverPicture)
+                            .load(glideUrl)
                             .placeholder(R.drawable.placeholder)
                             .error(R.drawable.image_broken)
                             .transform(CenterCrop(), RoundedCorners(4.dp))

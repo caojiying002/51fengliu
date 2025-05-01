@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.jiyingcao.a51fengliu.App
+import com.jiyingcao.a51fengliu.config.AppConfig
 import com.jiyingcao.a51fengliu.util.dataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
@@ -14,11 +15,21 @@ class TokenManager private constructor(private val dataStore: DataStore<Preferen
     // 获取 Token 的 Flow，用于需要观察 Token 变化的场景
     val token: Flow<String?> = dataStore.data
         .map { preferences ->
-            preferences[TOKEN_KEY]
+            // 如果是debug模式且启用了debug token，直接返回debug token
+            if (AppConfig.Debug.useDebugToken()) {
+                AppConfig.Debug.DEFAULT_DEBUG_TOKEN
+            } else {
+                preferences[TOKEN_KEY]
+            }
         }
 
     // 用于非 UI 场景获取 Token 的挂起函数
     suspend fun getToken(): String? {
+        // 如果是debug模式且启用了debug token，直接返回debug token
+        if (AppConfig.Debug.useDebugToken()) {
+            return AppConfig.Debug.DEFAULT_DEBUG_TOKEN
+        }
+        
         return dataStore.data
             .map { preferences ->
                 preferences[TOKEN_KEY]

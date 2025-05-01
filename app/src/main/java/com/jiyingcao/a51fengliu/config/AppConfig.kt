@@ -49,28 +49,28 @@ object AppConfig {
      */
     object Debug {
         /**
-         * 开发过程中可以手动切换的HTTP日志开关
-         * 只在Debug构建中生效，Release构建始终关闭日志
-         */
-        private const val DEFAULT_HTTP_LOGGING_ENABLED = true
-
-        /**
          * 开发过程中可以手动切换是否使用调试Token的开关
          * 只在Debug构建中生效，Release构建始终不使用调试Token
          */
-        private const val DEFAULT_USE_DEBUG_TOKEN = true
-
-        /**
-         * 开发过程中可以手动切换的图片加载日志开关
-         * 只在Debug构建中生效，Release构建始终关闭日志
-         */
-        private const val DEFAULT_IMAGE_LOADING_LOGGING_ENABLED = false
+        private const val DEFAULT_USE_DEBUG_TOKEN = false
 
         /**
          * 用于开发测试的默认Token值
          * 只在Debug构建且DEFAULT_USE_DEBUG_TOKEN为true时使用
          */
         const val DEFAULT_DEBUG_TOKEN = ""
+
+        /**
+         * 开发过程中可以手动切换的HTTP日志开关
+         * 只在Debug构建中生效，Release构建始终关闭日志
+         */
+        private const val DEFAULT_HTTP_LOGGING_ENABLED = true
+
+        /**
+         * 开发过程中可以手动切换的图片加载日志开关
+         * 只在Debug构建中生效，Release构建始终关闭日志
+         */
+        private const val DEFAULT_IMAGE_LOADING_LOGGING_ENABLED = false
 
         /**
          * 全局日志开关
@@ -86,8 +86,10 @@ object AppConfig {
          * 
          * @return 是否使用调试Token
          */
-        fun useDebugToken(): Boolean = 
-            DEFAULT_USE_DEBUG_TOKEN && BuildEnvironment.isDebug(applicationContext)
+        fun useDebugToken(): Boolean =
+            DEFAULT_USE_DEBUG_TOKEN
+                && DEFAULT_DEBUG_TOKEN.isNotBlank()
+                && BuildEnvironment.isDebug(applicationContext)
 
         /**
          * 控制HTTP请求日志是否打印到控制台

@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import androidx.activity.enableEdgeToEdge
 import androidx.core.app.SharedElementCallback
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import androidx.viewpager2.widget.ViewPager2.OFFSCREEN_PAGE_LIMIT_DEFAULT
@@ -141,7 +142,7 @@ inner class ImagePagerAdapter() : RecyclerView.Adapter<ImagePagerAdapter.ImageVi
         holder.photoView.transitionName = "image$position"
         holder.photoView.setOnLongClickListener {
             vibrate(context)
-            glideSaveImage(context, imageUrl)
+            lifecycleScope.glideSaveImage(context, imageUrl)
             true
         }
 

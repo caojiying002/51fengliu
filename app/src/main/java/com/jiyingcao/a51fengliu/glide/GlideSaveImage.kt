@@ -11,6 +11,7 @@ import com.jiyingcao.a51fengliu.util.showToast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.net.URL
 
@@ -20,12 +21,16 @@ import java.net.URL
  * @param context 上下文
  * @param imageUrl 图片 URL
  * @param subFolder 子文件夹名称，默认使用 AppConfig 中配置的值
+ * @param scope 可选的协程作用域，如果不提供则创建新的作用域
  */
 fun glideSaveImage(
     context: Context, 
     imageUrl: String, 
-    subFolder: String? = AppConfig.Storage.IMAGE_SUB_FOLDER
+    subFolder: String? = AppConfig.Storage.IMAGE_SUB_FOLDER,
+    scope: CoroutineScope? = null
 ) {
+    val actualScope = scope ?: CoroutineScope(Dispatchers.IO)
+    
     // 使用 URL 类提取文件路径
     val url = URL(imageUrl)
     val fileName = File(url.path).name
@@ -36,12 +41,11 @@ fun glideSaveImage(
         .load(imageUrl)
         .into(object : CustomTarget<File>() {
             override fun onResourceReady(resource: File, transition: Transition<in File>?) {
-                // 使用协程将文件保存操作移到 IO 线程
-                CoroutineScope(Dispatchers.IO).launch {
+                actualScope.launch(Dispatchers.IO) {
                     val result = saveImage(context, resource, subFolder, fileName)
                     
-                    // 根据结果在主线程显示反馈
-                    CoroutineScope(Dispatchers.Main).launch {
+                    // 切换到主线程但保持在同一个作用域内
+                    withContext(Dispatchers.Main) {
                         when (result) {
                             is SaveImageResult.Success -> context.showToast("图片已保存")
                             is SaveImageResult.Error -> {
@@ -62,3 +66,12 @@ fun glideSaveImage(
             }
         })
 }
+
+/**
+ * CoroutineScope 的扩展函数版本，作为语法糖
+ */
+fun CoroutineScope.glideSaveImage(
+    context: Context,
+    imageUrl: String,
+    subFolder: String? = AppConfig.Storage.IMAGE_SUB_FOLDER
+) = glideSaveImage(context, imageUrl, subFolder, this)

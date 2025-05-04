@@ -2,6 +2,7 @@ package com.jiyingcao.a51fengliu.ui.common
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
@@ -47,6 +48,9 @@ class VideoPlayerActivity : BaseActivity() {
         binding = ActivityVideoPlayerBinding.inflate(layoutInflater)
         setContentViewWithSystemBarPaddings(binding.root)
 
+        // 确保活动可以处理配置更改（屏幕旋转）
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
         // Get video URL from intent or use default
         videoUrl = intent.getStringExtra(EXTRA_VIDEO_URL) ?: videoUrl
         videoTitle = intent.getStringExtra(EXTRA_VIDEO_TITLE) ?: videoTitle
@@ -89,6 +93,11 @@ class VideoPlayerActivity : BaseActivity() {
                     // Handle exit fullscreen
                     orientationUtils?.backToProtVideo()
                 }
+                
+                override fun onEnterFullscreen(url: String?, vararg objects: Any?) {
+                    super.onEnterFullscreen(url, *objects)
+                    // 处理进入全屏模式
+                }
             })
             .setLockClickListener(object : LockClickListener {
                 override fun onClick(view: View?, lock: Boolean) {
@@ -97,6 +106,12 @@ class VideoPlayerActivity : BaseActivity() {
                 }
             })
             .build(binding.videoPlayer)
+
+        // 设置全屏按钮的监听器
+        binding.videoPlayer.fullscreenButton.setOnClickListener {
+            // 切换全屏模式
+            orientationUtils?.resolveByClick()
+        }
 
         // Set the URL and start playing
         binding.videoPlayer.setUp(videoUrl, true, videoTitle)

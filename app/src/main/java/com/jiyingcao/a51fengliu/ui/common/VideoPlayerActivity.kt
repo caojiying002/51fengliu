@@ -5,9 +5,8 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.View
-import android.widget.ImageView
 import androidx.activity.enableEdgeToEdge
-import com.jiyingcao.a51fengliu.R
+import androidx.activity.OnBackPressedCallback
 import com.jiyingcao.a51fengliu.databinding.ActivityVideoPlayerBinding
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.util.setContentViewWithSystemBarPaddings
@@ -59,7 +58,27 @@ class VideoPlayerActivity : BaseActivity() {
         PlayerFactory.setPlayManager(Exo2PlayerManager::class.java)
         CacheFactory.setCacheManager(ExoPlayerCacheManager::class.java)
 
+        // 处理返回手势
+        setupBackHandling()
+        
         setupVideoPlayer()
+    }
+
+    private fun setupBackHandling() {
+        // 创建一个回调来处理返回手势和返回按钮
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                // 检查播放器是否处于全屏模式
+                if (binding.videoPlayer.isIfCurrentIsFullscreen) {
+                    // 如果是全屏，先退回到竖屏
+                    binding.videoPlayer.onBackFullscreen()
+                } else {
+                    // 如果已经是竖屏，则退出活动
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        })
     }
 
     private fun setupVideoPlayer() {
@@ -70,6 +89,14 @@ class VideoPlayerActivity : BaseActivity() {
         
         // Configure video player UI
         binding.videoPlayer.titleTextView.visibility = View.VISIBLE
+        
+        // 设置播放器配置以支持手势
+        binding.videoPlayer.setIsTouchWiget(true) // 允许触摸控制
+        binding.videoPlayer.setBackFromFullScreenListener {
+            // 从全屏返回时的回调
+            orientationUtils?.backToProtVideo()
+            true // 返回true表示已处理该事件
+        }
         
         // Configure GSYVideoPlayer with Exo2 for m3u8 streaming
         GSYVideoOptionBuilder()
@@ -119,15 +146,6 @@ class VideoPlayerActivity : BaseActivity() {
         // Start playback
         binding.videoPlayer.startPlayLogic()
     }
-    
-    override fun onBackPressed() {
-        // Handle back press for fullscreen mode
-        if (orientationUtils?.screenType == 1) {
-            binding.videoPlayer.onBackFullscreen()
-            return
-        }
-        super.onBackPressed()
-    }
 
     override fun onPause() {
         super.onPause()
@@ -148,7 +166,7 @@ class VideoPlayerActivity : BaseActivity() {
 
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)
-        // Handle orientation changes
+        // 处理方向变化，确保UI正确更新
         binding.videoPlayer.onConfigurationChanged(this, newConfig, orientationUtils, true, true)
     }
 }

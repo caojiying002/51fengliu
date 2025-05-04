@@ -79,6 +79,13 @@
             android:name=".ui.common.WebViewActivity"
             android:exported="${activityExported}"
             android:screenOrientation="${screenOrientation}" />
+
+        <!-- 视频播放 -->
+        <activity
+            android:name=".ui.common.VideoPlayerActivity"
+            android:exported="${activityExported}"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

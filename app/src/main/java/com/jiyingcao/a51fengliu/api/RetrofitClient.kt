@@ -13,11 +13,12 @@ object RetrofitClient {
 
     private val okHttpClient by lazy {
         OkHttpClient.Builder().apply {
-            // 按需打印网络日志
-            if (AppConfig.Debug.isHttpLoggingEnabled()) {
-                addInterceptor(HttpLoggingInterceptor().apply {
-                    level = HttpLoggingInterceptor.Level.BODY
-                })
+            // 后端API要求指定User-Agent，不然会返回HTTP 403
+            addInterceptor { chain ->
+                val requestWithHeaders = chain.request().newBuilder()
+                    .header("User-Agent", AppConfig.Network.USER_AGENT)
+                    .build()
+                chain.proceed(requestWithHeaders)
             }
 
             addInterceptor(
@@ -35,12 +36,11 @@ object RetrofitClient {
                 }
             )
 
-            // 后端API要求指定User-Agent，不然会返回HTTP 403
-            addInterceptor { chain ->
-                val requestWithHeaders = chain.request().newBuilder()
-                    .header("User-Agent", AppConfig.Network.USER_AGENT)
-                    .build()
-                chain.proceed(requestWithHeaders)
+            // Debug环境：按需打印网络日志
+            if (AppConfig.Debug.isHttpLoggingEnabled()) {
+                addInterceptor(HttpLoggingInterceptor().apply {
+                    level = HttpLoggingInterceptor.Level.BODY
+                })
             }
 
             // 超时设置

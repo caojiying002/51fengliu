@@ -18,13 +18,6 @@ class OkHttpGlideModule: AppGlideModule() {
 
     private val okHttpClient: OkHttpClient by lazy {
         OkHttpClient.Builder().apply {
-            // 只在需要时添加图片加载日志拦截器
-            if (AppConfig.Debug.isImageLoadingLoggingEnabled()) {
-                addInterceptor(HttpLoggingInterceptor().apply {
-                    level = HttpLoggingInterceptor.Level.HEADERS
-                })
-            }
-            
             // 增加两个图片专用请求头
             addInterceptor { chain ->
                 val originalRequest = chain.request()
@@ -33,6 +26,13 @@ class OkHttpGlideModule: AppGlideModule() {
                     .header("User-Agent", AppConfig.Network.USER_AGENT)
                     .build()
                 chain.proceed(requestWithHeaders)
+            }
+
+            // 只在需要时添加图片加载日志拦截器
+            if (AppConfig.Debug.isImageLoadingLoggingEnabled()) {
+                addInterceptor(HttpLoggingInterceptor().apply {
+                    level = HttpLoggingInterceptor.Level.HEADERS
+                })
             }
             
             // 设置超时参数

@@ -27,6 +27,7 @@ import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.util.setContentViewWithSystemBarPaddings
 import com.jiyingcao.a51fengliu.util.vibrate
 import com.jiyingcao.a51fengliu.R
+import com.jiyingcao.a51fengliu.glide.HostInvariantGlideUrl
 import io.getstream.photoview.PhotoView
 import kotlin.collections.set
 import kotlin.math.min
@@ -146,8 +147,10 @@ inner class ImagePagerAdapter() : RecyclerView.Adapter<ImagePagerAdapter.ImageVi
             true
         }
 
+        // 使用HostInvariantGlideUrl
+        val glideUrl = HostInvariantGlideUrl(imageUrl)
         GlideApp.with(context)
-            .load(imageUrl)
+            .load(glideUrl)
             .listener(object : RequestListener<Drawable> {
                 override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
                     // 当图片加载失败时，也开始转场动画

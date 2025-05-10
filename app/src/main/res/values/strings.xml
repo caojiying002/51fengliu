@@ -4,6 +4,9 @@
 
 Phasellus in leo massa. Aliquam malesuada, enim nec auctor posuere, quam sem malesuada dui, eget venenatis lorem erat eu diam. Morbi urna nibh, finibus ut nisl id, tristique consequat ipsum. Etiam vel rutrum enim. Duis tristique dui quam, nec egestas mauris rhoncus vitae. Fusce ultrices vulputate lectus a eleifend. Integer quis lacinia felis. Fusce ultrices, metus eu pharetra maximus, magna enim hendrerit enim, vitae feugiat nisl elit et odio. </string>
 
+    <string name="confirm">确定</string>
+    <string name="cancel">取消</string>
+
     <string name="stateful_default_loading">加载中…</string>
     <string name="stateful_default_error">加载失败</string>
     <string name="stateful_default_empty">暂无数据</string>

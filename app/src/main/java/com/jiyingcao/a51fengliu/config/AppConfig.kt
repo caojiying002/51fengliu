@@ -85,6 +85,12 @@ object AppConfig {
         private const val DEFAULT_IMAGE_LOADING_LOGGING_ENABLED = false
 
         /**
+         * 开发过程中可以手动切换是否跳过大图查看功能限制的开关
+         * 只在Debug构建中生效，Release构建始终检查限制
+         */
+        private const val DEFAULT_BYPASS_LARGE_IMAGE_CHECK = false
+
+        /**
          * 全局日志开关
          * 只在Debug构建中返回true，Release构建始终返回false
          * 
@@ -120,5 +126,14 @@ object AppConfig {
          */
         fun isImageLoadingLoggingEnabled(): Boolean = 
             DEFAULT_IMAGE_LOADING_LOGGING_ENABLED && BuildEnvironment.isDebug(applicationContext)
+
+        /**
+         * 控制是否跳过大图查看功能限制检查
+         * 只在Debug构建中生效，Release构建始终检查限制
+         * 
+         * @return 是否跳过限制检查
+         */
+        fun bypassLargeImageCheck(): Boolean = 
+            DEFAULT_BYPASS_LARGE_IMAGE_CHECK && BuildEnvironment.isDebug(applicationContext)
     }
 }

@@ -42,6 +42,7 @@ import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.common.BigImageViewerActivity
 import com.jiyingcao.a51fengliu.ui.dialog.LoadingDialog
 import com.jiyingcao.a51fengliu.ui.dialog.ReportDialog
+import com.jiyingcao.a51fengliu.ui.dialog.VipPromptDialog
 import com.jiyingcao.a51fengliu.util.copyOnLongClick
 import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.dp
@@ -279,7 +280,7 @@ class DetailActivity : BaseActivity() {
     
     private fun updateUI(record: RecordInfo) {
         //displayImagesIfAny(itemData.file)
-        displayImagesIfAnyV2(record.getPictures())
+        displayImagesIfAnyV2(record)
 
         with(contentBinding) {
             title.copyOnLongClick()
@@ -384,9 +385,10 @@ class DetailActivity : BaseActivity() {
 
     private val imageLoadedMap: MutableMap<String, Boolean> = mutableMapOf()
 
-    private fun displayImagesIfAnyV2(imgs: List<String>) {
+    private fun displayImagesIfAnyV2(record: RecordInfo) {
         val imageContainer = contentBinding.imageContainer
 
+        val imgs = record.getPictures()
         if (imgs.isEmpty()) {
             imageContainer.visibility = GONE
             return
@@ -453,6 +455,12 @@ class DetailActivity : BaseActivity() {
                 //.withSourceIndicator(imageView)
                 .into(imageView)
             imageView.setOnClickListener { view ->
+                // 显示VIP提示对话框
+                if (!canViewLargeImage(record)) {
+                    VipPromptDialog.newInstance(cancelable = false).showNow(supportFragmentManager, VipPromptDialog.TAG)
+                    return@setOnClickListener
+                }
+
                 // 如果图片加载成功，才能点击查看大图
                 if (imageLoadedMap[view.tag as String] == true) {
                     val intent = Intent(this, BigImageViewerActivity::class.java).apply {
@@ -472,6 +480,27 @@ class DetailActivity : BaseActivity() {
                 }
             }
         }
+    }
+
+    /**
+     * 判断当前用户是否可以使用图片放大功能
+     * 
+     * @param record 当前记录的信息，包含用户权限相关数据
+     * @return 如果用户可以查看大图返回true，否则返回false
+     */
+    private fun canViewLargeImage(record: RecordInfo): Boolean {
+        // 调试模式下，可以跳过功能限制检查
+        if (AppConfig.Debug.bypassLargeImageCheck()) {
+            return true
+        }
+        
+        // 根据会员状态判断权限
+        // 1. 判断是否是VIP会员
+        // 2. 判断是否已使用积分购买联系方式
+        // 判断逻辑（目前只使用RecordInfo.vipView字段判断）:
+        val hasPermission = !record.vipView.isNullOrBlank()
+        
+        return hasPermission
     }
 
     private fun showLoadingDialog() {

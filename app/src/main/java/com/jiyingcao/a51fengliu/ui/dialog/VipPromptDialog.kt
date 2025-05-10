@@ -10,6 +10,9 @@ import android.view.Window
 import androidx.activity.OnBackPressedCallback
 import androidx.core.graphics.drawable.toDrawable
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import com.jiyingcao.a51fengliu.databinding.DialogVipPromptBinding
 
 /**
@@ -20,11 +23,11 @@ class VipPromptDialog : DialogFragment() {
     private var _binding: DialogVipPromptBinding? = null
     private val binding get() = _binding!!
     
-    // 添加返回手势拦截器
-    private var backPressInterceptor: OnBackPressedCallback? = null
-    
     // 标记对话框是否可取消
     private var cancellable = false
+    
+    // 使用LifecycleObserver来管理返回手势拦截
+    private lateinit var backPressManager: BackPressManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,14 +40,9 @@ class VipPromptDialog : DialogFragment() {
         // 设置dialog层面的可取消性
         isCancelable = cancellable
         
-        // 如果不允许取消，创建一个拦截返回事件的回调
-        if (!cancellable) {
-            backPressInterceptor = object : OnBackPressedCallback(true) {
-                override fun handleOnBackPressed() {
-                    // 什么都不做，从而阻止返回操作
-                }
-            }
-        }
+        // 初始化返回按键管理器
+        backPressManager = BackPressManager(!cancellable, requireActivity())
+        lifecycle.addObserver(backPressManager)
     }
 
     override fun onCreateView(
@@ -62,19 +60,6 @@ class VipPromptDialog : DialogFragment() {
         binding.clickConfirm.setOnClickListener {
             dismiss()
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        // 从Activity层面拦截返回侧滑手势
-        backPressInterceptor?.let {
-            requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, it)
-        }
-    }
-    
-    override fun onPause() {
-        super.onPause()
-        backPressInterceptor?.remove()
     }
 
     override fun onStart() {
@@ -102,7 +87,6 @@ class VipPromptDialog : DialogFragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-        backPressInterceptor = null
     }
 
     companion object {
@@ -121,6 +105,41 @@ class VipPromptDialog : DialogFragment() {
                     putBoolean(ARG_CANCELABLE, cancelable)
                 }
             }
+        }
+    }
+    
+    /**
+     * 管理返回按键拦截的生命周期观察者
+     */
+    private class BackPressManager(
+        private val interceptBackPress: Boolean,
+        private val activity: FragmentActivity
+    ) : DefaultLifecycleObserver {
+        
+        private var backPressInterceptor: OnBackPressedCallback? = null
+        
+        override fun onCreate(owner: LifecycleOwner) {
+            if (interceptBackPress) {
+                backPressInterceptor = object : OnBackPressedCallback(true) {
+                    override fun handleOnBackPressed() {
+                        // 什么都不做，从而阻止返回操作
+                    }
+                }
+            }
+        }
+        
+        override fun onResume(owner: LifecycleOwner) {
+            backPressInterceptor?.let {
+                activity.onBackPressedDispatcher.addCallback(owner, it)
+            }
+        }
+        
+        override fun onPause(owner: LifecycleOwner) {
+            backPressInterceptor?.remove()
+        }
+        
+        override fun onDestroy(owner: LifecycleOwner) {
+            backPressInterceptor = null
         }
     }
 }

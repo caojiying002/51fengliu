@@ -2,7 +2,6 @@ package com.jiyingcao.a51fengliu.ui.dialog
 
 import android.app.Dialog
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -22,15 +21,15 @@ import com.jiyingcao.a51fengliu.databinding.DialogReportBinding
 import com.jiyingcao.a51fengliu.glide.GlideApp
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.util.showToast
-import com.jiyingcao.a51fengliu.viewmodel.ReportState
 import com.jiyingcao.a51fengliu.viewmodel.ReportEffect
 import com.jiyingcao.a51fengliu.viewmodel.ReportIntent
 import com.jiyingcao.a51fengliu.viewmodel.ReportViewModel
 import com.jiyingcao.a51fengliu.viewmodel.ReportViewModelFactory
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import java.io.File
-import java.io.FileOutputStream
+import androidx.core.graphics.drawable.toDrawable
+import com.jiyingcao.a51fengliu.viewmodel.ImageUploadState
+import com.jiyingcao.a51fengliu.viewmodel.SubmitState
 
 class ReportDialog : DialogFragment() {
     private var _binding: DialogReportBinding? = null
@@ -43,14 +42,14 @@ class ReportDialog : DialogFragment() {
     private val pickMedia = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
             selectedImageUri = uri
-            convertUriToFileAndUpload(uri)
+            viewModel.processIntent(ReportIntent.UploadImage(uri))
         }
     }
     
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return Dialog(requireContext()).apply {
             requestWindowFeature(Window.FEATURE_NO_TITLE)
-            window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
             setCancelable(true)
             setCanceledOnTouchOutside(true)
         }
@@ -103,7 +102,9 @@ class ReportDialog : DialogFragment() {
         
         // Image upload
         binding.tvUploadImage.setOnClickListener {
-            if (viewModel.isUploading.value) {
+            // 使用新状态的imageUploadState进行检查
+            val currentState = viewModel.state2.value.imageUploadState
+            if (currentState is ImageUploadState.Uploading) {
                 return@setOnClickListener
             }
             openPhotoPicker()
@@ -112,7 +113,6 @@ class ReportDialog : DialogFragment() {
         // Delete image
         binding.ivDeleteImage.setOnClickListener {
             viewModel.processIntent(ReportIntent.ClearUploadedImage)
-            resetUploadUI()
         }
         
         // Confirm report button
@@ -123,33 +123,46 @@ class ReportDialog : DialogFragment() {
     }
     
     private fun observeViewModel() {
-        // Observe state changes
+        // Observe new state changes
         lifecycleScope.launch {
-            viewModel.state.collect { state ->
-                when (state) {
-                    is ReportState.Initial -> {
-                        // Initial state, nothing to do
-                    }
-                    is ReportState.Loading.UploadingImage -> {
-                        showLoadingState()
-                    }
-                    is ReportState.Loading.SubmittingReport -> {
-                        updateReportButtonState(false, "举报中...")
-                    }
-                    is ReportState.Success.ImageUploaded -> {
-                        displayUploadedImage(state.relativeUrl)
-                    }
-                    is ReportState.Success.ReportSubmitted -> {
-                        updateReportButtonState(true)
-                        // 关闭Dialog由 [ReportEffect.DismissDialog] 处理
-                    }
-                    is ReportState.Error.ImageUploadError -> {
-                        // Error will be shown as toast via effects
-                        if (viewModel.uploadedImageUrl.value == null) {
+            viewModel.state2.collect { state ->
+                // 处理图片上传状态
+                when (state.imageUploadState) {
+                    is ImageUploadState.Idle -> {
+                        // 闲置状态，重置UI
+                        if (state.selectedImageUri == null) {
                             resetUploadUI()
                         }
                     }
-                    is ReportState.Error.ReportSubmissionError -> {
+                    is ImageUploadState.Uploading -> {
+                        showLoadingState()
+                    }
+                    is ImageUploadState.Success -> {
+                        state.uploadedImageUrl?.let { url ->
+                            displayUploadedImage(url)
+                        }
+                    }
+                    is ImageUploadState.Error -> {
+                        // 错误会通过effects展示，如果没有已上传图片就重置UI
+                        if (state.uploadedImageUrl == null) {
+                            resetUploadUI()
+                        }
+                    }
+                }
+
+                // 处理提交状态
+                when (state.submitState) {
+                    is SubmitState.Idle -> {
+                        updateReportButtonState(true)
+                    }
+                    is SubmitState.Submitting -> {
+                        updateReportButtonState(false, "举报中...")
+                    }
+                    is SubmitState.Success -> {
+                        updateReportButtonState(true)
+                        // 关闭Dialog由 [ReportEffect.DismissDialog] 处理
+                    }
+                    is SubmitState.Error -> {
                         updateReportButtonState(true)
                     }
                 }
@@ -175,22 +188,6 @@ class ReportDialog : DialogFragment() {
         pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
     }
     
-    private fun convertUriToFileAndUpload(uri: Uri) {
-        lifecycleScope.launch {
-            try {
-                val file = convertUriToFile(uri)
-                if (file != null) {
-                    viewModel.processIntent(ReportIntent.UploadImage(file))
-                } else {
-                    requireContext().showToast("图片处理失败")
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                requireContext().showToast("图片处理失败")
-            }
-        }
-    }
-    
     private fun showLoadingState() {
         binding.tvUploadImage.text = "上传中..."
         binding.tvUploadImage.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0)
@@ -204,6 +201,7 @@ class ReportDialog : DialogFragment() {
         binding.tvUploadImage.visibility = View.GONE
         
         // Load the image with Glide
+        // TODO 加载过程中能否用本地图片资源作为占位图
         GlideApp.with(requireContext())
             .load(fullUrl)
             .centerCrop()
@@ -219,27 +217,6 @@ class ReportDialog : DialogFragment() {
             isEnabled = true
         }
         binding.layoutUploadedImage.visibility = View.GONE
-    }
-    
-    private fun convertUriToFile(uri: Uri): File? {
-        val context = requireContext()
-        val tempFile = File(context.cacheDir, "upload_image_${System.currentTimeMillis()}.jpg")
-        
-        try {
-            val inputStream = context.contentResolver.openInputStream(uri)
-            val outputStream = FileOutputStream(tempFile)
-            
-            inputStream?.use { input ->
-                outputStream.use { output ->
-                    input.copyTo(output)
-                }
-            }
-            
-            return tempFile
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return null
-        }
     }
     
     private fun updateReportButtonState(enabled: Boolean, text: String? = null) {

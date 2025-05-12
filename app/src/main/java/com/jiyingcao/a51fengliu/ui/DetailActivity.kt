@@ -20,8 +20,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.load.resource.bitmap.CenterCrop
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.jiyingcao.a51fengliu.App
@@ -33,9 +31,7 @@ import com.jiyingcao.a51fengliu.config.AppConfig.Network.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.databinding.ActivityDetailBinding
 import com.jiyingcao.a51fengliu.databinding.ContentDetail0Binding
-import com.jiyingcao.a51fengliu.glide.GlideApp
 import com.jiyingcao.a51fengliu.glide.HostInvariantGlideUrl
-import com.jiyingcao.a51fengliu.glide.withSourceIndicator
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.auth.AuthActivity
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
@@ -43,6 +39,7 @@ import com.jiyingcao.a51fengliu.ui.common.BigImageViewerActivity
 import com.jiyingcao.a51fengliu.ui.dialog.LoadingDialog
 import com.jiyingcao.a51fengliu.ui.dialog.ReportDialog
 import com.jiyingcao.a51fengliu.ui.dialog.VipPromptDialog
+import com.jiyingcao.a51fengliu.util.ImageLoader
 import com.jiyingcao.a51fengliu.util.copyOnLongClick
 import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.dp
@@ -410,27 +407,20 @@ class DetailActivity : BaseActivity() {
                 continue
             }
 
-            val fullUrl = BASE_IMAGE_URL + subUrl
             imageView.visibility = VISIBLE
-            imageView.tag = fullUrl  // 仍然保存字符串URL作为tag
+            imageView.tag = BASE_IMAGE_URL + subUrl  // 保存完整URL作为tag
 
-            // 使用HostInvariantGlideUrl但保留原始URL用于映射
-            val glideUrl = HostInvariantGlideUrl(fullUrl)
-
-            GlideApp.with(this)
-                .load(glideUrl)  // 改用HostInvariantGlideUrl
-                .placeholder(R.drawable.placeholder)
-                .error(R.drawable.image_broken)
-                .transform(CenterCrop(), RoundedCorners(4.dp))
-                //.transition(DrawableTransitionOptions.withCrossFade())
-                .listener(object : RequestListener<Drawable> {
+            ImageLoader.load(
+                imageView = imageView,
+                url = subUrl, // Use the relative URL directly, ImageLoader will handle the complete URL
+                cornerRadius = 4,
+                listener = object : RequestListener<Drawable> {
                     override fun onLoadFailed(
                         e: GlideException?,
                         model: Any?,
                         target: Target<Drawable>,
                         isFirstResource: Boolean
                     ): Boolean {
-                        // 确保model是HostInvariantGlideUrl并获取原始URL
                         if (model != null && model is HostInvariantGlideUrl) { 
                             imageLoadedMap[model.originalUrl] = false 
                         }
@@ -444,16 +434,13 @@ class DetailActivity : BaseActivity() {
                         dataSource: DataSource,
                         isFirstResource: Boolean
                     ): Boolean {
-                        // 确保model是HostInvariantGlideUrl并获取原始URL
                         if (model is HostInvariantGlideUrl) { 
                             imageLoadedMap[model.originalUrl] = true 
                         }
                         return false
                     }
-
-                })
-                //.withSourceIndicator(imageView)
-                .into(imageView)
+                }
+            )
             imageView.setOnClickListener { view ->
                 // 显示VIP提示对话框
                 if (!canViewLargeImage(record)) {

@@ -10,27 +10,23 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.enableEdgeToEdge
 import androidx.core.app.SharedElementCallback
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
-import androidx.viewpager2.widget.ViewPager2.OFFSCREEN_PAGE_LIMIT_DEFAULT
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.jiyingcao.a51fengliu.config.AppConfig.Network.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.databinding.ActivityBigImageViewerBinding
-import com.jiyingcao.a51fengliu.glide.GlideApp
 import com.jiyingcao.a51fengliu.glide.glideSaveImage
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.util.setContentViewWithSystemBarPaddings
 import com.jiyingcao.a51fengliu.util.vibrate
 import com.jiyingcao.a51fengliu.R
-import com.jiyingcao.a51fengliu.glide.HostInvariantGlideUrl
+import com.jiyingcao.a51fengliu.util.ImageLoader
 import io.getstream.photoview.PhotoView
 import kotlin.collections.set
-import kotlin.math.min
 
 class BigImageViewerActivity : BaseActivity() {
     private lateinit var binding: ActivityBigImageViewerBinding
@@ -147,26 +143,24 @@ inner class ImagePagerAdapter() : RecyclerView.Adapter<ImagePagerAdapter.ImageVi
             true
         }
 
-        // 使用HostInvariantGlideUrl
-        val glideUrl = HostInvariantGlideUrl(imageUrl)
-        GlideApp.with(context)
-            .load(glideUrl)
-            .listener(object : RequestListener<Drawable> {
+        // 使用ImageLoader
+        ImageLoader.loadOriginal(
+            imageView = holder.photoView,
+            url = imageUrls[position], // Use the relative URL directly
+            listener = object : RequestListener<Drawable> {
                 override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
                     // 当图片加载失败时，也开始转场动画
                     holder.photoView.post(::supportStartPostponedEnterTransition)
-                    //supportStartPostponedEnterTransition()
                     return false
                 }
 
                 override fun onResourceReady(resource: Drawable, model: Any, target: Target<Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
                     // 当图片加载完成时，开始转场动画
                     holder.photoView.post(::supportStartPostponedEnterTransition)
-                    //supportStartPostponedEnterTransition()
                     return false
                 }
-            })
-            .into(holder.photoView)
+            }
+        )
     }
 
     override fun getItemCount(): Int = imageUrls.size

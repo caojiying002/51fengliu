@@ -82,6 +82,7 @@ class GlideUsageDetector : Detector(), SourceCodeScanner {
 
         return method.name == "load" && (
                 className.startsWith("com.bumptech.glide") ||
+                        //className.startsWith("com.jiyingcao.a51fengliu.glide") ||
                         className.contains("GlideApp") ||
                         className.contains("GlideRequests") ||
                         className.contains("RequestBuilder")

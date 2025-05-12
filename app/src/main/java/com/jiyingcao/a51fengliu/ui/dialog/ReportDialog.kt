@@ -16,9 +16,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.RetrofitClient
-import com.jiyingcao.a51fengliu.config.AppConfig.Network.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.databinding.DialogReportBinding
-import com.jiyingcao.a51fengliu.glide.GlideApp
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.ReportEffect
@@ -30,6 +28,7 @@ import kotlinx.coroutines.launch
 import androidx.core.graphics.drawable.toDrawable
 import com.jiyingcao.a51fengliu.viewmodel.ImageUploadState
 import com.jiyingcao.a51fengliu.viewmodel.SubmitState
+import com.jiyingcao.a51fengliu.util.ImageLoader
 
 class ReportDialog : DialogFragment() {
     private var _binding: DialogReportBinding? = null
@@ -194,18 +193,16 @@ class ReportDialog : DialogFragment() {
     }
     
     private fun displayUploadedImage(relativeUrl: String) {
-        val fullUrl = BASE_IMAGE_URL + relativeUrl
-        
         // Show the uploaded image layout
         binding.layoutUploadedImage.visibility = View.VISIBLE
         binding.tvUploadImage.visibility = View.GONE
         
-        // Load the image with Glide
-        // TODO 加载过程中能否用本地图片资源作为占位图
-        GlideApp.with(requireContext())
-            .load(fullUrl)
-            .centerCrop()
-            .into(binding.ivUploadedImage)
+        // Load the image with ImageLoader
+        // TODO 能否使用本地文件显示
+        ImageLoader.loadCenterCrop(
+            imageView = binding.ivUploadedImage,
+            url = relativeUrl
+        )
     }
     
     private fun resetUploadUI() {

@@ -17,6 +17,8 @@ object RetrofitClient {
             addInterceptor { chain ->
                 val requestWithHeaders = chain.request().newBuilder()
                     .header("User-Agent", AppConfig.Network.USER_AGENT)
+                    // X-Requested-With头不强制使用，并且习惯上大写居多。这里加上是为了与官方APP行为保持一致
+                    .header("x-requested-with", "XMLHttpRequest")
                     .build()
                 chain.proceed(requestWithHeaders)
             }

@@ -33,6 +33,7 @@ flexbox = "3.0.0"
 activityCompose = "1.10.1"
 composeBom = "2025.04.00"
 gsyvideoplayer = "v10.1.0"
+lint = "31.9.1" # 确保与agp版本匹配
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -107,8 +108,18 @@ gsyvideoplayer-exo2 = { group = "com.github.CarGuo.GSYVideoPlayer", name = "gsyv
 # Others
 #jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
 
+# Kotlin 标准库
+kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
+
+# Lint
+lint-api = { group = "com.android.tools.lint", name = "lint-api", version.ref = "lint" }
+lint-checks = { group = "com.android.tools.lint", name = "lint-checks", version.ref = "lint" }
+lint-core = { group = "com.android.tools.lint", name = "lint", version.ref = "lint" }
+lint-tests = { group = "com.android.tools.lint", name = "lint-tests", version.ref = "lint" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

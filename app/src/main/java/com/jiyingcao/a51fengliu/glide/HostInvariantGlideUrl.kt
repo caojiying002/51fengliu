@@ -5,13 +5,13 @@ import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.load.model.Headers
 
 /**
- * 自定义GlideUrl实现，生成不受主机部分变化影响的缓存键
+ * 自定义GlideUrl实现，生成主机(Host)无关的缓存键，因此可以在主URL发生变化时已有的图片缓存不会失效
  */
 class HostInvariantGlideUrl(val originalUrl: String, headers: Headers = Headers.DEFAULT) : GlideUrl(originalUrl, headers) {
     private val cacheKey: String
 
     init {
-        // 提取路径和查询参数作为缓存键
+        // 只使用路径(Path)和参数(Query)作为缓存键，忽略主机(Host)部分
         val uri = Uri.parse(originalUrl)
         cacheKey = uri.path + (uri.query?.let { "?$it" } ?: "")
     }

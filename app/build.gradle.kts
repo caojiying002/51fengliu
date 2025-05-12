@@ -53,6 +53,26 @@ android {
         viewBinding = true
         compose = true
     }
+
+    lint {
+        // 启用 Lint 检查
+        checkReleaseBuilds = true
+        abortOnError = true
+
+        // 设置错误级别
+        error.add("DirectGlideStringUsage")
+
+        // HTML 报告
+        htmlReport = true
+        htmlOutput = file("$buildDir/reports/lint-results.html")
+
+        // XML 报告
+        xmlReport = true
+        xmlOutput = file("$buildDir/reports/lint-results.xml")
+
+        // 可选：基线文件（用于忽略现有问题）
+        // baseline = file("lint-baseline.xml")
+    }
 }
 
 dependencies {
@@ -111,4 +131,7 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    // 添加自定义 Lint 规则
+    lintChecks(project(":lint-rules"))
 }

@@ -22,3 +22,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "51fengliu"
 include(":app")
+include(":lint-rules")

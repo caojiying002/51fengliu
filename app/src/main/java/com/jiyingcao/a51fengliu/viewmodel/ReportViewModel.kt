@@ -233,7 +233,8 @@ class ReportViewModel(
                             if (!handleFailure(e)) {
                                 // 处理特定的举报错误
                                 val errorMessage = if (e is ReportException && e.errorData is ReportErrorData) {
-                                    e.errorData.content ?: e.toUserFriendlyMessage()
+                                    // 优先处理内容错误，其次处理图片错误，最后使用通用错误信息
+                                    e.errorData.content ?: e.errorData.picture ?: e.toUserFriendlyMessage()
                                 } else {
                                     e.toUserFriendlyMessage()
                                 }

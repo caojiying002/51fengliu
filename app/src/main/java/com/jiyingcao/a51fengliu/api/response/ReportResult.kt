@@ -17,6 +17,17 @@ package com.jiyingcao.a51fengliu.api.response
  *     }
  * }
  */
+
+/**
+ * {
+ *     "code": -1,
+ *     "msg": "Validation Error",
+ *     "data": {
+ *         "picture": "请使用正确的图片"
+ *     }
+ * }
+ */
 data class ReportErrorData (
     val content: String?,
+    val picture: String?,
 )

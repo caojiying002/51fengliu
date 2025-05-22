@@ -63,7 +63,8 @@
                     android:id="@+id/recyclerView"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:overScrollMode="never" />
+                    android:overScrollMode="never"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
             </com.scwang.smart.refresh.layout.SmartRefreshLayout>
         </FrameLayout>
     </FrameLayout>

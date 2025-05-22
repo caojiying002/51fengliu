@@ -114,7 +114,7 @@ class FavoriteViewModel(
     
     private suspend fun handleDataResult(
         page: Int,
-        result: Result<PageData?>,
+        result: Result<PageData<RecordInfo>?>,
         loadingType: FavoriteLoadingType
     ) {
         result.mapCatching { requireNotNull(it) }

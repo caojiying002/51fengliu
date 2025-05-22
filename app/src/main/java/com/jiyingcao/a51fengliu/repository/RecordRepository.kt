@@ -29,7 +29,7 @@ class RecordRepository(
      */
     fun getRecords(
         request: RecordsRequest
-    ): Flow<Result<PageData?>> = apiCall {
+    ): Flow<Result<PageData<RecordInfo>?>> = apiCall {
         apiService.getRecords(request.toMap())
     }
 
@@ -63,9 +63,9 @@ class RecordRepository(
     /**
      * 获取我的收藏列表
      * @param page 页码，默认从1开始
-     * @return Flow<Result<PageData?>> 包含收藏列表的结果流
+     * @return Flow<Result<PageData<RecordInfo>?>> 包含收藏列表的结果流
      */
-    fun getFavorites(page: Int = 1): Flow<Result<PageData?>> = apiCall {
+    fun getFavorites(page: Int = 1): Flow<Result<PageData<RecordInfo>?>> = apiCall {
         apiService.getFavorites(page)
     }
 

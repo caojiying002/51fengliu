@@ -21,7 +21,12 @@ fun <T> ApiResponse<T>.throwIfNotZero() {
 object NoErrorData
 
 /**
- * 定义一个通用的密封类来表示所有API响应的结果，用[Success]或者[Error]来包装ApiResponse.data
+ * 只用于[ApiResponse.data]在成功/失败时类型不同的场景，用[Success]或者[Error]来包装ApiResponse.data。
+ * 在大部分场景下，[ApiResponse.data]的类型是固定的，所以直接使用ApiResponse<T>就可以了。
+ *
+ * 例如：登录接口成功时返回用户token，失败时返回错误信息。
+ * 这种场景下，[ApiResponse.data]的类型是String和[LoginErrorData]，
+ * 应当使用ApiResponse<ApiResult<String, LoginErrorData>>。
  */
 sealed class ApiResult<out T, out E> {
     data class Success<T>(val data: T) : ApiResult<T, Nothing>()

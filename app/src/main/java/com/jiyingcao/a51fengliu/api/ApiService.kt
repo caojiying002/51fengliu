@@ -14,16 +14,7 @@ interface ApiService {
     @GET("/api/web/info/page.json")
     suspend fun getRecords(
         @QueryMap map: Map<String, String>
-    ) : ApiResponse<PageData>
-
-    // TODO @Deprecated("Use getRecords instead")
-    @TokenPolicy(Policy.OPTIONAL)
-    @GET("/api/web/info/page.json")
-    suspend fun search4(
-        @Query("keywords") keywords: String,
-        @Query("cityCode") cityCode: String,
-        @Query("page") page: Int = 1,
-    ): ApiResponse<PageData>
+    ): ApiResponse<PageData<RecordInfo>>
 
     @TokenPolicy(Policy.OPTIONAL)
     @GET("/api/web/info/detail.json")
@@ -67,7 +58,7 @@ interface ApiService {
     @GET("/api/web/authUser/favoritePage.json")
     suspend fun getFavorites(
         @Query("page") page: Int = 1
-    ): ApiResponse<PageData>
+    ): ApiResponse<PageData<RecordInfo>>
 
     /** 上传图片（需登录） */
     @TokenPolicy(Policy.REQUIRED)

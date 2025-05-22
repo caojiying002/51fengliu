@@ -145,7 +145,7 @@ class HomeViewModel(
     
     private suspend fun handleDataResult(
         request: RecordsRequest,
-        result: Result<PageData?>,
+        result: Result<PageData<RecordInfo>?>,
         loadingType: HomeLoadingType
     ) {
         result.mapCatching { requireNotNull(it) }

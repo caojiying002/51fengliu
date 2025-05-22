@@ -206,7 +206,7 @@ class SearchViewModel(
 
     private suspend fun handleSearchResult(
         request: RecordsRequest,
-        result: Result<PageData?>,
+        result: Result<PageData<RecordInfo>?>,
         loadingType: SearchLoadingType
     ) {
         result.mapCatching { requireNotNull(it) }

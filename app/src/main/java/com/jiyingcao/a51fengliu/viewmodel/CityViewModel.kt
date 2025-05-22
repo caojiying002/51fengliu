@@ -190,7 +190,7 @@ class CityViewModel(
     
     private suspend fun handleDataResult(
         request: RecordsRequest,
-        result: Result<PageData?>,
+        result: Result<PageData<RecordInfo>?>,
         loadingType: CityLoadingType
     ) {
         result.mapCatching { requireNotNull(it) }

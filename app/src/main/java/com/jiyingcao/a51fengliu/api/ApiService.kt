@@ -74,4 +74,19 @@ interface ApiService {
     suspend fun postReport(
         @Body body: ReportRequest
     ): ApiResponse<ApiResult<String, ReportErrorData>>
+
+    /** 商家列表（分页） */
+    @TokenPolicy(Policy.OPTIONAL)
+    @GET("/api/web/merchant/page.json")
+    suspend fun getMerchantsByPage(
+        @Query("page") page: Int = 1,
+        @Query("perPage") perPage: Int? = null
+    ): ApiResponse<PageData<Merchant>>
+
+    /** 商家详情 */
+    @TokenPolicy(Policy.OPTIONAL)
+    @GET("/api/web/merchant/detail.json")
+    suspend fun getMerchant(
+        @Query("merchantId") id: String
+    ): ApiResponse<Merchant>
 }

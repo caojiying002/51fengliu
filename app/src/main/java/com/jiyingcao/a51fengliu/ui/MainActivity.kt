@@ -22,7 +22,7 @@ class MainActivity : BaseActivity() {
 
     private var homeFragment: Fragment? = null
     private var cityRecordsFragment: Fragment? = null
-    private var notificationsFragment: Fragment? = null
+    private var merchantFragment: Fragment? = null
     private var profileFragment: Fragment? = null
 
     private var currentTabTag: String = TAG_HOME
@@ -32,7 +32,7 @@ class MainActivity : BaseActivity() {
         private const val TAG_PREFIX = "MAIN_ACTIVITY_TAB_"
         private const val TAG_HOME = "${TAG_PREFIX}HOME"
         private const val TAG_CITY_RECORDS = "${TAG_PREFIX}CITY_RECORDS"
-        private const val TAG_NOTIFICATIONS = "${TAG_PREFIX}NOTIFICATIONS"
+        private const val TAG_MERCHANT = "${TAG_PREFIX}MERCHANT"
         private const val TAG_PROFILE = "${TAG_PREFIX}PROFILE"
 
         // Saved instance state keys
@@ -78,7 +78,7 @@ class MainActivity : BaseActivity() {
     private fun setupTabs() {
         setupTab(tabHome, R.drawable.ic_home, "首页", TAG_HOME)
         setupTab(tabCityRecords, R.drawable.ic_search, "信息", TAG_CITY_RECORDS)
-        setupTab(tabNotifications, R.drawable.ic_notification, "商家", TAG_NOTIFICATIONS)
+        setupTab(tabNotifications, R.drawable.ic_notification, "商家", TAG_MERCHANT)
         setupTab(tabProfile, R.drawable.ic_profile, "我的", TAG_PROFILE)
     }
 
@@ -94,7 +94,7 @@ class MainActivity : BaseActivity() {
     private fun updateTabStates(selectedTag: String) {
         updateTabState(tabHome, selectedTag == TAG_HOME)
         updateTabState(tabCityRecords, selectedTag == TAG_CITY_RECORDS)
-        updateTabState(tabNotifications, selectedTag == TAG_NOTIFICATIONS)
+        updateTabState(tabNotifications, selectedTag == TAG_MERCHANT)
         updateTabState(tabProfile, selectedTag == TAG_PROFILE)
         currentTabTag = selectedTag
     }
@@ -122,7 +122,7 @@ class MainActivity : BaseActivity() {
                 targetFragment = when (tag) {
                     TAG_HOME -> HomeFragment().also { homeFragment = it }
                     TAG_CITY_RECORDS -> CityRecordsFragment().also { cityRecordsFragment = it }
-                    TAG_NOTIFICATIONS -> NotificationsFragment().also { notificationsFragment = it }
+                    TAG_MERCHANT -> MerchantFragment().also { merchantFragment = it }
                     TAG_PROFILE -> ProfileFragment().also { profileFragment = it }
                     else -> throw IllegalArgumentException("Unknown fragment tag: $tag")
                 }
@@ -132,7 +132,7 @@ class MainActivity : BaseActivity() {
                 when (tag) {
                     TAG_HOME -> homeFragment = targetFragment
                     TAG_CITY_RECORDS -> cityRecordsFragment = targetFragment
-                    TAG_NOTIFICATIONS -> notificationsFragment = targetFragment
+                    TAG_MERCHANT -> merchantFragment = targetFragment
                     TAG_PROFILE -> profileFragment = targetFragment
                 }
                 show(targetFragment)

@@ -1,24 +1,23 @@
 package com.jiyingcao.a51fengliu.ui.tab
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.Fragment
-import com.jiyingcao.a51fengliu.R
+import com.jiyingcao.a51fengliu.databinding.FragmentMerchantBinding
 
-class NotificationsFragment : Fragment() {
-    private lateinit var contentView: TextView
+class MerchantFragment : Fragment() {
+    private var _binding: FragmentMerchantBinding? = null
+    private val binding get() = _binding!!
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_notifications, container, false)
+        _binding = FragmentMerchantBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        contentView = view.findViewById(R.id.contentView)
     }
 
     override fun onResume() {
@@ -31,8 +30,8 @@ class NotificationsFragment : Fragment() {
         // Fragment 变为不可见时的逻辑
     }
 
-    @SuppressLint("SetTextI18n")
-    private fun updateContent() {
-        contentView.text = "Notification Fragment - Last updated: ${System.currentTimeMillis()}"
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

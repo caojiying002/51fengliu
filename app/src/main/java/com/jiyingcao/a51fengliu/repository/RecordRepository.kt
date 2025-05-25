@@ -5,6 +5,7 @@ import com.jiyingcao.a51fengliu.api.request.InfoIdRequest
 import com.jiyingcao.a51fengliu.api.request.RecordsRequest
 import com.jiyingcao.a51fengliu.api.request.ReportRequest
 import com.jiyingcao.a51fengliu.api.response.ApiResult
+import com.jiyingcao.a51fengliu.api.response.Merchant
 import com.jiyingcao.a51fengliu.api.response.PageData
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.domain.exception.ReportException
@@ -111,6 +112,15 @@ class RecordRepository(
             emit(Result.failure(e))
         }
     }.flowOn(dispatcher)
+
+    /**
+     * 获取商家列表，带分页功能
+     * @param page 页码，默认从1开始
+     * @return Flow<Result<PageData<Merchant>?>> 包含商家列表的结果流
+     */
+    fun getMerchants(page: Int = 1): Flow<Result<PageData<Merchant>?>> = apiCall {
+        apiService.getMerchantsByPage(page)
+    }
 
     companion object {
         // 用于单例模式实现

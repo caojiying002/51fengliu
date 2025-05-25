@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".ui.MerchantDetailActivity" >
+
+    <include
+        android:id="@+id/title_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        layout="@layout/widget_title_bar_back" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <!-- 一些规则： -->
+        <!-- 1. loading_layout置于最顶层，或者至少置于content_layout和error_layout之上 -->
+        <!-- 2. content_layout和error_layout不能同时出现 -->
+        <!-- 3. loading_layout可以与content_layout同时出现，也可以单独出现 -->
+        <!--   3.1 loading_layout置于content_layout之上 -->
+        <!--   3.2 loading_layout会拦截触摸事件，避免用户操作content_layout -->
+        <!--   3.3 首次进入页面加载数据时，通常让loading_layout单独出现 -->
+        <!--   3.4 页面需要刷新数据时，loading_layout以浮层形式出现在content_layout之上 -->
+        <!-- 4. loading_layout与error_layout能否同时出现不做强制要求 -->
+        <!--   4.1 loading_layout置于error_layout之上 -->
+        <!--   4.2 建议在error_layout点击重试时，隐藏error_layout，只显示loading_layout -->
+        <!-- 5. 如果需要空页面，建议把empty_layout作为content_layout的子布局而不是写在这里，更符合逻辑关系 -->
+
+        <FrameLayout
+            android:id="@+id/content_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone">
+
+            <!-- 空视图 -->
+            <FrameLayout
+                android:id="@+id/empty_content"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/tv_empty_content"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:padding="16dp"
+                    android:text="暂无内容，点击刷新"
+                    android:textColor="@color/text_content"
+                    android:textSize="@dimen/text_default" />
+            </FrameLayout>
+
+            <!-- 真实内容 -->
+            <com.scwang.smart.refresh.layout.SmartRefreshLayout
+                android:id="@+id/refreshLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="visible"
+                app:srlEnableOverScrollBounce="false">
+
+                <com.scwang.smart.refresh.header.ClassicsHeader
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <include
+                    android:id="@+id/content_detail"
+                    layout="@layout/merchant_content_detail"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+            </com.scwang.smart.refresh.layout.SmartRefreshLayout>
+        </FrameLayout>
+
+        <include
+            android:id="@+id/error_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            layout="@layout/default_error" />
+
+        <include
+            android:id="@+id/loading_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            layout="@layout/default_loading" />
+    </FrameLayout>
+</LinearLayout>

@@ -118,24 +118,29 @@
                 tools:ignore="SpUsage" />
 
             <TextView
-                android:id="@+id/provice"
+                android:id="@+id/province"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:drawablePadding="4dp"
                 android:lines="1"
+                android:textColor="@color/primary"
                 android:textSize="@dimen/text_default"
-                android:textColor="@color/text_content"
+                app:drawableLeftCompat="@drawable/icon_dz"
+                app:drawableTint="@color/primary"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/name"
-                tools:text="福建省" />
+                tools:text="山西省"
+                tools:ignore="SpUsage" />
 
             <TextView
                 android:id="@+id/desc"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:maxLines="3"
+                android:layout_marginTop="12dp"
                 android:textSize="@dimen/text_default"
                 android:textColor="@color/text_content"
-                app:layout_constraintTop_toBottomOf="@+id/provice"
+                app:layout_constraintTop_toBottomOf="@+id/province"
                 tools:text="@string/lorem_ipsum" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 

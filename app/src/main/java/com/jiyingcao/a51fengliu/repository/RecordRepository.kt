@@ -119,7 +119,16 @@ class RecordRepository(
      * @return Flow<Result<PageData<Merchant>?>> 包含商家列表的结果流
      */
     fun getMerchants(page: Int = 1): Flow<Result<PageData<Merchant>?>> = apiCall {
-        apiService.getMerchantsByPage(page)
+        apiService.getMerchants(page)
+    }
+
+    /**
+     * 获取商家详情
+     * @param id 商家ID
+     * @return Flow<Result<Merchant?>> 包含商家详情的结果流
+     */
+    fun getMerchantDetail(id: String): Flow<Result<Merchant?>> = apiCall {
+        apiService.getMerchantDetail(id)
     }
 
     companion object {

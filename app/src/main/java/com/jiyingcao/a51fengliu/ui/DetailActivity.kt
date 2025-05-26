@@ -507,7 +507,7 @@ class DetailActivity : BaseActivity() {
 
     companion object {
         private const val TAG = "DetailActivity"
-        private const val KEY_EXTRA_RECORD_ID = "RECORD_ID"
+        private const val KEY_EXTRA_RECORD_ID = "extra_record_id"
 
         @JvmStatic
         fun createIntent(context: Context, id: String): Intent =

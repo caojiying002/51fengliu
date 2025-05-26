@@ -78,7 +78,7 @@ interface ApiService {
     /** 商家列表（分页） */
     @TokenPolicy(Policy.OPTIONAL)
     @GET("/api/web/merchant/page.json")
-    suspend fun getMerchantsByPage(
+    suspend fun getMerchants(
         @Query("page") page: Int = 1,
         @Query("perPage") perPage: Int? = null
     ): ApiResponse<PageData<Merchant>>
@@ -86,7 +86,7 @@ interface ApiService {
     /** 商家详情 */
     @TokenPolicy(Policy.OPTIONAL)
     @GET("/api/web/merchant/detail.json")
-    suspend fun getMerchant(
+    suspend fun getMerchantDetail(
         @Query("merchantId") id: String
     ): ApiResponse<Merchant>
 }

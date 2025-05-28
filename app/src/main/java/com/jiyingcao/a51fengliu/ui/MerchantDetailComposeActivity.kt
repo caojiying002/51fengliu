@@ -132,6 +132,68 @@ fun MerchantDetailScreen(
 }
 
 @Composable
+fun MerchantDetailContent(
+    merchantId: String,
+    modifier: Modifier = Modifier
+) {
+    // 这里是商户详情的主要内容区域
+    // 目前先显示一个简单的占位内容，后续你可以根据需求添加具体的UI组件
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        // 占位内容
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = "商户详情页面",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "商户ID: $merchantId",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "这是使用Jetpack Compose构建的新页面。\n你可以在这里添加商户的详细信息、图片、介绍等内容。",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // 示例按钮
+        Button(
+            onClick = { /* 添加你的点击逻辑 */ },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("示例操作按钮")
+        }
+    }
+}
+
+
+@Composable
 fun CustomTitleBar(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -241,67 +303,6 @@ fun ErrorLayout(
                     .clickable { retryAction() }
                     .padding(horizontal = 16.dp, vertical = 8.dp) // 增加点击区域
             )
-        }
-    }
-}
-
-@Composable
-fun MerchantDetailContent(
-    merchantId: String,
-    modifier: Modifier = Modifier
-) {
-    // 这里是商户详情的主要内容区域
-    // 目前先显示一个简单的占位内容，后续你可以根据需求添加具体的UI组件
-
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        // 占位内容
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = "商户详情页面",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "商户ID: $merchantId",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "这是使用Jetpack Compose构建的新页面。\n你可以在这里添加商户的详细信息、图片、介绍等内容。",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // 示例按钮
-        Button(
-            onClick = { /* 添加你的点击逻辑 */ },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("示例操作按钮")
         }
     }
 }

@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -14,12 +15,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
-import com.jiyingcao.a51fengliu.ui.theme.AppTheme
+import com.jiyingcao.a51fengliu.ui.theme.*
 
 class MerchantDetailComposeActivity : BaseActivity() {
 
@@ -29,7 +33,7 @@ class MerchantDetailComposeActivity : BaseActivity() {
 
         setContent {
             AppTheme {
-                MerchantDetailScreen(
+                MerchantDetailScreen (
                     merchantId = intent.getMerchantId().toString(), // TODO intent参数为空的情况
                     onBackClick = { finish() }
                 )
@@ -55,43 +59,73 @@ class MerchantDetailComposeActivity : BaseActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MerchantDetailScreen(
     merchantId: String,
     onBackClick: () -> Unit
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "商户详情", // 你可以根据需要修改标题
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "返回"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
-                )
-            )
-        }
-    ) { paddingValues ->
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        CustomTitleBar(onBackClick = onBackClick)
+
         MerchantDetailContent(
             merchantId = merchantId,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .weight(1f)
         )
+    }
+}
+
+@Composable
+fun CustomTitleBar(
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        // 状态栏占位, 使用WindowInsets.statusBars.asPaddingValues().calculateTopPadding()获取系统状态栏高度
+        Spacer(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(
+                    WindowInsets.statusBars
+                        .asPaddingValues()
+                        .calculateTopPadding()
+                )
+        )
+
+        // 标题栏内容 - 对应原layout中的FrameLayout
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(ToolbarHeight) // 使用theme中定义的56.dp
+                .padding(horizontal = 16.dp)
+        ) {
+            // 返回按钮 - 对应原layout中的TextView
+            Row(
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .clickable { onBackClick() }
+                    .padding(vertical = 8.dp), // 增加点击区域
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_back),
+                    contentDescription = "返回",
+                    tint = Primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "返回",
+                    fontSize = 18.sp,
+                    color = Primary,
+                    fontWeight = FontWeight.Normal
+                )
+            }
+        }
+
     }
 }
 
@@ -156,12 +190,104 @@ fun MerchantDetailContent(
     }
 }
 
+// ==== 以下是保留的Material TopAppBar实现，作为学习参考 ====
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MerchantDetailScreenWithMaterialTopBar(
+    merchantId: String,
+    onBackClick: () -> Unit
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "商户详情", // 你可以根据需要修改标题
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "返回"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
+                )
+            )
+        }
+    ) { paddingValues ->
+        MerchantDetailContentOriginal(
+            merchantId = merchantId,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        )
+    }
+}
+
+@Composable
+fun MerchantDetailContentOriginal(
+    merchantId: String,
+    modifier: Modifier = Modifier
+) {
+    // 原来的占位内容实现，保留作为参考
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = "商户详情页面 (Material版本)",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "商户ID: $merchantId",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun MerchantDetailScreenPreview() {
     AppTheme {
         MerchantDetailScreen(
             merchantId = "55",
+            onBackClick = { }
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CustomTitleBarPreview() {
+    AppTheme {
+        CustomTitleBar(
             onBackClick = { }
         )
     }

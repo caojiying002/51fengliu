@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -14,10 +15,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -59,22 +62,72 @@ class MerchantDetailComposeActivity : BaseActivity() {
     }
 }
 
+// UI 状态枚举，用于控制显示哪种布局
+enum class MerchantDetailUiState {
+    Loading,        // 全屏加载
+    LoadingOverContent, // 内容上方的加载遮罩
+    Content,        // 正常内容
+    Error           // 错误状态
+}
+
+// 更新后的 MerchantDetailScreen，支持多种状态
 @Composable
 fun MerchantDetailScreen(
     merchantId: String,
     onBackClick: () -> Unit
 ) {
+    // 示例状态管理 - 实际项目中你会从 ViewModel 获取状态
+    var uiState by remember { mutableStateOf(MerchantDetailUiState.Content) }
+    var errorMessage by remember { mutableStateOf("") }
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
         CustomTitleBar(onBackClick = onBackClick)
 
-        MerchantDetailContent(
-            merchantId = merchantId,
+        // 内容区域 - 根据状态显示不同的布局
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .weight(1f)
-        )
+        ) {
+            when (uiState) {
+                MerchantDetailUiState.Loading -> {
+                    LoadingLayout()
+                }
+
+                MerchantDetailUiState.Content -> {
+                    MerchantDetailContent(
+                        merchantId = merchantId,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+
+                MerchantDetailUiState.Error -> {
+                    ErrorLayout(
+                        errorMessage = errorMessage.ifEmpty { "出错了，请稍后重试" },
+                        onRetryClick = {
+                            // 重试逻辑 - 实际项目中你会调用 ViewModel 的方法
+                            uiState = MerchantDetailUiState.Loading
+                            // 这里可以触发重新加载数据的逻辑
+                        }
+                    )
+                }
+
+                MerchantDetailUiState.LoadingOverContent -> {
+                    // 内容布局
+                    MerchantDetailContent(
+                        merchantId = merchantId,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    // 加载遮罩覆盖在内容上方
+                    LoadingLayout(
+                        isOverlay = true,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -126,6 +179,69 @@ fun CustomTitleBar(
             }
         }
 
+    }
+}
+
+// 加载布局组件 - 对应 default_loading.xml
+@Composable
+fun LoadingLayout(
+    modifier: Modifier = Modifier,
+    isOverlay: Boolean = false // 是否作为覆盖层显示
+) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .then(
+                if (isOverlay) {
+                    // 如果是覆盖层，添加半透明背景
+                    Modifier.background(Color.Black.copy(alpha = 0.3f))
+                } else {
+                    Modifier
+                }
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator(
+            color = Primary,
+            modifier = Modifier.size(48.dp)
+        )
+    }
+}
+
+// 错误布局组件 - 对应 default_error.xml
+@Composable
+fun ErrorLayout(
+    errorMessage: String = "出错了，请稍后重试",
+    onRetryClick: (() -> Unit)? = null,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = errorMessage,
+            fontSize = 14.sp,
+            color = TextContent,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(8.dp)
+        )
+
+        // 重试按钮 - 只有当 onRetryClick 不为 null 时才显示
+        onRetryClick?.let { retryAction ->
+            Text(
+                text = "点击重试",
+                fontSize = 14.sp,
+                color = Primary,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .clickable { retryAction() }
+                    .padding(horizontal = 16.dp, vertical = 8.dp) // 增加点击区域
+            )
+        }
     }
 }
 

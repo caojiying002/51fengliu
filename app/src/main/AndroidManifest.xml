@@ -54,6 +54,10 @@
             android:exported="${activityExported}"
             android:screenOrientation="${screenOrientation}" />
         <activity
+            android:name=".ui.MerchantDetailComposeActivity"
+            android:exported="${activityExported}"
+            android:screenOrientation="${screenOrientation}" />
+        <activity
             android:name=".ui.auth.AuthActivity"
             android:windowSoftInputMode="adjustResize|stateHidden"
             android:exported="${activityExported}"

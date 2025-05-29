@@ -54,7 +54,7 @@ object StateFactory {
      */
     inline fun <reified T : BaseState> createLoading(loadingType: LoadingType): T {
         return when (T::class) {
-            MerchantDetailState2::class -> MerchantDetailState2.Loading(loadingType) as T
+            MerchantDetailState::class -> MerchantDetailState.Loading(loadingType) as T
             //CityState::class -> CityState.Loading(loadingType) as T
             //DetailState::class -> DetailState.Loading(loadingType) as T
             // 可以继续添加其他状态类型
@@ -70,7 +70,7 @@ object StateFactory {
         errorType: LoadingType
     ): T {
         return when (T::class) {
-            MerchantDetailState2::class -> MerchantDetailState2.Error(message, errorType) as T
+            MerchantDetailState::class -> MerchantDetailState.Error(message, errorType) as T
             //CityState::class -> CityState.Error(message, errorType) as T
             //DetailState::class -> DetailState.Error(message, errorType) as T
             // 可以继续添加其他状态类型

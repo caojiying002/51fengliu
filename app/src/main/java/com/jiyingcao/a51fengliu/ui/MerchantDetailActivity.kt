@@ -17,12 +17,10 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
-import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.Merchant
 import com.jiyingcao.a51fengliu.config.AppConfig.Network.BASE_IMAGE_URL
-import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.databinding.ActivityMerchantDetailBinding
 import com.jiyingcao.a51fengliu.databinding.MerchantContentDetailBinding
 import com.jiyingcao.a51fengliu.glide.HostInvariantGlideUrl
@@ -32,12 +30,11 @@ import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.common.BigImageViewerActivity
 import com.jiyingcao.a51fengliu.util.ImageLoader
 import com.jiyingcao.a51fengliu.util.copyOnLongClick
-import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.to2LevelName
 import com.jiyingcao.a51fengliu.viewmodel.LoadingType
 import com.jiyingcao.a51fengliu.viewmodel.MerchantDetailIntent
-import com.jiyingcao.a51fengliu.viewmodel.MerchantDetailState2
+import com.jiyingcao.a51fengliu.viewmodel.MerchantDetailState
 import com.jiyingcao.a51fengliu.viewmodel.MerchantDetailViewModel
 import com.jiyingcao.a51fengliu.viewmodel.MerchantDetailViewModelFactory
 import kotlinx.coroutines.launch
@@ -117,20 +114,20 @@ class MerchantDetailActivity : BaseActivity() {
     /**
      * 处理状态变化 - 重构后使用通用的LoadingType
      */
-    private fun handleStateChange(state: MerchantDetailState2) {
+    private fun handleStateChange(state: MerchantDetailState) {
         when (state) {
-            is MerchantDetailState2.Init -> {
+            is MerchantDetailState.Init -> {
                 showContentView()
             }
-            is MerchantDetailState2.Loading -> {
+            is MerchantDetailState.Loading -> {
                 handleLoadingState(state.loadingType)
             }
-            is MerchantDetailState2.Success -> {
+            is MerchantDetailState.Success -> {
                 showContentView()
                 binding.refreshLayout.finishRefresh(true)
                 updateUI(state.merchant)
             }
-            is MerchantDetailState2.Error -> {
+            is MerchantDetailState.Error -> {
                 handleErrorState(state.message, state.errorType)
             }
         }

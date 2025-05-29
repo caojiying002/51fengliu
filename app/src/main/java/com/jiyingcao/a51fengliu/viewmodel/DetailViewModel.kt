@@ -14,46 +14,37 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
-private enum class DetailLoadingType {
-    FULL_SCREEN,
-    PULL_TO_REFRESH,
-    FLOAT
+/**
+ * 单一UI状态 - 详情页所有状态信息
+ */
+data class DetailUiState(
+    val isLoading: Boolean = false,
+    val loadingType: LoadingType = LoadingType.FULL_SCREEN,
+    val record: RecordInfo? = null,
+    val isError: Boolean = false,
+    val errorMessage: String = "",
+    val errorType: LoadingType = LoadingType.FULL_SCREEN,
+    val isRefreshing: Boolean = false,
+    val isOverlayLoading: Boolean = false
+) {
+    // 派生状态 - 通过计算得出，避免状态冗余
+    val showFullScreenLoading: Boolean get() = isLoading && loadingType == LoadingType.FULL_SCREEN
+    val showOverlayLoading: Boolean get() = isOverlayLoading
+    val showContent: Boolean get() = !isLoading && !isError && record != null
+    val showFullScreenError: Boolean get() = isError && errorType == LoadingType.FULL_SCREEN
+    val hasData: Boolean get() = record != null
 }
 
-private fun DetailLoadingType.toLoadingState(): DetailState.Loading = when (this) {
-    DetailLoadingType.FULL_SCREEN -> DetailState.Loading.FullScreen
-    DetailLoadingType.PULL_TO_REFRESH -> DetailState.Loading.PullToRefresh
-    DetailLoadingType.FLOAT -> DetailState.Loading.Float
-}
-
-private fun DetailLoadingType.toErrorState(message: String): DetailState.Error = when (this) {
-    DetailLoadingType.FULL_SCREEN -> DetailState.Error.FullScreen(message)
-    DetailLoadingType.PULL_TO_REFRESH -> DetailState.Error.PullToRefresh(message)
-    DetailLoadingType.FLOAT -> DetailState.Error.Float(message)
-}
-
-sealed class DetailState {
-    object Init : DetailState()
-    sealed class Loading : DetailState() {
-        object FullScreen : Loading()
-        object PullToRefresh : Loading()
-        object Float : Loading()
-    }
-    data class Success(val record: RecordInfo) : DetailState()
-    sealed class Error(open val message: String) : DetailState() {
-        data class FullScreen(override val message: String) : Error(message)
-        data class PullToRefresh(override val message: String) : Error(message)
-        data class Float(override val message: String) : Error(message)
-    }
-}
-
+/**
+ * 收藏按钮状态 - 保持独立，因为它有自己的状态机逻辑
+ */
 sealed class FavoriteButtonState {
     /** 静止状态：已收藏或未收藏 */
     data class Idle(val isFavorited: Boolean) : FavoriteButtonState()
@@ -74,6 +65,9 @@ sealed class DetailIntent {
     object ToggleFavorite : DetailIntent()
 }
 
+/**
+ * 副作用 - 保持独立，用于处理一次性事件
+ */
 sealed class DetailEffect {
     object ShowLoadingDialog : DetailEffect()
     object DismissLoadingDialog : DetailEffect()
@@ -86,39 +80,41 @@ class DetailViewModel(
     private val tokenManager: TokenManager
 ) : BaseViewModel() {
 
-    private val _state = MutableStateFlow<DetailState>(DetailState.Init)
-    val state: StateFlow<DetailState> = _state.asStateFlow()
+    // 单一状态源 - 详情页的所有UI状态
+    private val _uiState = MutableStateFlow(DetailUiState())
+    val uiState: StateFlow<DetailUiState> = _uiState.asStateFlow()
 
-    private val _isLoggedIn = MutableStateFlow<Boolean?>(null)
-    //val isLoggedIn: StateFlow<Boolean?> = _isLoggedIn.asStateFlow()
-
-    // 使用单一状态表示收藏按钮的状态
+    // 收藏按钮独立状态 - 因为它有自己的状态机逻辑
     private val _favoriteButtonState = MutableStateFlow<FavoriteButtonState>(FavoriteButtonState.Idle(false))
     val favoriteButtonState: StateFlow<FavoriteButtonState> = _favoriteButtonState.asStateFlow()
 
-    private val _isUIVisible = MutableStateFlow(false)
+    // 副作用通道
+    private val _effect = Channel<DetailEffect>()
+    val effect = _effect.receiveAsFlow()
 
-    /** 从未登录状态转变为已登录时，标记为true */
+    // 内部状态管理
+    private val _isLoggedIn = MutableStateFlow<Boolean?>(null)
+    private val _isUIVisible = MutableStateFlow(false)
     private val _needsRefresh = MutableStateFlow(false)
 
     @Volatile
     var hasLoadedData = false
-
-    private val _effect = Channel<DetailEffect>()
-    val effect = _effect.receiveAsFlow()
 
     // Job tracking
     private var detailLoadJob: Job? = null
     private var favoriteToggleJob: Job? = null
 
     init {
-        _state
-            .filterIsInstance<DetailState.Success>()
-            .onEach {
-                _favoriteButtonState.value = FavoriteButtonState.Idle(it.record.isFavorite == true)
+        // 监听详情数据变化，同步更新收藏按钮状态
+        _uiState
+            .map { it.record }
+            .filterNotNull()
+            .onEach { record ->
+                _favoriteButtonState.value = FavoriteButtonState.Idle(record.isFavorite == true)
             }
             .launchIn(viewModelScope)
 
+        // 监听登录状态变化
         tokenManager.token
             .map { token -> !token.isNullOrBlank() }
             .distinctUntilChanged()
@@ -172,6 +168,11 @@ class DetailViewModel(
      *
      * 关键是保持团队内的一致性，以及明确文档中说明哪些操作遵循严格MVI，哪些是为了实用性的例外。
      */
+
+    /**
+     * UI可见性管理 - 实用主义方法
+     * 虽然不是严格的MVI，但在生命周期管理方面很实用
+     */
     fun setUIVisibility(isVisible: Boolean) {
         _isUIVisible.value = isVisible
         if (isVisible) {
@@ -189,26 +190,64 @@ class DetailViewModel(
         }
     }
 
-    private fun loadDetail(loadingType: DetailLoadingType = DetailLoadingType.FULL_SCREEN) {
+    private fun loadDetail(loadingType: LoadingType = LoadingType.FULL_SCREEN) {
+        if (shouldPreventRequest(loadingType)) return
+
         detailLoadJob?.cancel()
         detailLoadJob = viewModelScope.launch(remoteLoginCoroutineContext) {
-            _state.value = loadingType.toLoadingState()
+            // 更新加载状态
+            updateUiState { currentState ->
+                currentState.copy(
+                    isLoading = loadingType == LoadingType.FULL_SCREEN,
+                    isRefreshing = loadingType == LoadingType.PULL_TO_REFRESH,
+                    isOverlayLoading = loadingType == LoadingType.OVERLAY,
+                    loadingType = loadingType,
+                    isError = false // 清除之前的错误状态
+                )
+            }
+
             repository.getDetail(infoId)
                 .collect { result ->
-                    result.mapCatching { requireNotNull(it) }
-                        .onSuccess { record ->
-                            hasLoadedData = true
-                            _state.value = DetailState.Success(record)
-                        }.onFailure { e ->
-                            if (!handleFailure(e))  // 通用的错误处理，如果处理过就不用再处理了
-                                _state.value = loadingType.toErrorState(e.toUserFriendlyMessage())
-                        }
+                    handleDataResult(result, loadingType)
                 }
         }
     }
 
+    private suspend fun handleDataResult(
+        result: Result<RecordInfo?>,
+        loadingType: LoadingType
+    ) {
+        result.mapCatching { requireNotNull(it) }
+            .onSuccess { record ->
+                hasLoadedData = true
+                updateUiState { currentState ->
+                    currentState.copy(
+                        isLoading = false,
+                        isRefreshing = false,
+                        isOverlayLoading = false,
+                        isError = false,
+                        record = record
+                    )
+                }
+            }
+            .onFailure { e ->
+                if (!handleFailure(e)) { // 通用的错误处理
+                    updateUiState { currentState ->
+                        currentState.copy(
+                            isLoading = false,
+                            isRefreshing = false,
+                            isOverlayLoading = false,
+                            isError = true,
+                            errorMessage = e.toUserFriendlyMessage(),
+                            errorType = loadingType
+                        )
+                    }
+                }
+            }
+    }
+
     private fun pullToRefresh() {
-        loadDetail(DetailLoadingType.PULL_TO_REFRESH)
+        loadDetail(LoadingType.PULL_TO_REFRESH)
     }
 
     /**
@@ -221,7 +260,7 @@ class DetailViewModel(
      * 目前和[loadDetail0]只有加载样式上的区别
      */
     private fun refresh() { // TODO 根据登录后刷新的语义，最好能重命名
-        loadDetail(DetailLoadingType.FLOAT)
+        loadDetail(LoadingType.OVERLAY)
     }
 
     /**
@@ -231,14 +270,13 @@ class DetailViewModel(
      * - 方便后续添加重试相关的特殊逻辑（如重试次数限制）
      */
     private fun retry() {
-        loadDetail(DetailLoadingType.FULL_SCREEN)
+        loadDetail(LoadingType.FULL_SCREEN)
     }
 
     private fun toggleFavorite() {
         // 获取当前按钮状态，如果正在进行中则忽略本次点击
         val currentButtonState = _favoriteButtonState.value
-        if (_favoriteButtonState.value is FavoriteButtonState.InProgress)
-            return
+        if (currentButtonState is FavoriteButtonState.InProgress) return
 
         assert(currentButtonState is FavoriteButtonState.Idle)
 
@@ -271,6 +309,25 @@ class DetailViewModel(
                     }
                 }
             }
+        }
+    }
+
+    /** 防止重复请求 */
+    private fun shouldPreventRequest(loadingType: LoadingType): Boolean {
+        val currentState = _uiState.value
+        return when (loadingType) {
+            LoadingType.FULL_SCREEN -> currentState.isLoading
+            LoadingType.PULL_TO_REFRESH -> currentState.isRefreshing
+            LoadingType.OVERLAY -> currentState.isOverlayLoading
+            else -> false
+        }
+    }
+
+    private fun updateUiState(update: (DetailUiState) -> DetailUiState) {
+        val currentState = _uiState.value
+        val newState = update(currentState)
+        if (newState != currentState) {
+            _uiState.value = newState
         }
     }
 

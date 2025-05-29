@@ -14,24 +14,41 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+@Deprecated("LoadingType")
 private enum class MerchantDetailLoadingType {
     FULL_SCREEN,
     PULL_TO_REFRESH,
     FLOAT
 }
 
+@Deprecated("LoadingType")
 private fun MerchantDetailLoadingType.toLoadingState(): MerchantDetailState.Loading = when (this) {
     MerchantDetailLoadingType.FULL_SCREEN -> MerchantDetailState.Loading.FullScreen
     MerchantDetailLoadingType.PULL_TO_REFRESH -> MerchantDetailState.Loading.PullToRefresh
     MerchantDetailLoadingType.FLOAT -> MerchantDetailState.Loading.Float
 }
 
+@Deprecated("LoadingType")
 private fun MerchantDetailLoadingType.toErrorState(message: String): MerchantDetailState.Error = when (this) {
     MerchantDetailLoadingType.FULL_SCREEN -> MerchantDetailState.Error.FullScreen(message)
     MerchantDetailLoadingType.PULL_TO_REFRESH -> MerchantDetailState.Error.PullToRefresh(message)
     MerchantDetailLoadingType.FLOAT -> MerchantDetailState.Error.Float(message)
 }
 
+/**
+ * 商家详情状态 - 采用密封类 + 接口的混合模式
+ */
+sealed class MerchantDetailState2 : BaseState {
+    object Init : MerchantDetailState2()
+    data class Loading(override val loadingType: LoadingType) : MerchantDetailState2(), LoadingState    // 实现通用加载状态接口
+    data class Success(val merchant: Merchant) : MerchantDetailState2()
+    data class Error(
+        override val message: String,
+        override val errorType: LoadingType
+    ) : MerchantDetailState2(), ErrorState  // 实现通用错误状态接口
+}
+
+@Deprecated("use MerchantDetailState2")
 sealed class MerchantDetailState {
     object Idle : MerchantDetailState()
     sealed class Loading : MerchantDetailState() {
@@ -62,8 +79,8 @@ class MerchantDetailViewModel (
 ) : ViewModel() {
     private var fetchJob: Job? = null
 
-    private val _state = MutableStateFlow<MerchantDetailState>(MerchantDetailState.Idle)
-    val state: StateFlow<MerchantDetailState> = _state.asStateFlow()
+    private val _state = MutableStateFlow<MerchantDetailState2>(MerchantDetailState2.Init)
+    val state = _state.asStateFlow()
 
     fun processIntent(intent: MerchantDetailIntent) {
         when (intent) {
@@ -74,30 +91,31 @@ class MerchantDetailViewModel (
         }
     }
 
-    private fun loadDetail(loadingType: MerchantDetailLoadingType = MerchantDetailLoadingType.FULL_SCREEN) {
+    private fun loadDetail(loadingType: LoadingType = LoadingType.FULL_SCREEN) {
         fetchJob?.cancel()
         fetchJob = viewModelScope.launch(remoteLoginCoroutineContext) {
-            _state.value = loadingType.toLoadingState()
+            // 使用通用的泛型扩展函数创建状态
+            _state.value = loadingType.toLoadingState<MerchantDetailState2>()
             repository.getMerchantDetail(merchantId)
                 .collect { result ->
                     result.mapCatching { requireNotNull(it) }
                         .onSuccess { merchant ->
                             //hasLoadedData = true  // TODO 登录成功也许用到
-                            _state.value = MerchantDetailState.Success(merchant)
+                            _state.value = MerchantDetailState2.Success(merchant)
                         }.onFailure { e ->
                             if (!handleFailure(e))  // 通用的错误处理，如果处理过就不用再处理了
-                                _state.value = loadingType.toErrorState(e.toUserFriendlyMessage())
+                                _state.value = loadingType.toErrorState<MerchantDetailState2>(e.toUserFriendlyMessage())
                         }
                 }
         }
     }
 
     private fun pullToRefresh() {
-        loadDetail(MerchantDetailLoadingType.PULL_TO_REFRESH)
+        loadDetail(LoadingType.PULL_TO_REFRESH)
     }
 
     private fun retry() {
-        loadDetail(MerchantDetailLoadingType.FULL_SCREEN)
+        loadDetail(LoadingType.FULL_SCREEN)
     }
 
     private fun handleLoginSuccess() {

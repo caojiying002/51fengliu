@@ -4,7 +4,9 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.jiyingcao.a51fengliu.R
@@ -14,10 +16,8 @@ import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.FavoriteIntent
-import com.jiyingcao.a51fengliu.viewmodel.FavoriteState
 import com.jiyingcao.a51fengliu.viewmodel.FavoriteViewModel
 import com.jiyingcao.a51fengliu.viewmodel.FavoriteViewModelFactory
-import com.jiyingcao.a51fengliu.viewmodel.LoadingType
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
@@ -46,7 +46,7 @@ class FavoriteActivity : BaseActivity() {
         setupTitleBar()
         setupRecyclerView()
         setupSmartRefreshLayout()
-        setupFlowCollectors()
+        observeUiState()
 
         viewModel.processIntent(FavoriteIntent.InitialLoad)
     }
@@ -79,66 +79,57 @@ class FavoriteActivity : BaseActivity() {
         }
     }
 
-    private fun setupFlowCollectors() {
-        // 监听加载中、失败、成功状态
+    /**
+     * 单一状态流观察 - 企业级MVI最佳实践
+     * 所有UI状态变化都在一个地方处理，便于维护和调试
+     */
+    private fun observeUiState() {
         lifecycleScope.launch {
-            viewModel.state.collect { state ->
-                when (state) {
-                    is FavoriteState.Loading -> handleLoadingState(state.loadingType)
-                    is FavoriteState.Error -> handleErrorState(state.message, state.errorType)
-                    is FavoriteState.Success -> {
-                        showContentView()
-                        refreshLayout.finishRefresh()
-                        refreshLayout.finishLoadMore()
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { uiState ->
+                    // 处理数据展示, 最好优化一下避免每次都提交列表数据
+                    recordAdapter.submitList(uiState.records)
+
+                    // 处理各种UI状态 - 使用when表达式确保所有状态都被处理
+                    when {
+                        uiState.showFullScreenLoading -> {
+                            showLoadingView()
+                        }
+
+                        uiState.showFullScreenError -> {
+                            showErrorView(uiState.errorMessage)
+                        }
+
+                        uiState.showEmptyState -> {
+                            statefulContent.showContentView()
+                            statefulContent.showEmptyContent()
+                        }
+
+                        uiState.showContent -> {
+                            statefulContent.showContentView()
+                            statefulContent.showRealContent()
+                        }
                     }
-                    else -> { showContentView() }
+
+                    // 处理刷新状态
+                    if (!uiState.isRefreshing) {
+                        refreshLayout.finishRefresh(!uiState.isError)
+                    }
+
+                    // 处理加载更多状态
+                    if (!uiState.isLoadingMore) {
+                        refreshLayout.finishLoadMore(!uiState.isError)
+                    }
+
+                    // 处理无更多数据状态
+                    refreshLayout.setNoMoreData(uiState.noMoreData)
+
+                    // 处理错误提示 - 只对非全屏错误显示Toast
+                    if (uiState.isError && !uiState.showFullScreenError) {
+                        showToast(uiState.errorMessage)
+                    }
                 }
             }
-        }
-
-        // 监听数据列表
-        lifecycleScope.launch {
-            viewModel.records.collect { records ->
-                recordAdapter.submitList(records)
-                
-                // 如果没有数据，显示空状态
-                if (records.isEmpty()) {
-                    statefulContent.showEmptyContent()
-                } else {
-                    statefulContent.showRealContent()
-                }
-            }
-        }
-
-        // 监听是否已经是最后一页
-        lifecycleScope.launch {
-            viewModel.noMoreDataState.collect { noMoreData ->
-                refreshLayout.setNoMoreData(noMoreData)
-            }
-        }
-    }
-
-    private fun handleLoadingState(loadingType: LoadingType) {
-        when (loadingType) {
-            LoadingType.FULL_SCREEN -> showLoadingView()
-            LoadingType.PULL_TO_REFRESH -> { /* 下拉刷新 */ }
-            LoadingType.LOAD_MORE -> { /* 加载更多 */ }
-            else -> showLoadingView() // 其他类型默认显示全屏加载
-        }
-    }
-
-    private fun handleErrorState(message: String, errorType: LoadingType) {
-        when (errorType) {
-            LoadingType.FULL_SCREEN -> showErrorView(message)
-            LoadingType.PULL_TO_REFRESH -> {
-                refreshLayout.finishRefresh(false)
-                showToast(message)
-            }
-            LoadingType.LOAD_MORE -> {
-                refreshLayout.finishLoadMore(false)
-                showToast(message)
-            }
-            else -> showErrorView(message)  // 其他类型默认显示全屏错误
         }
     }
 

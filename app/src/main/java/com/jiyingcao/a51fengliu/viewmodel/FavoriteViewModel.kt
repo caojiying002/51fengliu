@@ -18,16 +18,26 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 /**
- * 我的收藏列表状态 - 采用密封类 + 接口的混合模式
+ * 单一UI状态
+ * 包含页面所有需要的状态信息
  */
-sealed class FavoriteState : BaseState {
-    object Init : FavoriteState()
-    data class Loading(override val loadingType: LoadingType) : FavoriteState(), LoadingState    // 实现通用加载状态接口
-    object Success : FavoriteState()
-    data class Error(
-        override val message: String,
-        override val errorType: LoadingType
-    ) : FavoriteState(), ErrorState  // 实现通用错误状态接口
+data class FavoriteUiState(
+    val isLoading: Boolean = false,
+    val loadingType: LoadingType = LoadingType.FULL_SCREEN,
+    val records: List<RecordInfo> = emptyList(),
+    val isError: Boolean = false,
+    val errorMessage: String = "",
+    val errorType: LoadingType = LoadingType.FULL_SCREEN,
+    val noMoreData: Boolean = false,
+    val isRefreshing: Boolean = false,
+    val isLoadingMore: Boolean = false
+) {
+    // 派生状态 - 通过计算得出，避免状态冗余
+    val isEmpty: Boolean get() = !isLoading && !isError && records.isEmpty()
+    val showContent: Boolean get() = !isLoading && !isError && records.isNotEmpty()
+    val showEmptyState: Boolean get() = !isLoading && !isError && records.isEmpty()
+    val showFullScreenLoading: Boolean get() = isLoading && loadingType == LoadingType.FULL_SCREEN
+    val showFullScreenError: Boolean get() = isError && errorType == LoadingType.FULL_SCREEN
 }
 
 sealed class FavoriteIntent {
@@ -41,48 +51,65 @@ class FavoriteViewModel(
     private val repository: RecordRepository
 ) : BaseViewModel() {
     private var fetchJob: Job? = null
-    
-    private val _state = MutableStateFlow<FavoriteState>(FavoriteState.Init)
-    val state = _state.asStateFlow()
-    
-    private val _noMoreDataState = MutableStateFlow(false)
-    val noMoreDataState = _noMoreDataState.asStateFlow()
-
-    /** 保护[data]列表，确保在多线程环境下的数据安全。 */
     private val dataLock = Mutex()
     
-    /**
-     * 存放Records的列表。
-     * 【注意】应当使用[updateRecords]方法修改这个列表，确保[_records]流每次都能获得更新。
-     */
+    // 单一状态源 - 这是MVI的核心原则
+    private val _uiState = MutableStateFlow(FavoriteUiState())
+    val uiState = _uiState.asStateFlow()
+    
+    // 内部状态管理
     @GuardedBy("dataLock")
-    private var data: MutableList<RecordInfo> = mutableListOf()
-    
-    /**
-     * 【注意】不要直接修改这个流，应当使用[updateRecords]。
-     */
-    private val _records = MutableStateFlow<List<RecordInfo>>(emptyList())
-    val records = _records.asStateFlow()
-    
-    /** 加载成功的页数，每次加载成功后加1，用于加载更多时的页码计算。 */
-    private val _pageLoaded = MutableStateFlow(0)
+    private var currentRecords: MutableList<RecordInfo> = mutableListOf()
+    private var currentPage = 0
+    private var pendingInitialLoad = true
 
     fun processIntent(intent: FavoriteIntent) {
         when (intent) {
-            FavoriteIntent.InitialLoad -> fetchData(1)
+            FavoriteIntent.InitialLoad -> initialLoad()
             FavoriteIntent.Retry -> retry()
             FavoriteIntent.Refresh -> refresh()
             FavoriteIntent.LoadMore -> loadMore()
         }
     }
 
-    private fun fetchData(
-        page: Int,
-        loadingType: LoadingType = LoadingType.FULL_SCREEN
-    ) {
+    private fun initialLoad() {
+        // 避免UI发生配置更改时ViewModel重新加载数据
+        if (pendingInitialLoad) {
+            fetchData(page = 1, loadingType = LoadingType.FULL_SCREEN)
+            pendingInitialLoad = false
+        }
+    }
+
+    private fun retry() {
+        fetchData(page = 1, loadingType = LoadingType.FULL_SCREEN)
+    }
+
+    private fun refresh() {
+        fetchData(page = 1, loadingType = LoadingType.PULL_TO_REFRESH)
+    }
+
+    private fun loadMore() {
+        val currentState = _uiState.value
+        if (currentState.isLoadingMore || currentState.noMoreData) return
+        fetchData(page = currentPage + 1, loadingType = LoadingType.LOAD_MORE)
+    }
+
+    private fun fetchData(page: Int, loadingType: LoadingType) {
+        if (shouldPreventRequest(loadingType)) return
+
         fetchJob?.cancel()
         fetchJob = viewModelScope.launch(remoteLoginCoroutineContext) {
-            _state.value = loadingType.toLoadingState<FavoriteState>()
+            // 更新加载状态
+            updateUiState { currentState ->
+                currentState.copy(
+                    isLoading = loadingType == LoadingType.FULL_SCREEN,
+                    isRefreshing = loadingType == LoadingType.PULL_TO_REFRESH,
+                    isLoadingMore = loadingType == LoadingType.LOAD_MORE,
+                    loadingType = loadingType,
+                    isError = false // 清除之前的错误状态
+                )
+            }
+            
             repository.getFavorites(page)
                 .onEach { result -> 
                     handleDataResult(page, result, loadingType)
@@ -99,42 +126,67 @@ class FavoriteViewModel(
     ) {
         result.mapCatching { requireNotNull(it) }
             .onSuccess { pageData ->
-                _pageLoaded.value = if (page == 1) 1 else _pageLoaded.value + 1
-                _state.value = FavoriteState.Success
-                _noMoreDataState.value = pageData.isLastPage()
-                
-                updateRecords {
-                    it.apply {
-                        // 只有下拉刷新或初次加载时清空列表，其他情况直接添加
-                        if (page == 1) clear()
-                        addAll(pageData.records)
-                    }
+                currentPage = page
+                val newRecords = updateRecordsList(page, pageData.records)
+
+                updateUiState { currentState ->
+                    currentState.copy(
+                        isLoading = false,
+                        isRefreshing = false,
+                        isLoadingMore = false,
+                        isError = false,
+                        records = newRecords,
+                        noMoreData = pageData.noMoreData()
+                    )
                 }
             }
             .onFailure { e ->
-                if (!handleFailure(e)) {
-                    _state.value = loadingType.toErrorState<FavoriteState>(e.toUserFriendlyMessage())
+                if (!handleFailure(e)) {    // 通用错误处理(如远程登录), 如果处理过就不用再处理了
+                    updateUiState { currentState ->
+                        currentState.copy(
+                            isLoading = false,
+                            isRefreshing = false,
+                            isLoadingMore = false,
+                            isError = true,
+                            errorMessage = e.toUserFriendlyMessage(),
+                            errorType = loadingType
+                        )
+                    }
                 }
                 AppLogger.w(TAG, "网络请求失败: ", e)
             }
     }
 
-    private fun retry() {
-        fetchData(1, LoadingType.FULL_SCREEN)
+    private suspend fun updateRecordsList(page: Int, newRecords: List<RecordInfo>): List<RecordInfo> {
+        return dataLock.withLock {
+            if (page == 1) {
+                // 首页或刷新 - 替换数据
+                currentRecords.clear()
+                currentRecords.addAll(newRecords)
+            } else {
+                // 加载更多 - 追加数据
+                currentRecords.addAll(newRecords)
+            }
+            currentRecords.toList() // 返回不可变副本
+        }
     }
 
-    private fun refresh() {
-        fetchData(1, LoadingType.PULL_TO_REFRESH)
+    private fun updateUiState(update: (FavoriteUiState) -> FavoriteUiState) {
+        val currentState = _uiState.value
+        val newState = update(currentState)
+        if (newState != currentState) {
+            _uiState.value = newState
+        }
     }
 
-    private fun loadMore() {
-        fetchData(_pageLoaded.value + 1, LoadingType.LOAD_MORE)
-    }
-
-    private suspend fun updateRecords(operation: suspend (MutableList<RecordInfo>) -> Unit) {
-        dataLock.withLock {
-            operation(data)
-            _records.value = data.toList()
+    /** 防止重复请求 */
+    private fun shouldPreventRequest(loadingType: LoadingType): Boolean {
+        val currentState = _uiState.value
+        return when (loadingType) {
+            LoadingType.FULL_SCREEN -> currentState.isLoading
+            LoadingType.PULL_TO_REFRESH -> currentState.isRefreshing
+            LoadingType.LOAD_MORE -> currentState.isLoadingMore || currentState.noMoreData
+            else -> false
         }
     }
     

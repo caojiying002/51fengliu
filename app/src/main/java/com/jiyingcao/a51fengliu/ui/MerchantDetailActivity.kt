@@ -35,8 +35,9 @@ import com.jiyingcao.a51fengliu.util.copyOnLongClick
 import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.to2LevelName
+import com.jiyingcao.a51fengliu.viewmodel.LoadingType
 import com.jiyingcao.a51fengliu.viewmodel.MerchantDetailIntent
-import com.jiyingcao.a51fengliu.viewmodel.MerchantDetailState
+import com.jiyingcao.a51fengliu.viewmodel.MerchantDetailState2
 import com.jiyingcao.a51fengliu.viewmodel.MerchantDetailViewModel
 import com.jiyingcao.a51fengliu.viewmodel.MerchantDetailViewModelFactory
 import kotlinx.coroutines.launch
@@ -107,35 +108,76 @@ class MerchantDetailActivity : BaseActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { state ->
-                    when (state) {
-                        is MerchantDetailState.Idle -> {
-                            showContentView()
-                        }
-                        is MerchantDetailState.Loading.FullScreen -> {
-                            showLoadingView()
-                        }
-                        is MerchantDetailState.Loading.Float -> {
-                            binding.showLoadingOverContent()
-                        }
-                        is MerchantDetailState.Loading.PullToRefresh -> {}
-                        is MerchantDetailState.Success -> {
-                            showContentView()
-                            binding.refreshLayout.finishRefresh(true)
-                            updateUI(state.merchant)
-                        }
-                        is MerchantDetailState.Error.FullScreen -> {
-                            showErrorView(state.message)
-                        }
-                        is MerchantDetailState.Error.Float -> {
-                            showContentView()
-                            showToast(state.message)
-                        }
-                        is MerchantDetailState.Error.PullToRefresh -> {
-                            binding.refreshLayout.finishRefresh(false)
-                            showToast(state.message)
-                        }
-                    }
+                    handleStateChange(state)
                 }
+            }
+        }
+    }
+
+    /**
+     * 处理状态变化 - 重构后使用通用的LoadingType
+     */
+    private fun handleStateChange(state: MerchantDetailState2) {
+        when (state) {
+            is MerchantDetailState2.Init -> {
+                showContentView()
+            }
+            is MerchantDetailState2.Loading -> {
+                handleLoadingState(state.loadingType)
+            }
+            is MerchantDetailState2.Success -> {
+                showContentView()
+                binding.refreshLayout.finishRefresh(true)
+                updateUI(state.merchant)
+            }
+            is MerchantDetailState2.Error -> {
+                handleErrorState(state.message, state.errorType)
+            }
+        }
+    }
+
+    /**
+     * 处理加载状态
+     */
+    private fun handleLoadingState(loadingType: LoadingType) {
+        when (loadingType) {
+            LoadingType.FULL_SCREEN -> {
+                showLoadingView()
+            }
+            LoadingType.OVERLAY -> {
+                // 显示浮层加载
+                binding.showLoadingOverContent()
+            }
+            LoadingType.PULL_TO_REFRESH -> {
+                // 下拉刷新时不需要额外的UI处理，SmartRefreshLayout会自动显示
+            }
+            else -> {
+                // 其他类型默认显示全屏加载
+                showLoadingView()
+            }
+        }
+    }
+
+    /**
+     * 处理错误状态
+     */
+    private fun handleErrorState(message: String, errorType: LoadingType) {
+        when (errorType) {
+            LoadingType.FULL_SCREEN -> {
+                showErrorView(message)
+            }
+            LoadingType.OVERLAY -> {
+                // 浮层，显示Toast错误
+                showContentView()
+                showToast(message)
+            }
+            LoadingType.PULL_TO_REFRESH -> {
+                binding.refreshLayout.finishRefresh(false)
+                showToast(message)
+            }
+            else -> {
+                // 其他类型默认显示全屏错误
+                showErrorView(message)
             }
         }
     }

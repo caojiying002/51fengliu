@@ -32,9 +32,8 @@ import com.jiyingcao.a51fengliu.util.ImageLoader
 import com.jiyingcao.a51fengliu.util.copyOnLongClick
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.to2LevelName
-import com.jiyingcao.a51fengliu.viewmodel.LoadingType
 import com.jiyingcao.a51fengliu.viewmodel.MerchantDetailIntent
-import com.jiyingcao.a51fengliu.viewmodel.MerchantDetailState
+import com.jiyingcao.a51fengliu.viewmodel.MerchantDetailUiState
 import com.jiyingcao.a51fengliu.viewmodel.MerchantDetailViewModel
 import com.jiyingcao.a51fengliu.viewmodel.MerchantDetailViewModelFactory
 import kotlinx.coroutines.launch
@@ -69,9 +68,8 @@ class MerchantDetailActivity : BaseActivity() {
             )
         )[MerchantDetailViewModel::class.java]
 
-        setupFlowCollectors()
+        observeUiState()
 
-        // 初次加载数据
         viewModel.processIntent(MerchantDetailIntent.LoadDetail)
     }
 
@@ -101,66 +99,51 @@ class MerchantDetailActivity : BaseActivity() {
         }
     }
 
-    private fun setupFlowCollectors() {
+    private fun observeUiState() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect { state ->
-                    handleStateChange(state)
+                viewModel.uiState.collect { uiState ->
+                    handleUiState(uiState)
                 }
             }
         }
     }
 
     /**
-     * 处理状态变化 - 重构后使用通用的LoadingType
+     * 处理UI状态变化 - 单一状态处理逻辑
      */
-    private fun handleStateChange(state: MerchantDetailState) {
-        when (state) {
-            is MerchantDetailState.Init -> {
+    private fun handleUiState(uiState: MerchantDetailUiState) {
+        // 处理数据展示
+        uiState.merchant?.let { merchant ->
+            updateUI(merchant)
+        }
+
+        // 处理各种UI状态
+        when {
+            uiState.showFullScreenLoading -> {
+                showLoadingView()
+            }
+            uiState.showFullScreenError -> {
+                showErrorView(uiState.errorMessage)
+            }
+            uiState.showContent -> {
                 showContentView()
-            }
-            is MerchantDetailState.Loading -> {
-                handleLoadingState(state.loadingType)
-            }
-            is MerchantDetailState.Success -> {
-                showContentView()
-                binding.refreshLayout.finishRefresh(true)
-                updateUI(state.merchant)
-            }
-            is MerchantDetailState.Error -> {
-                handleErrorState(state.message, state.errorType)
             }
         }
-    }
 
-    /**
-     * 处理加载状态
-     */
-    private fun handleLoadingState(loadingType: LoadingType) {
-        when (loadingType) {
-            LoadingType.FULL_SCREEN -> showLoadingView()
-            LoadingType.PULL_TO_REFRESH -> { /* 下拉刷新时不需要额外的UI处理，SmartRefreshLayout会自动显示 */ }
-            LoadingType.OVERLAY -> binding.showLoadingOverContent()
-            else -> showLoadingView() // 其他类型默认显示全屏加载
+        // 处理覆盖层加载状态
+        if (uiState.showOverlayLoading) {
+            binding.showLoadingOverContent()
         }
-    }
 
-    /**
-     * 处理错误状态
-     */
-    private fun handleErrorState(message: String, errorType: LoadingType) {
-        when (errorType) {
-            LoadingType.FULL_SCREEN -> showErrorView(message)
-            LoadingType.PULL_TO_REFRESH -> {
-                binding.refreshLayout.finishRefresh(false)
-                showToast(message)
-            }
-            LoadingType.OVERLAY -> {
-                // 浮层，显示Toast错误
-                showContentView()
-                showToast(message)
-            }
-            else -> showErrorView(message)  // 其他类型默认显示全屏错误
+        // 处理刷新状态
+        if (!uiState.isRefreshing) {
+            binding.refreshLayout.finishRefresh(!uiState.isError)
+        }
+
+        // 处理错误提示 - 只对非全屏错误显示Toast
+        if (uiState.isError && !uiState.showFullScreenError) {
+            showToast(uiState.errorMessage)
         }
     }
 

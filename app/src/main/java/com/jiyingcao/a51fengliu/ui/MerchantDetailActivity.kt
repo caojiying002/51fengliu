@@ -138,20 +138,10 @@ class MerchantDetailActivity : BaseActivity() {
      */
     private fun handleLoadingState(loadingType: LoadingType) {
         when (loadingType) {
-            LoadingType.FULL_SCREEN -> {
-                showLoadingView()
-            }
-            LoadingType.OVERLAY -> {
-                // 显示浮层加载
-                binding.showLoadingOverContent()
-            }
-            LoadingType.PULL_TO_REFRESH -> {
-                // 下拉刷新时不需要额外的UI处理，SmartRefreshLayout会自动显示
-            }
-            else -> {
-                // 其他类型默认显示全屏加载
-                showLoadingView()
-            }
+            LoadingType.FULL_SCREEN -> showLoadingView()
+            LoadingType.PULL_TO_REFRESH -> { /* 下拉刷新时不需要额外的UI处理，SmartRefreshLayout会自动显示 */ }
+            LoadingType.OVERLAY -> binding.showLoadingOverContent()
+            else -> showLoadingView() // 其他类型默认显示全屏加载
         }
     }
 
@@ -160,22 +150,17 @@ class MerchantDetailActivity : BaseActivity() {
      */
     private fun handleErrorState(message: String, errorType: LoadingType) {
         when (errorType) {
-            LoadingType.FULL_SCREEN -> {
-                showErrorView(message)
+            LoadingType.FULL_SCREEN -> showErrorView(message)
+            LoadingType.PULL_TO_REFRESH -> {
+                binding.refreshLayout.finishRefresh(false)
+                showToast(message)
             }
             LoadingType.OVERLAY -> {
                 // 浮层，显示Toast错误
                 showContentView()
                 showToast(message)
             }
-            LoadingType.PULL_TO_REFRESH -> {
-                binding.refreshLayout.finishRefresh(false)
-                showToast(message)
-            }
-            else -> {
-                // 其他类型默认显示全屏错误
-                showErrorView(message)
-            }
+            else -> showErrorView(message)  // 其他类型默认显示全屏错误
         }
     }
 

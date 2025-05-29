@@ -17,6 +17,7 @@ import com.jiyingcao.a51fengliu.viewmodel.FavoriteIntent
 import com.jiyingcao.a51fengliu.viewmodel.FavoriteState
 import com.jiyingcao.a51fengliu.viewmodel.FavoriteViewModel
 import com.jiyingcao.a51fengliu.viewmodel.FavoriteViewModelFactory
+import com.jiyingcao.a51fengliu.viewmodel.LoadingType
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
@@ -83,14 +84,14 @@ class FavoriteActivity : BaseActivity() {
         lifecycleScope.launch {
             viewModel.state.collect { state ->
                 when (state) {
-                    is FavoriteState.Loading -> handleLoadingState(state)
-                    is FavoriteState.Error -> handleErrorState(state)
+                    is FavoriteState.Loading -> handleLoadingState(state.loadingType)
+                    is FavoriteState.Error -> handleErrorState(state.message, state.errorType)
                     is FavoriteState.Success -> {
-                        statefulContent.showContentView()
+                        showContentView()
                         refreshLayout.finishRefresh()
                         refreshLayout.finishLoadMore()
                     }
-                    else -> {}
+                    else -> { showContentView() }
                 }
             }
         }
@@ -117,29 +118,35 @@ class FavoriteActivity : BaseActivity() {
         }
     }
 
-    private fun handleLoadingState(loading: FavoriteState.Loading) {
-        when (loading) {
-            FavoriteState.Loading.FullScreen -> statefulContent.showLoadingView()
-            FavoriteState.Loading.PullToRefresh -> { /* 下拉刷新加载处理 */ }
-            FavoriteState.Loading.LoadMore -> { /* 加载更多处理 */ }
+    private fun handleLoadingState(loadingType: LoadingType) {
+        when (loadingType) {
+            LoadingType.FULL_SCREEN -> showLoadingView()
+            LoadingType.PULL_TO_REFRESH -> { /* 下拉刷新 */ }
+            LoadingType.LOAD_MORE -> { /* 加载更多 */ }
+            else -> showLoadingView() // 其他类型默认显示全屏加载
         }
     }
 
-    private fun handleErrorState(error: FavoriteState.Error) {
-        when (error) {
-            is FavoriteState.Error.FullScreen -> {
-                statefulContent.showErrorView(error.message) {
-                    viewModel.processIntent(FavoriteIntent.Retry)
-                }
-            }
-            is FavoriteState.Error.PullToRefresh -> {
+    private fun handleErrorState(message: String, errorType: LoadingType) {
+        when (errorType) {
+            LoadingType.FULL_SCREEN -> showErrorView(message)
+            LoadingType.PULL_TO_REFRESH -> {
                 refreshLayout.finishRefresh(false)
-                showToast(error.message)
+                showToast(message)
             }
-            is FavoriteState.Error.LoadMore -> {
+            LoadingType.LOAD_MORE -> {
                 refreshLayout.finishLoadMore(false)
-                showToast(error.message)
+                showToast(message)
             }
+            else -> showErrorView(message)  // 其他类型默认显示全屏错误
+        }
+    }
+
+    private fun showLoadingView() { statefulContent.showLoadingView() }
+    private fun showContentView() { statefulContent.showContentView() }
+    private fun showErrorView(message: String) {
+        statefulContent.showErrorView(message) {
+            viewModel.processIntent(FavoriteIntent.Retry)
         }
     }
 

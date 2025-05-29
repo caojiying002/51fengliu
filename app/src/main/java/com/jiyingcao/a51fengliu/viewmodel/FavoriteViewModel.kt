@@ -17,37 +17,17 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-private enum class FavoriteLoadingType {
-    FULL_SCREEN,
-    PULL_TO_REFRESH,
-    LOAD_MORE
-}
-
-private fun FavoriteLoadingType.toLoadingState(): FavoriteState.Loading = when (this) {
-    FavoriteLoadingType.FULL_SCREEN -> FavoriteState.Loading.FullScreen
-    FavoriteLoadingType.PULL_TO_REFRESH -> FavoriteState.Loading.PullToRefresh
-    FavoriteLoadingType.LOAD_MORE -> FavoriteState.Loading.LoadMore
-}
-
-private fun FavoriteLoadingType.toErrorState(message: String): FavoriteState.Error = when (this) {
-    FavoriteLoadingType.FULL_SCREEN -> FavoriteState.Error.FullScreen(message)
-    FavoriteLoadingType.PULL_TO_REFRESH -> FavoriteState.Error.PullToRefresh(message)
-    FavoriteLoadingType.LOAD_MORE -> FavoriteState.Error.LoadMore(message)
-}
-
-sealed class FavoriteState {
-    data object Init : FavoriteState()
-    sealed class Loading : FavoriteState() {
-        data object FullScreen : Loading()
-        data object PullToRefresh : Loading()
-        data object LoadMore : Loading()
-    }
-    data object Success : FavoriteState()
-    sealed class Error(open val message: String) : FavoriteState() {
-        data class FullScreen(override val message: String) : Error(message)
-        data class PullToRefresh(override val message: String) : Error(message)
-        data class LoadMore(override val message: String) : Error(message)
-    }
+/**
+ * 我的收藏列表状态 - 采用密封类 + 接口的混合模式
+ */
+sealed class FavoriteState : BaseState {
+    object Init : FavoriteState()
+    data class Loading(override val loadingType: LoadingType) : FavoriteState(), LoadingState    // 实现通用加载状态接口
+    object Success : FavoriteState()
+    data class Error(
+        override val message: String,
+        override val errorType: LoadingType
+    ) : FavoriteState(), ErrorState  // 实现通用错误状态接口
 }
 
 sealed class FavoriteIntent {
@@ -98,11 +78,11 @@ class FavoriteViewModel(
 
     private fun fetchData(
         page: Int,
-        loadingType: FavoriteLoadingType = FavoriteLoadingType.FULL_SCREEN
+        loadingType: LoadingType = LoadingType.FULL_SCREEN
     ) {
         fetchJob?.cancel()
         fetchJob = viewModelScope.launch(remoteLoginCoroutineContext) {
-            _state.value = loadingType.toLoadingState()
+            _state.value = loadingType.toLoadingState<FavoriteState>()
             repository.getFavorites(page)
                 .onEach { result -> 
                     handleDataResult(page, result, loadingType)
@@ -115,7 +95,7 @@ class FavoriteViewModel(
     private suspend fun handleDataResult(
         page: Int,
         result: Result<PageData<RecordInfo>?>,
-        loadingType: FavoriteLoadingType
+        loadingType: LoadingType
     ) {
         result.mapCatching { requireNotNull(it) }
             .onSuccess { pageData ->
@@ -133,22 +113,22 @@ class FavoriteViewModel(
             }
             .onFailure { e ->
                 if (!handleFailure(e)) {
-                    _state.value = loadingType.toErrorState(e.toUserFriendlyMessage())
+                    _state.value = loadingType.toErrorState<FavoriteState>(e.toUserFriendlyMessage())
                 }
                 AppLogger.w(TAG, "网络请求失败: ", e)
             }
     }
 
     private fun retry() {
-        fetchData(1, FavoriteLoadingType.FULL_SCREEN)
+        fetchData(1, LoadingType.FULL_SCREEN)
     }
 
     private fun refresh() {
-        fetchData(1, FavoriteLoadingType.PULL_TO_REFRESH)
+        fetchData(1, LoadingType.PULL_TO_REFRESH)
     }
 
     private fun loadMore() {
-        fetchData(_pageLoaded.value + 1, FavoriteLoadingType.LOAD_MORE)
+        fetchData(_pageLoaded.value + 1, LoadingType.LOAD_MORE)
     }
 
     private suspend fun updateRecords(operation: suspend (MutableList<RecordInfo>) -> Unit) {

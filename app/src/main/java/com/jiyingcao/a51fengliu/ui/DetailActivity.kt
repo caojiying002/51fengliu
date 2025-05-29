@@ -71,6 +71,7 @@ class DetailActivity : BaseActivity() {
             sharedElements: MutableMap<String, View>
         ) {
             val imageContainer = contentBinding.imageContainer
+            // 获取对应位置的缩略图ImageView
             val imageView: ImageView = when (returnIndex) {
                 0 -> imageContainer.findViewById(R.id.image_0)
                 1 -> imageContainer.findViewById(R.id.image_1)
@@ -110,7 +111,7 @@ class DetailActivity : BaseActivity() {
 
         setupStateObservers()
 
-        if (!viewModel.hasLoadedData) {
+        if (!viewModel.hasLoadedData) {  // 横竖屏等配置更改时，不需要重新加载数据
             viewModel.processIntent(DetailIntent.LoadDetail())
         }
     }
@@ -135,7 +136,9 @@ class DetailActivity : BaseActivity() {
         if (resultCode == RESULT_OK) {
             val returnIndex = data?.getIntExtra("RESULT_INDEX", 0) ?: 0
             mySharedElementCallback.returnIndex = returnIndex
+            // 延迟执行以确保视图已更新
             supportPostponeEnterTransition()
+            // 开始延迟的过渡
             supportStartPostponedEnterTransition()
         }
     }
@@ -272,6 +275,7 @@ class DetailActivity : BaseActivity() {
                 if (currentButtonState !is FavoriteButtonState.Idle) return@setOnClickListener
 
                 if (!currentButtonState.isFavorited) {
+                    // 从未收藏变为收藏要震动，反之则不用
                     vibrate(this@DetailActivity)
                 }
                 viewModel.processIntent(DetailIntent.ToggleFavorite)
@@ -281,6 +285,7 @@ class DetailActivity : BaseActivity() {
                 AuthActivity.start(this@DetailActivity)
             }
 
+            // （不是正式功能，方便截图用的）长按隐藏警告信息
             contactWarning.setOnLongClickListener { v ->
                 v.isVisible = false
                 true
@@ -289,6 +294,7 @@ class DetailActivity : BaseActivity() {
     }
     
     private fun updateUI(record: RecordInfo) {
+        //displayImagesIfAny(itemData.file)
         displayImagesIfAnyV2(record)
 
         with(contentBinding) {
@@ -315,11 +321,16 @@ class DetailActivity : BaseActivity() {
         displayContactInfoByMemberState(record)
     }
 
+    /**
+     * 根据用户的会员状态显示联系方式
+     */
     private fun displayContactInfoByMemberState(record: RecordInfo) {
-        if (!record.vipView.isNullOrBlank()) {
+        // 情况1：当前用户是VIP会员，显示联系方式
+        if (!record.vipView.isNullOrBlank()
+            /*&& record.vipProfileStatus!!.toInt() >= 4*/) {
             with(contentBinding) {
                 showVip()
-                contactWarning.isVisible = true
+                contactWarning.isVisible = true // 显示警告信息，避免诈骗
 
                 contactInfoVip.apply {
                     qq.copyOnLongClick()
@@ -346,23 +357,33 @@ class DetailActivity : BaseActivity() {
             return
         }
 
+        // 情况2：当前用户是注册用户，显示“发布信息”“升级VIP”按钮
         if (record.vipProfileStatus?.toInt() == 3) {
             with(contentBinding) {
                 showOrdinaryMember()
-                contactWarning.isVisible = false
+                contactWarning.isVisible = false    // 没有联系方式时不需要显示警告信息
             }
             return
         }
 
-        if (record.vipProfileStatus?.toInt() == 1) {
+        // 其实还有一种情况2.5：当前用户积分大于20，可以扣除积分查看联系方式。我没有这种账号，不知道UI应该如何呈现。
+
+        // 情况3：当前用户未登录，显示“立即登录”按钮
+        if (/*TODO token为空 ||*/
+            record.vipProfileStatus?.toInt() == 1) {
             with(contentBinding) {
                 showNotLogin()
-                contactWarning.isVisible = false
+                contactWarning.isVisible = false    // 同上，未登录时不需要显示警告信息
             }
             return
         }
     }
 
+    /**
+     * 显示价格信息，如果有包夜价格则显示
+     *
+     * @param textView 显示价格的TextView，不包含“价格：”前缀
+     */
     private fun displayPrices(textView: TextView, record: RecordInfo) {
         textView.text = if (record.consumeAllNight.isNullOrBlank()) {
             record.consumeLv
@@ -397,7 +418,7 @@ class DetailActivity : BaseActivity() {
             }
 
             imageView.visibility = VISIBLE
-            imageView.tag = BASE_IMAGE_URL + subUrl
+            imageView.tag = BASE_IMAGE_URL + subUrl  // 保存完整URL作为tag
 
             ImageLoader.load(
                 imageView = imageView,
@@ -432,18 +453,23 @@ class DetailActivity : BaseActivity() {
             )
             
             imageView.setOnClickListener { view ->
+                // 显示VIP提示对话框
                 if (!canViewLargeImage(record)) {
                     VipPromptDialog.newInstance(cancelable = false).showNow(supportFragmentManager, VipPromptDialog.TAG)
                     return@setOnClickListener
                 }
 
+                // 如果图片加载成功，才能点击查看大图
                 if (imageLoadedMap[view.tag as String] == true) {
                     val intent = Intent(this, BigImageViewerActivity::class.java).apply {
                         putStringArrayListExtra("IMAGES", ArrayList(imgs))
                         putExtra("INDEX", index)
                     }
+                    // 创建包含共享元素的ActivityOptions
                     val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
-                        this, view, "image$index"
+                        this,
+                        view, // 这是当前活动中的共享ImageView
+                        "image$index" // 与BigImageViewerActivity中的ImageView相同的transitionName
                     )
                     ActivityCompat.startActivityForResult(this, intent, 42, options.toBundle())
                 }
@@ -451,11 +477,25 @@ class DetailActivity : BaseActivity() {
         }
     }
 
+    /**
+     * 判断当前用户是否可以使用图片放大功能
+     *
+     * @param record 当前记录的信息，包含用户权限相关数据
+     * @return 如果用户可以查看大图返回true，否则返回false
+     */
     private fun canViewLargeImage(record: RecordInfo): Boolean {
+        // 调试模式下，可以跳过功能限制检查
         if (AppConfig.Debug.bypassLargeImageCheck()) {
             return true
         }
-        return !record.vipView.isNullOrBlank()
+
+        // 根据会员状态判断权限
+        // 1. 判断是否是VIP会员
+        // 2. 判断是否已使用积分购买联系方式
+        // 判断逻辑（目前只使用RecordInfo.vipView字段判断）:
+        val hasPermission = !record.vipView.isNullOrBlank()
+
+        return hasPermission
     }
 
     private fun showLoadingDialog() {
@@ -490,21 +530,29 @@ class DetailActivity : BaseActivity() {
     }
 }
 
-// 扩展函数保持不变，因为它们已经很好了
+// 扩展函数
 fun ActivityDetailBinding.showContent() {
     contentLayout.root.isVisible = true
     errorLayout.root.isVisible = false
     loadingLayout.root.isVisible = false
 }
 
+fun ActivityDetailBinding.showError() {
+    contentLayout.root.isVisible = false
+    errorLayout.root.isVisible = true
+    loadingLayout.root.isVisible = false
+}
+
 fun ActivityDetailBinding.showError(
     message: String = "出错了，请稍后重试",
+    //retryText: String = "重试",
     retry: (() -> Unit)? = null
 ) {
     loadingLayout.root.isVisible = false
     contentLayout.root.isVisible = false
     errorLayout.apply {
         root.isVisible = true
+        // 假设错误布局中有这些视图
         tvError.text = message
         clickRetry.isVisible = retry != null
         clickRetry.setOnClickListener { retry?.invoke() }

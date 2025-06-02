@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlin.coroutines.cancellation.CancellationException
 
 /** Repository基类 */
 abstract class BaseRepository {
@@ -31,6 +32,10 @@ fun <T> apiCall(
             response.isSuccessful() -> emit(Result.success(response.data))
             else -> emit(Result.failure(ApiException.createFromResponse(response)))
         }
+    } catch (e: CancellationException) {
+        // 重要：重新抛出[CancellationException]以保持协程取消机制
+        // [CancellationException]是结构化并发的一部分，应该让它自然传播
+        throw e
     } catch (e: Exception) {
         emit(Result.failure(e))
     }

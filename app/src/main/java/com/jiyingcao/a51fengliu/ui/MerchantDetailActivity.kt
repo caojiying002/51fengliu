@@ -21,6 +21,7 @@ import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.Merchant
 import com.jiyingcao.a51fengliu.config.AppConfig.Network.BASE_IMAGE_URL
+import com.jiyingcao.a51fengliu.data.LoginStateManager
 import com.jiyingcao.a51fengliu.databinding.ActivityMerchantDetailBinding
 import com.jiyingcao.a51fengliu.databinding.MerchantContentDetailBinding
 import com.jiyingcao.a51fengliu.glide.HostInvariantGlideUrl
@@ -85,12 +86,6 @@ class MerchantDetailActivity : BaseActivity() {
 
     private fun setupClickListeners() {
         binding.titleBar.titleBarBack.setOnClickListener { finish() }
-
-        with(contentBinding) {
-            contactInfoNotLogin.clickLogin.setOnClickListener {
-                AuthActivity.start(this@MerchantDetailActivity)
-            }
-        }
     }
 
     private fun setupSmartRefreshLayout() {
@@ -252,18 +247,31 @@ class MerchantDetailActivity : BaseActivity() {
 
     /**
      * 根据用户的会员状态显示联系方式
-     * 目前简化处理，只显示未登录状态的UI
      */
     private fun displayContactInfoByMemberState(merchant: Merchant) {
         with(contentBinding) {
             // 根据 merchant.contact 字段判断是否显示联系方式
-            // 简化处理：如果有联系方式且用户有权限查看，显示联系方式；否则显示未登录提示
             if (!merchant.contact.isNullOrBlank()) {
-                // TODO: 这里可以根据实际的权限逻辑来判断是否显示联系方式
-                // 目前简化为显示未登录状态，提示用户登录
-                showNotLogin()
+                contactNotVipContainer.isVisible = false
+                contactVip.isVisible = true
+                contactVip.text = merchant.contact
             } else {
-                showNotLogin()
+                contactVip.isVisible = false
+                contactNotVipContainer.isVisible = true
+                // 如果已登录显示升级VIP提示；否则显示未登录提示
+                if (LoginStateManager.getInstance().isLoggedIn.value) {
+                    contactNotVip.text = "你需要VIP才能继续查看联系方式。"
+                    clickNotVip.text = "立即升级VIP"
+                    clickNotVip.setOnClickListener {
+                        // TODO: 处理升级VIP逻辑
+                    }
+                } else {
+                    contactNotVip.text = "你需要登录才能继续查看联系方式。"
+                    clickNotVip.text = "立即登录"
+                    clickNotVip.setOnClickListener {
+                        AuthActivity.start(this@MerchantDetailActivity)
+                    }
+                }
             }
         }
     }
@@ -324,8 +332,4 @@ fun ActivityMerchantDetailBinding.showLoadingOverContent() {
     contentLayout.isVisible = true
     errorLayout.root.isVisible = false
     loadingLayout.root.isVisible = true
-}
-
-fun MerchantContentDetailBinding.showNotLogin() {
-    contactInfoNotLogin.root.isVisible = true
 }

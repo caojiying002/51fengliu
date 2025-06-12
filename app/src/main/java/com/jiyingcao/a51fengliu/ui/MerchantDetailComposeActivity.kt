@@ -63,7 +63,7 @@ class MerchantDetailComposeActivity : BaseActivity() {
 }
 
 // UI 状态枚举，用于控制显示哪种布局
-enum class MerchantDetailUiState {
+enum class MerchantDetailComposeUiState {
     Loading,        // 全屏加载
     LoadingOverContent, // 内容上方的加载遮罩
     Content,        // 正常内容
@@ -77,7 +77,7 @@ fun MerchantDetailScreen(
     onBackClick: () -> Unit
 ) {
     // 示例状态管理 - 实际项目中你会从 ViewModel 获取状态
-    var uiState by remember { mutableStateOf(MerchantDetailUiState.Content) }
+    var uiState by remember { mutableStateOf(MerchantDetailComposeUiState.Content) }
     var errorMessage by remember { mutableStateOf("") }
 
     Column(
@@ -92,29 +92,29 @@ fun MerchantDetailScreen(
                 .weight(1f)
         ) {
             when (uiState) {
-                MerchantDetailUiState.Loading -> {
+                MerchantDetailComposeUiState.Loading -> {
                     LoadingLayout()
                 }
 
-                MerchantDetailUiState.Content -> {
+                MerchantDetailComposeUiState.Content -> {
                     MerchantDetailContent(
                         merchantId = merchantId,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
 
-                MerchantDetailUiState.Error -> {
+                MerchantDetailComposeUiState.Error -> {
                     ErrorLayout(
                         errorMessage = errorMessage.ifEmpty { "出错了，请稍后重试" },
                         onRetryClick = {
                             // 重试逻辑 - 实际项目中你会调用 ViewModel 的方法
-                            uiState = MerchantDetailUiState.Loading
+                            uiState = MerchantDetailComposeUiState.Loading
                             // 这里可以触发重新加载数据的逻辑
                         }
                     )
                 }
 
-                MerchantDetailUiState.LoadingOverContent -> {
+                MerchantDetailComposeUiState.LoadingOverContent -> {
                     // 内容布局
                     MerchantDetailContent(
                         merchantId = merchantId,

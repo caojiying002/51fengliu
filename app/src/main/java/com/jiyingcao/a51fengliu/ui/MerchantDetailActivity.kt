@@ -21,7 +21,6 @@ import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.Merchant
 import com.jiyingcao.a51fengliu.config.AppConfig.Network.BASE_IMAGE_URL
-import com.jiyingcao.a51fengliu.data.LoginStateManager
 import com.jiyingcao.a51fengliu.databinding.ActivityMerchantDetailBinding
 import com.jiyingcao.a51fengliu.databinding.MerchantContentDetailBinding
 import com.jiyingcao.a51fengliu.glide.HostInvariantGlideUrl
@@ -33,10 +32,7 @@ import com.jiyingcao.a51fengliu.util.ImageLoader
 import com.jiyingcao.a51fengliu.util.copyOnLongClick
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.to2LevelName
-import com.jiyingcao.a51fengliu.viewmodel.MerchantDetailIntent
-import com.jiyingcao.a51fengliu.viewmodel.MerchantDetailUiState
-import com.jiyingcao.a51fengliu.viewmodel.MerchantDetailViewModel
-import com.jiyingcao.a51fengliu.viewmodel.MerchantDetailViewModelFactory
+import com.jiyingcao.a51fengliu.viewmodel.*
 import kotlinx.coroutines.launch
 
 class MerchantDetailActivity : BaseActivity() {
@@ -106,11 +102,18 @@ class MerchantDetailActivity : BaseActivity() {
 
     /**
      * 处理UI状态变化 - 单一状态处理逻辑
+     * 重构后：Activity只负责UI展示，不再包含业务逻辑判断
      */
     private fun handleUiState(uiState: MerchantDetailUiState) {
         // 处理数据展示
         uiState.merchant?.let { merchant ->
-            updateUI(merchant)
+            updateMerchantInfo(merchant)
+            displayImagesIfAny(merchant)
+        }
+
+        // 处理联系信息显示状态 - 响应式更新
+        uiState.contactDisplayState?.let { contactState ->
+            updateContactDisplay(contactState)
         }
 
         // 处理各种UI状态
@@ -142,15 +145,10 @@ class MerchantDetailActivity : BaseActivity() {
         }
     }
 
-    private fun showLoadingView() { binding.showLoading() }
-    private fun showContentView() { binding.showContent() }
-    private fun showErrorView(message: String) {
-        binding.showError(message) { viewModel.processIntent(MerchantDetailIntent.Retry) }
-    }
-
-    private fun updateUI(merchant: Merchant) {
-        displayImagesIfAny(merchant)
-
+    /**
+     * 更新商家基本信息显示
+     */
+    private fun updateMerchantInfo(merchant: Merchant) {
         with(contentBinding) {
             name.copyOnLongClick()
             province.copyOnLongClick()
@@ -160,8 +158,48 @@ class MerchantDetailActivity : BaseActivity() {
             province.text = merchant.cityCode.to2LevelName()
             desc.text = merchant.desc
         }
+    }
 
-        displayContactInfoByMemberState(merchant)
+    /**
+     * 根据ViewModel计算的状态更新联系信息显示
+     * 重构后：只负责UI更新，不包含业务逻辑判断
+     */
+    private fun updateContactDisplay(contactState: ContactDisplayState) {
+        with(contentBinding) {
+            if (contactState.showContact && !contactState.contactText.isNullOrBlank()) {
+                // 显示联系方式
+                contactNotVipContainer.isVisible = false
+                contactVip.isVisible = true
+                contactVip.text = contactState.contactText
+            } else {
+                // 显示提示信息和操作按钮
+                contactVip.isVisible = false
+                contactNotVipContainer.isVisible = true
+                contactNotVip.text = contactState.promptMessage
+                clickNotVip.text = contactState.actionButtonText
+                
+                // 设置点击事件
+                clickNotVip.setOnClickListener {
+                    when (contactState.actionType) {
+                        ContactActionType.LOGIN -> {
+                            AuthActivity.start(this@MerchantDetailActivity)
+                        }
+                        ContactActionType.UPGRADE_VIP -> {
+                            // TODO: Handle upgrade VIP action
+                        }
+                        ContactActionType.NONE -> {
+                            // 无操作
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun showLoadingView() { binding.showLoading() }
+    private fun showContentView() { binding.showContent() }
+    private fun showErrorView(message: String) {
+        binding.showError(message) { viewModel.processIntent(MerchantDetailIntent.Retry) }
     }
 
     /**
@@ -240,37 +278,6 @@ class MerchantDetailActivity : BaseActivity() {
                         putExtra("INDEX", index)
                     }
                     startActivity(intent)
-                }
-            }
-        }
-    }
-
-    /**
-     * 根据用户的会员状态显示联系方式
-     */
-    private fun displayContactInfoByMemberState(merchant: Merchant) {
-        with(contentBinding) {
-            // 根据 merchant.contact 字段判断是否显示联系方式
-            if (!merchant.contact.isNullOrBlank()) {
-                contactNotVipContainer.isVisible = false
-                contactVip.isVisible = true
-                contactVip.text = merchant.contact
-            } else {
-                contactVip.isVisible = false
-                contactNotVipContainer.isVisible = true
-                // 如果已登录显示升级VIP提示；否则显示未登录提示
-                if (LoginStateManager.getInstance().isLoggedIn.value) {
-                    contactNotVip.text = getString(R.string.vip_required_message)
-                    clickNotVip.text = getString(R.string.upgrade_vip_now)
-                    clickNotVip.setOnClickListener {
-                        // TODO: 处理升级VIP逻辑
-                    }
-                } else {
-                    contactNotVip.text = getString(R.string.login_required_message)
-                    clickNotVip.text = getString(R.string.login_now)
-                    clickNotVip.setOnClickListener {
-                        AuthActivity.start(this@MerchantDetailActivity)
-                    }
                 }
             }
         }

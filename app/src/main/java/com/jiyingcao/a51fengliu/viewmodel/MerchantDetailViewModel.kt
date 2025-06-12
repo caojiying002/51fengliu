@@ -5,16 +5,33 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.Merchant
+import com.jiyingcao.a51fengliu.data.LoginStateManager
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 /**
- * 单一UI状态 - 商家详情页所有状态信息
+ * 联系信息显示状态
+ */
+data class ContactDisplayState(
+    val showContact: Boolean,
+    val contactText: String?,
+    val promptMessage: String,
+    val actionButtonText: String,
+    val actionType: ContactActionType
+)
+
+enum class ContactActionType {
+    LOGIN, UPGRADE_VIP, NONE
+}
+
+/**
+ * 增强的UI状态 - 包含登录状态信息
  */
 data class MerchantDetailUiState(
     val isLoading: Boolean = false,
@@ -24,7 +41,10 @@ data class MerchantDetailUiState(
     val errorMessage: String = "",
     val errorType: LoadingType = LoadingType.FULL_SCREEN,
     val isRefreshing: Boolean = false,
-    val isOverlayLoading: Boolean = false
+    val isOverlayLoading: Boolean = false,
+    // 新增：登录状态相关
+    val isLoggedIn: Boolean = false,
+    val contactDisplayState: ContactDisplayState? = null
 ) {
     // 派生状态 - 通过计算得出，避免状态冗余
     val showFullScreenLoading: Boolean get() = isLoading && loadingType == LoadingType.FULL_SCREEN
@@ -45,7 +65,7 @@ sealed class MerchantDetailIntent {
 class MerchantDetailViewModel(
     private val merchantId: String,
     private val repository: RecordRepository = RecordRepository.getInstance(RetrofitClient.apiService),
-    //private val tokenManager: TokenManager
+    private val loginStateManager: LoginStateManager = LoginStateManager.getInstance() // 依赖注入
 ) : BaseViewModel() {
     private var fetchJob: Job? = null
 
@@ -54,6 +74,74 @@ class MerchantDetailViewModel(
     val uiState = _uiState.asStateFlow()
 
     private var pendingInitialLoad = true
+
+    init {
+        // 观察登录状态变化，响应式更新UI
+        observeLoginStateChanges()
+    }
+
+    /**
+     * 观察登录状态变化并更新UI状态
+     * 这是最佳实践：在ViewModel中处理跨组件状态同步
+     */
+    private fun observeLoginStateChanges() {
+        viewModelScope.launch {
+            // 组合登录状态和商家数据，生成联系信息显示状态
+            combine(
+                loginStateManager.isLoggedIn,
+                _uiState
+            ) { isLoggedIn, currentState ->
+                val contactDisplayState = currentState.merchant?.let { merchant ->
+                    generateContactDisplayState(merchant, isLoggedIn)
+                }
+                
+                currentState.copy(
+                    isLoggedIn = isLoggedIn,
+                    contactDisplayState = contactDisplayState
+                )
+            }.collect { newState ->
+                _uiState.value = newState
+            }
+        }
+    }
+
+    /**
+     * 根据商家信息和登录状态生成联系信息显示状态
+     * 业务逻辑集中在ViewModel中，便于测试和维护
+     */
+    private fun generateContactDisplayState(
+        merchant: Merchant,
+        isLoggedIn: Boolean
+    ): ContactDisplayState {
+        return when {
+            // 有联系方式 - 直接显示
+            !merchant.contact.isNullOrBlank() -> ContactDisplayState(
+                showContact = true,
+                contactText = merchant.contact,
+                promptMessage = "",
+                actionButtonText = "",
+                actionType = ContactActionType.NONE
+            )
+            
+            // 已登录但没有联系方式 - 需要升级VIP
+            isLoggedIn -> ContactDisplayState(
+                showContact = false,
+                contactText = null,
+                promptMessage = "你需要VIP才能继续查看联系方式。", // TODO 从资源文件获取
+                actionButtonText = "立即升级VIP",
+                actionType = ContactActionType.UPGRADE_VIP
+            )
+            
+            // 未登录 - 需要先登录
+            else -> ContactDisplayState(
+                showContact = false,
+                contactText = null,
+                promptMessage = "你需要登录才能继续查看联系方式。",
+                actionButtonText = "立即登录",
+                actionType = ContactActionType.LOGIN
+            )
+        }
+    }
 
     fun processIntent(intent: MerchantDetailIntent) {
         when (intent) {
@@ -95,12 +183,14 @@ class MerchantDetailViewModel(
         result.mapCatching { requireNotNull(it) }
             .onSuccess { merchant ->
                 updateUiState { currentState ->
+                    val contactDisplayState = generateContactDisplayState(merchant, currentState.isLoggedIn)
                     currentState.copy(
                         isLoading = false,
                         isRefreshing = false,
                         isOverlayLoading = false,
                         isError = false,
-                        merchant = merchant
+                        merchant = merchant,
+                        contactDisplayState = contactDisplayState
                     )
                 }
             }
@@ -137,9 +227,8 @@ class MerchantDetailViewModel(
     }
 
     private fun handleLoginSuccess() {
-        // TODO: 实现登录成功后的处理逻辑
-        // 可能需要重新加载数据以获取登录后的权限状态
-        loadDetail(LoadingType.OVERLAY)
+        // TODO: 登录成功后重新加载数据以获取最新权限状态
+        //loadDetail(LoadingType.OVERLAY)
     }
 
     /** 防止重复请求 */
@@ -172,15 +261,19 @@ class MerchantDetailViewModel(
     }
 }
 
+/**
+ * 支持依赖注入的ViewModelFactory
+ * 便于测试时注入Mock对象
+ */
 class MerchantDetailViewModelFactory(
     private val merchantId: String,
     private val repository: RecordRepository = RecordRepository.getInstance(RetrofitClient.apiService),
-    //private val tokenManager: TokenManager
+    private val loginStateManager: LoginStateManager = LoginStateManager.getInstance()
 ): ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MerchantDetailViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return MerchantDetailViewModel(merchantId, repository/*, tokenManager*/) as T
+            return MerchantDetailViewModel(merchantId, repository, loginStateManager) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

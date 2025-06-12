@@ -260,14 +260,14 @@ class MerchantDetailActivity : BaseActivity() {
                 contactNotVipContainer.isVisible = true
                 // 如果已登录显示升级VIP提示；否则显示未登录提示
                 if (LoginStateManager.getInstance().isLoggedIn.value) {
-                    contactNotVip.text = "你需要VIP才能继续查看联系方式。"
-                    clickNotVip.text = "立即升级VIP"
+                    contactNotVip.text = getString(R.string.vip_required_message)
+                    clickNotVip.text = getString(R.string.upgrade_vip_now)
                     clickNotVip.setOnClickListener {
                         // TODO: 处理升级VIP逻辑
                     }
                 } else {
-                    contactNotVip.text = "你需要登录才能继续查看联系方式。"
-                    clickNotVip.text = "立即登录"
+                    contactNotVip.text = getString(R.string.login_required_message)
+                    clickNotVip.text = getString(R.string.login_now)
                     clickNotVip.setOnClickListener {
                         AuthActivity.start(this@MerchantDetailActivity)
                     }

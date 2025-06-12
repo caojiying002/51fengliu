@@ -40,4 +40,8 @@ Phasellus in leo massa. Aliquam malesuada, enim nec auctor posuere, quam sem mal
     <string name="refresh_prompt">[已经升级？点击刷新]</string>
     <string name="my_favorite">我的收藏</string>
     <string name="confirm_report">确认举报</string>
+    <string name="vip_required_message">你需要VIP才能继续查看联系方式。</string>
+    <string name="upgrade_vip_now">立即升级VIP</string>
+    <string name="login_required_message">你需要登录才能继续查看联系方式。</string>
+    <string name="login_now">立即登录</string>
 </resources>

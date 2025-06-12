@@ -182,7 +182,7 @@
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="8dp"
-                    android:text="你需要登录才能继续查看联系方式。"
+                    android:text="@string/login_required_message"
                     android:textSize="@dimen/text_default"
                     android:textStyle="bold"
                     android:textColor="@color/text_content" />
@@ -196,7 +196,7 @@
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="8dp"
                     style="@style/ButtonStyle"
-                    android:text="立即登录" />
+                    android:text="@string/login_now" />
             </LinearLayout>
         </FrameLayout>
     </LinearLayout>

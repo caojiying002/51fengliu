@@ -35,6 +35,13 @@ composeBom = "2025.04.00"
 gsyvideoplayer = "v10.1.0"
 lint = "31.9.1" # 确保与agp版本匹配
 
+# 新增：测试相关版本
+mockito = "5.8.0"
+mockito-kotlin = "5.2.1"
+arch-core-testing = "2.2.0"
+truth = "1.1.5"
+turbine = "1.0.0"
+
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -44,6 +51,14 @@ material = { group = "com.google.android.material", name = "material", version.r
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+
+# 新增：测试库
+test-mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
+test-mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockito-kotlin" }
+test-arch-core = { group = "androidx.arch.core", name = "core-testing", version.ref = "arch-core-testing" }
+test-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
+test-truth = { group = "com.google.truth", name = "truth", version.ref = "truth" }
+test-turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 
 # AndroidX
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }

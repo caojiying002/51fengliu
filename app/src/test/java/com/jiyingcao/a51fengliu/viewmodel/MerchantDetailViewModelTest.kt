@@ -33,8 +33,11 @@ class MerchantDetailViewModelTest {
 
     // ========== Mock对象 ==========
 
-    @Mock private lateinit var repository: RecordRepository
-    @Mock private lateinit var loginStateManager: LoginStateManager
+    @Mock 
+    private lateinit var repository: RecordRepository
+    
+    @Mock 
+    private lateinit var loginStateManager: LoginStateManager
 
     // ========== 测试对象 ==========
 
@@ -44,24 +47,39 @@ class MerchantDetailViewModelTest {
     // ========== 测试数据 ==========
 
     private val testMerchantId = "test_merchant_123"
+    
     private val testMerchantWithContact = Merchant(
         id = testMerchantId,
         name = "测试商家",
-        desc = "测试描述",
         cityCode = "110100",
-        contact = "13800138000",  // 有联系方式
+        showLv = "3",
         picture = null,
-        coverPicture = null
+        coverPicture = null,
+        intro = "测试介绍",
+        desc = "测试描述",
+        validStart = null,
+        validEnd = null,
+        vipProfileStatus = null,
+        style = "merchant",
+        status = "1",
+        contact = "13800138000"  // 有联系方式
     )
 
     private val testMerchantWithoutContact = Merchant(
         id = testMerchantId,
         name = "测试商家",
-        desc = "测试描述",
-        cityCode = "110100",
-        contact = null,  // 无联系方式
+        cityCode = "110100", 
+        showLv = "3",
         picture = null,
-        coverPicture = null
+        coverPicture = null,
+        intro = "测试介绍",
+        desc = "测试描述",
+        validStart = null,
+        validEnd = null,
+        vipProfileStatus = null,
+        style = "merchant",
+        status = "1",
+        contact = null  // 无联系方式
     )
 
     @Before

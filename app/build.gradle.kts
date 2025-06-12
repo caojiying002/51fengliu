@@ -116,9 +116,6 @@ dependencies {
     implementation(libs.gsyvideoplayer.exo2)
     ksp(libs.androidx.room.compiler)
     kapt(libs.bumptech.glide.compiler)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
 
     // Compose
     implementation(libs.androidx.activity.compose)
@@ -134,4 +131,15 @@ dependencies {
 
     // 添加自定义 Lint 规则
     lintChecks(project(":lint-rules"))
+
+    // 测试依赖
+    testImplementation(libs.junit)
+    testImplementation(libs.test.mockito.core)
+    testImplementation(libs.test.mockito.kotlin)
+    testImplementation(libs.test.arch.core)
+    testImplementation(libs.test.coroutines)
+    testImplementation(libs.test.truth)
+    testImplementation(libs.test.turbine)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
 }

@@ -149,15 +149,18 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/default_horizontal_space"
-            android:layout_marginVertical="@dimen/divider_height_half">
+            android:layout_marginVertical="@dimen/divider_height_half"
+            android:background="@drawable/cornered_surface_no_padding"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="8dp">
 
-            <!-- TODO VIP用户可以查看联系方式，目前还不知道具体UI样式，暂且用一个TextView临时显示 {Merchant.contact} -->
-            <!-- 仅当{Merchant.contact}不为null或空字符串时可见 -->
+            <!-- TextView显示{Merchant.contact}，仅当{Merchant.contact}不为null或空字符串时可见 -->
             <TextView
                 android:id="@+id/contact_vip"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="12dp"
+                android:textSize="@dimen/text_default"
+                android:textColor="@color/text_content"
                 android:text="{Merchant.contact}"
                 android:visibility="gone" />
 
@@ -169,10 +172,7 @@
                 android:id="@+id/contact_not_vip_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="@drawable/cornered_surface_no_padding"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="8dp">
+                android:orientation="vertical">
 
                 <!-- 显示"你需要登录才能继续查看联系方式。"或者"你需要VIP才能继续查看联系方式。" -->
                 <TextView

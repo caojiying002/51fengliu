@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt.android)
     id("kotlin-kapt") // 暂时保留，直到所有ksp依赖迁移完成
     alias(libs.plugins.kotlin.compose)
 }
@@ -114,6 +115,8 @@ dependencies {
     implementation(libs.flexbox)
     implementation(libs.gsyvideoplayer)
     implementation(libs.gsyvideoplayer.exo2)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
     ksp(libs.androidx.room.compiler)
     kapt(libs.bumptech.glide.compiler)
 

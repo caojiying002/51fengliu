@@ -1,6 +1,7 @@
 package com.jiyingcao.a51fengliu
 
 import android.app.Application
+import dagger.hilt.android.HiltAndroidApp
 import com.jiyingcao.a51fengliu.ActivityManager.activityLifecycleCallbacks
 import com.jiyingcao.a51fengliu.config.AppConfig
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager
@@ -11,6 +12,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
+@HiltAndroidApp
 class App: Application() {
 
     /** 为应用全局事件处理创建专门的作用域 */

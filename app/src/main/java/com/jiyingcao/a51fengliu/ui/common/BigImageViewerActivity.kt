@@ -46,7 +46,7 @@ class BigImageViewerActivity : BaseActivity() {
         setupBackPressHandler()
         setupViewPager2()
         displayImagesFromIntent(intent)
-        setupInitialSharedElementTransition()
+        updateCurrentPhotoViewTransitionName()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -65,16 +65,6 @@ class BigImageViewerActivity : BaseActivity() {
         })
     }
 
-    /**
-     * 设置初始的共享元素转场名称
-     */
-    private fun setupInitialSharedElementTransition() {
-        // 延迟设置，确保ViewPager2已经创建了ViewHolder
-        binding.viewPager.post {
-            val currentPhotoView = getCurrentPhotoView()
-            currentPhotoView?.transitionName = "shared_image_$clickedImageIndex"
-        }
-    }
 
     /**
      * 统一的返回处理方法，包含共享元素转场逻辑
@@ -149,12 +139,32 @@ class BigImageViewerActivity : BaseActivity() {
 
     /**
      * 更新当前显示的PhotoView的transition name
+     * 清除其他PhotoView的transitionName，确保只有当前PhotoView有transitionName
      */
     private fun updateCurrentPhotoViewTransitionName() {
         // 延迟执行，确保页面切换完成
         binding.viewPager.post {
+            // 清除所有PhotoView的transitionName
+            clearAllPhotoViewTransitionNames()
+            
+            // 设置当前PhotoView的transitionName
             val currentPhotoView = getCurrentPhotoView()
             currentPhotoView?.transitionName = "shared_image_$currentImageIndex"
+        }
+    }
+
+    /**
+     * 清除所有PhotoView的transitionName，避免多个View使用相同的transitionName
+     */
+    private fun clearAllPhotoViewTransitionNames() {
+        val recyclerView = binding.viewPager.getChildAt(0) as? RecyclerView
+        recyclerView?.let { rv ->
+            // 遍历所有可见的ViewHolder
+            for (i in 0 until rv.childCount) {
+                val child = rv.getChildAt(i)
+                val viewHolder = rv.getChildViewHolder(child) as? ImagePagerAdapter.ImageViewHolder
+                viewHolder?.photoView?.transitionName = null
+            }
         }
     }
 

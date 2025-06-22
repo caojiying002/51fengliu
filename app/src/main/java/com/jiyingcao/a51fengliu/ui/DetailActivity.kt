@@ -9,7 +9,6 @@ import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityOptionsCompat
 import androidx.core.util.Pair
 import androidx.core.view.isVisible
@@ -59,20 +58,6 @@ class DetailActivity : BaseActivity() {
     private lateinit var viewModel: DetailViewModel
 
     private var loadingDialog: LoadingDialog? = null
-    
-    // 用于处理BigImageViewerActivity返回结果的launcher
-    private val bigImageViewerLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == RESULT_OK) {
-            val returnImageIndex = result.data?.getIntExtra("RETURN_IMAGE_INDEX", -1) ?: -1
-            if (returnImageIndex >= 0) {
-                // 设置返回时的共享元素转场名称，使用与返回图片对应的transition name
-                val imageView = getImageViewByIndex(returnImageIndex)
-                imageView?.transitionName = "shared_image_$returnImageIndex"
-            }
-        }
-    }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -131,6 +116,36 @@ class DetailActivity : BaseActivity() {
     override fun onStop() {
         super.onStop()
         viewModel.setUIVisibility(false)
+    }
+
+    /**
+     * 处理共享元素返回转场
+     * 在返回转场开始之前被调用，用于设置正确的transitionName
+     */
+    override fun onActivityReenter(resultCode: Int, data: Intent?) {
+        super.onActivityReenter(resultCode, data)
+        
+        if (resultCode == RESULT_OK && data != null) {
+            val returnImageIndex = data.getIntExtra("RETURN_IMAGE_INDEX", -1)
+            if (returnImageIndex >= 0) {
+                // 清除所有ImageView的transitionName
+                clearAllImageViewTransitionNames()
+                
+                // 设置返回时的共享元素转场名称，使用与返回图片对应的transition name
+                val imageView = getImageViewByIndex(returnImageIndex)
+                imageView?.transitionName = "shared_image_$returnImageIndex"
+            }
+        }
+    }
+
+    /**
+     * 清除所有ImageView的transitionName，避免多个View使用相同的transitionName
+     */
+    private fun clearAllImageViewTransitionNames() {
+        for (index in 0..3) {
+            val imageView = getImageViewByIndex(index)
+            imageView?.transitionName = null
+        }
     }
 
     /**
@@ -432,9 +447,9 @@ class DetailActivity : BaseActivity() {
                         this,
                         Pair.create(imageView, transitionName)
                     )
-                    bigImageViewerLauncher.launch(intent, options)
+                    startActivity(intent, options.toBundle())
                 } else {
-                    bigImageViewerLauncher.launch(intent)
+                    startActivity(intent)
                 }
             }
         }

@@ -3,9 +3,11 @@ package com.jiyingcao.a51fengliu
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
 import com.jiyingcao.a51fengliu.ActivityManager.activityLifecycleCallbacks
+import com.jiyingcao.a51fengliu.coil.CoilConfig
 import com.jiyingcao.a51fengliu.config.AppConfig
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager
 import com.jiyingcao.a51fengliu.ui.common.RemoteLoginActivity
+import coil3.SingletonImageLoader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -23,9 +25,14 @@ class App: Application() {
         INSTANCE = this
 
         AppConfig.init(this)
+        initCoil()
         registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
         registerActivityLifecycleCallbacks(EdgeToEdgeWindowInsetsCallbacks)
         initRemoteLoginHandler()
+    }
+
+    private fun initCoil() {
+        SingletonImageLoader.setSafe { CoilConfig.createImageLoader(this) }
     }
 
     private fun initRemoteLoginHandler() {

@@ -66,16 +66,7 @@ class DetailActivity : BaseActivity() {
 
         setupClickListeners()
         setupSmartRefreshLayout()
-
-        viewModel = ViewModelProvider(
-            this,
-            DetailViewModelFactory(
-                recordId,
-                RecordRepository.getInstance(RetrofitClient.apiService),
-                TokenManager.getInstance(App.INSTANCE.dataStore)
-            )
-        )[DetailViewModel::class.java]
-
+        setupViewModel(recordId)
         setupStateObservers()
 
         if (!viewModel.hasLoadedData) {  // 横竖屏等配置更改时，不需要重新加载数据
@@ -87,6 +78,17 @@ class DetailActivity : BaseActivity() {
         binding.contentLayout.refreshLayout.setOnRefreshListener {
             viewModel.processIntent(DetailIntent.PullToRefresh)
         }
+    }
+
+    private fun setupViewModel(recordId: String) {
+        viewModel = ViewModelProvider(
+            this,
+            DetailViewModelFactory(
+                recordId,
+                RecordRepository.getInstance(RetrofitClient.apiService),
+                TokenManager.getInstance(App.INSTANCE.dataStore)
+            )
+        )[DetailViewModel::class.java]
     }
 
     override fun onNewIntent(intent: Intent) {

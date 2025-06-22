@@ -14,6 +14,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
+import coil3.SingletonImageLoader
 import com.jiyingcao.a51fengliu.config.AppConfig
 import com.jiyingcao.a51fengliu.config.AppConfig.Network.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.databinding.ActivityBigImageViewerBinding
@@ -25,6 +26,8 @@ import com.jiyingcao.a51fengliu.R
 import coil3.load
 import coil3.request.placeholder
 import coil3.request.error
+import coil3.request.ImageRequest
+import coil3.request.target
 import io.getstream.photoview.PhotoView
 
 class BigImageViewerActivity : BaseActivity() {
@@ -32,6 +35,9 @@ class BigImageViewerActivity : BaseActivity() {
     private val mAdapter = ImagePagerAdapter()
     private var clickedImageIndex: Int = 0 // 用户在DetailActivity中点击的图片索引
     private var currentImageIndex: Int = 0 // 当前显示的图片索引
+    
+    // 追踪图片加载状态的Map，key为图片URL，value为是否加载成功
+    private val imageLoadingStates = mutableMapOf<String, Boolean>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -92,11 +98,30 @@ class BigImageViewerActivity : BaseActivity() {
      * 需要检查当前显示的图片是否已加载完成
      */
     private fun shouldUseSharedElementTransition(): Boolean {
-        // 获取当前显示的PhotoView
-        val currentPhotoView = getCurrentPhotoView() ?: return false
+        // 获取当前显示的图片URL
+        val currentImageUrl = getCurrentImageUrl() ?: return false
         
         // 检查图片是否已加载完成
-        return isImageFullyLoaded(currentPhotoView)
+        return isImageFullyLoaded(currentImageUrl)
+    }
+
+    /**
+     * 获取当前显示的图片URL
+     */
+    private fun getCurrentImageUrl(): String? {
+        if (mAdapter.imageUrls.isEmpty() || currentImageIndex >= mAdapter.imageUrls.size) {
+            return null
+        }
+        return BASE_IMAGE_URL + mAdapter.imageUrls[currentImageIndex]
+    }
+
+    /**
+     * 检查指定URL的图片是否已完全加载
+     * @param imageUrl 图片的完整URL
+     * @return true如果图片已加载完成，false如果仍在加载或加载失败
+     */
+    private fun isImageFullyLoaded(imageUrl: String): Boolean {
+        return imageLoadingStates[imageUrl] == true
     }
 
     /**
@@ -106,20 +131,6 @@ class BigImageViewerActivity : BaseActivity() {
         val recyclerView = binding.viewPager.getChildAt(0) as? RecyclerView
         val viewHolder = recyclerView?.findViewHolderForAdapterPosition(currentImageIndex) as? ImagePagerAdapter.ImageViewHolder
         return viewHolder?.photoView
-    }
-
-    /**
-     * 检查PhotoView中的图片是否已完全加载
-     */
-    private fun isImageFullyLoaded(photoView: PhotoView): Boolean {
-        val drawable = photoView.drawable
-        if (drawable == null) return false
-        
-        // 检查是否是placeholder或错误图片
-        val placeholderDrawable = getDrawable(R.drawable.placeholder)
-        val errorDrawable = getDrawable(R.drawable.image_broken)
-        
-        return drawable != placeholderDrawable && drawable != errorDrawable
     }
 
     private fun setupViewPager2() {
@@ -173,6 +184,9 @@ class BigImageViewerActivity : BaseActivity() {
         val images = intent?.getStringArrayListExtra("IMAGES") ?: return
         val currentIndex = intent.getIntExtra("INDEX", 0)
 
+        // 清空之前的加载状态
+        imageLoadingStates.clear()
+
         mAdapter.apply {
             imageUrls.clear()
             imageUrls.addAll(images)
@@ -208,11 +222,33 @@ class BigImageViewerActivity : BaseActivity() {
                 true
             }
 
-            // 使用Coil3加载图片
-            holder.photoView.load(imageUrl) {
-                placeholder(R.drawable.placeholder)
-                error(R.drawable.image_broken)
-            }
+            // 初始化加载状态为false
+            imageLoadingStates[imageUrl] = false
+
+            // 使用Coil加载图片并监听加载状态
+            val request = ImageRequest.Builder(context)
+                .data(imageUrl)
+                .target(holder.photoView)
+                .placeholder(R.drawable.placeholder)
+                .error(R.drawable.image_broken)
+                .listener(
+                    onStart = {
+                        // 开始加载
+                        imageLoadingStates[imageUrl] = false
+                    },
+                    onSuccess = { _, _ ->
+                        // 加载成功
+                        imageLoadingStates[imageUrl] = true
+                    },
+                    onError = { _, _ ->
+                        // 加载失败
+                        imageLoadingStates[imageUrl] = false
+                    }
+                )
+                .build()
+
+            // 执行图片加载请求
+            SingletonImageLoader.get(context).enqueue(request)
         }
 
         override fun getItemCount(): Int = imageUrls.size

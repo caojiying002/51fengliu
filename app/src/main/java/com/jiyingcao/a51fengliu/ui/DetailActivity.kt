@@ -16,6 +16,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import coil3.SingletonImageLoader
 import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.RetrofitClient
@@ -36,6 +37,8 @@ import coil3.load
 import coil3.request.placeholder
 import coil3.request.error
 import coil3.request.transformations
+import coil3.request.ImageRequest
+import coil3.request.target
 import coil3.transform.RoundedCornersTransformation
 import com.jiyingcao.a51fengliu.util.copyOnLongClick
 import com.jiyingcao.a51fengliu.util.dataStore
@@ -58,7 +61,9 @@ class DetailActivity : BaseActivity() {
     private lateinit var viewModel: DetailViewModel
 
     private var loadingDialog: LoadingDialog? = null
-
+    
+    // 追踪图片加载状态的Map，key为图片URL，value为是否加载成功
+    private val imageLoadingStates = mutableMapOf<String, Boolean>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -396,6 +401,9 @@ class DetailActivity : BaseActivity() {
             return
         }
 
+        // 清空之前的加载状态
+        imageLoadingStates.clear()
+
         imageContainer.visibility = VISIBLE
         for (index in 0..3) {
             val imageView: ImageView = when (index) {
@@ -406,9 +414,6 @@ class DetailActivity : BaseActivity() {
                 else -> return
             }
             
-            // 为每个图片设置唯一的共享元素转场名称
-            imageView.transitionName = "shared_image_$index"
-            
             val subUrl = imgs.getOrNull(index)
             if (subUrl.isNullOrBlank()) {
                 imageView.visibility = INVISIBLE
@@ -418,11 +423,35 @@ class DetailActivity : BaseActivity() {
             imageView.visibility = VISIBLE
 
             val fullUrl = BASE_IMAGE_URL + subUrl
-            imageView.load(fullUrl) {
-                placeholder(R.drawable.placeholder)
-                error(R.drawable.image_broken)
-                transformations(RoundedCornersTransformation(4.dp.toFloat()))
-            }
+            
+            // 初始化加载状态为false
+            imageLoadingStates[fullUrl] = false
+            
+            // 使用Coil加载图片并监听加载状态
+            val request = ImageRequest.Builder(this)
+                .data(fullUrl)
+                .target(imageView)
+                .placeholder(R.drawable.placeholder)
+                .error(R.drawable.image_broken)
+                .transformations(RoundedCornersTransformation(4.dp.toFloat()))
+                .listener(
+                    onStart = {
+                        // 开始加载
+                        imageLoadingStates[fullUrl] = false
+                    },
+                    onSuccess = { _, _ ->
+                        // 加载成功
+                        imageLoadingStates[fullUrl] = true
+                    },
+                    onError = { _, _ ->
+                        // 加载失败
+                        imageLoadingStates[fullUrl] = false
+                    }
+                )
+                .build()
+            
+            // 执行图片加载请求
+            SingletonImageLoader.get(this).enqueue(request)
             
             imageView.setOnClickListener { view ->
                 // 显示VIP提示对话框
@@ -432,7 +461,7 @@ class DetailActivity : BaseActivity() {
                 }
 
                 // 检查图片是否已加载完成
-                val isImageLoaded = isImageFullyLoaded(imageView)
+                val isImageLoaded = isImageFullyLoaded(fullUrl)
                 
                 val intent = Intent(this, BigImageViewerActivity::class.java).apply {
                     putStringArrayListExtra("IMAGES", ArrayList(imgs))
@@ -442,7 +471,12 @@ class DetailActivity : BaseActivity() {
                 
                 // 根据AppConfig设置和图片加载状态决定是否使用共享元素转场
                 if (AppConfig.UI.SHARED_ELEMENT_TRANSITIONS_ENABLED && isImageLoaded) {
+                    // 清除所有ImageView的transitionName
+                    clearAllImageViewTransitionNames()
+
+                    // 只为被点击的ImageView设置transitionName
                     val transitionName = "shared_image_$index"
+                    imageView.transitionName = transitionName
                     val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
                         this,
                         Pair.create(imageView, transitionName)
@@ -456,19 +490,12 @@ class DetailActivity : BaseActivity() {
     }
 
     /**
-     * 检查ImageView中的图片是否已完全加载
-     * @param imageView 要检查的ImageView
-     * @return true如果图片已加载完成，false如果仍在显示placeholder或错误图片
+     * 检查指定URL的图片是否已完全加载
+     * @param imageUrl 图片的完整URL
+     * @return true如果图片已加载完成，false如果仍在加载或加载失败
      */
-    private fun isImageFullyLoaded(imageView: ImageView): Boolean {
-        val drawable = imageView.drawable
-        if (drawable == null) return false
-        
-        // 检查是否是placeholder或错误图片
-        val placeholderDrawable = getDrawable(R.drawable.placeholder)
-        val errorDrawable = getDrawable(R.drawable.image_broken)
-        
-        return drawable != placeholderDrawable && drawable != errorDrawable
+    private fun isImageFullyLoaded(imageUrl: String): Boolean {
+        return imageLoadingStates[imageUrl] == true
     }
 
     /**

@@ -29,9 +29,14 @@ import com.jiyingcao.a51fengliu.ui.common.BigImageViewerActivity
 import com.jiyingcao.a51fengliu.ui.dialog.LoadingDialog
 import com.jiyingcao.a51fengliu.ui.dialog.ReportDialog
 import com.jiyingcao.a51fengliu.ui.dialog.VipPromptDialog
-import com.jiyingcao.a51fengliu.util.ImageLoader
+import coil3.load
+import coil3.request.placeholder
+import coil3.request.error
+import coil3.request.transformations
+import coil3.transform.RoundedCornersTransformation
 import com.jiyingcao.a51fengliu.util.copyOnLongClick
 import com.jiyingcao.a51fengliu.util.dataStore
+import com.jiyingcao.a51fengliu.util.dp
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.timestampToDay
 import com.jiyingcao.a51fengliu.util.to2LevelName
@@ -375,13 +380,13 @@ class DetailActivity : BaseActivity() {
             }
 
             imageView.visibility = VISIBLE
-            imageView.tag = BASE_IMAGE_URL + subUrl  // 保存完整URL作为tag
 
-            ImageLoader.load(
-                imageView = imageView,
-                url = subUrl,
-                cornerRadius = 4,
-            )
+            val fullUrl = BASE_IMAGE_URL + subUrl
+            imageView.load(fullUrl) {
+                placeholder(R.drawable.placeholder)
+                error(R.drawable.image_broken)
+                transformations(RoundedCornersTransformation(4.dp.toFloat()))
+            }
             
             imageView.setOnClickListener { view ->
                 // 显示VIP提示对话框

@@ -18,7 +18,9 @@ import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.util.setContentViewWithSystemBarPaddings
 import com.jiyingcao.a51fengliu.util.vibrate
 import com.jiyingcao.a51fengliu.R
-import com.jiyingcao.a51fengliu.util.ImageLoader
+import coil3.load
+import coil3.request.placeholder
+import coil3.request.error
 import io.getstream.photoview.PhotoView
 
 class BigImageViewerActivity : BaseActivity() {
@@ -90,11 +92,11 @@ class BigImageViewerActivity : BaseActivity() {
                 true
             }
 
-            // 使用ImageLoader
-            ImageLoader.loadOriginal(
-                imageView = holder.photoView,
-                url = imageUrls[position], // Use the relative URL directly
-            )
+            // 使用Coil3加载图片
+            holder.photoView.load(imageUrl) {
+                placeholder(R.drawable.placeholder)
+                error(R.drawable.image_broken)
+            }
         }
 
         override fun getItemCount(): Int = imageUrls.size

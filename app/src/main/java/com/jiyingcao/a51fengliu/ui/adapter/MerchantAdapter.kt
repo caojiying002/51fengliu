@@ -6,9 +6,16 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import coil3.load
+import coil3.request.placeholder
+import coil3.request.error
+import coil3.request.transformations
+import coil3.transform.RoundedCornersTransformation
+import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.response.Merchant
+import com.jiyingcao.a51fengliu.config.AppConfig
 import com.jiyingcao.a51fengliu.databinding.ItemMerchantBinding
-import com.jiyingcao.a51fengliu.util.ImageLoader
+import com.jiyingcao.a51fengliu.util.dp
 import com.jiyingcao.a51fengliu.util.to2LevelName
 
 class MerchantAdapter : ListAdapter<Merchant, MerchantAdapter.MerchantViewHolder>(MerchantDiffCallback()) {
@@ -50,17 +57,18 @@ class MerchantAdapter : ListAdapter<Merchant, MerchantAdapter.MerchantViewHolder
                 intro.text = item.intro
                 province.text = item.cityCode.to2LevelName() // TODO 只显示省份就可以
 
-                val url = item.coverPicture
-                coverPicture.let {
-                    if (url.isNullOrBlank()) {
-                        it.isVisible = false
+                coverPicture.let { imageView ->
+                    if (item.coverPicture.isNullOrBlank()) {
+                        imageView.isVisible = false
                     } else {
-                        it.isVisible = true
-                        ImageLoader.load(
-                            imageView = it,
-                            url = url,
-                            cornerRadius = 4
-                        )
+                        imageView.isVisible = true
+
+                        val fullUrl = AppConfig.Network.BASE_IMAGE_URL + item.coverPicture
+                        imageView.load(fullUrl) {
+                            placeholder(R.drawable.placeholder)
+                            error(R.drawable.image_broken)
+                            transformations(RoundedCornersTransformation(4.dp.toFloat()))
+                        }
                     }
                 }
             }

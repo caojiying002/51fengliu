@@ -2,26 +2,17 @@ package com.jiyingcao.a51fengliu.ui
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.view.View
 import android.view.View.GONE
 import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.app.ActivityCompat
-import androidx.core.app.ActivityOptionsCompat
-import androidx.core.app.SharedElementCallback
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.target.Target
 import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.RetrofitClient
@@ -31,7 +22,6 @@ import com.jiyingcao.a51fengliu.config.AppConfig.Network.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.databinding.ActivityDetailBinding
 import com.jiyingcao.a51fengliu.databinding.ContentDetail0Binding
-import com.jiyingcao.a51fengliu.glide.HostInvariantGlideUrl
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.auth.AuthActivity
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
@@ -42,7 +32,6 @@ import com.jiyingcao.a51fengliu.ui.dialog.VipPromptDialog
 import com.jiyingcao.a51fengliu.util.ImageLoader
 import com.jiyingcao.a51fengliu.util.copyOnLongClick
 import com.jiyingcao.a51fengliu.util.dataStore
-import com.jiyingcao.a51fengliu.util.dp
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.timestampToDay
 import com.jiyingcao.a51fengliu.util.to2LevelName
@@ -61,28 +50,7 @@ class DetailActivity : BaseActivity() {
     private lateinit var viewModel: DetailViewModel
 
     private var loadingDialog: LoadingDialog? = null
-    private val imageLoadedMap: MutableMap<String, Boolean> = mutableMapOf()
 
-    private val mySharedElementCallback = object : SharedElementCallback() {
-        var returnIndex = 0
-
-        override fun onMapSharedElements(
-            names: List<String>,
-            sharedElements: MutableMap<String, View>
-        ) {
-            val imageContainer = contentBinding.imageContainer
-            // 获取对应位置的缩略图ImageView
-            val imageView: ImageView = when (returnIndex) {
-                0 -> imageContainer.findViewById(R.id.image_0)
-                1 -> imageContainer.findViewById(R.id.image_1)
-                2 -> imageContainer.findViewById(R.id.image_2)
-                3 -> imageContainer.findViewById(R.id.image_3)
-                else -> return
-            }
-            sharedElements.clear()
-            sharedElements["image$returnIndex"] = imageView
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -98,7 +66,6 @@ class DetailActivity : BaseActivity() {
 
         setupClickListeners()
         setupSmartRefreshLayout()
-        setExitSharedElementCallback(mySharedElementCallback)
 
         viewModel = ViewModelProvider(
             this,
@@ -130,18 +97,6 @@ class DetailActivity : BaseActivity() {
         if (recordId != null) viewModel.processIntent(DetailIntent.LoadDetail())
     }
 
-    override fun onActivityReenter(resultCode: Int, data: Intent?) {
-        super.onActivityReenter(resultCode, data)
-
-        if (resultCode == RESULT_OK) {
-            val returnIndex = data?.getIntExtra("RESULT_INDEX", 0) ?: 0
-            mySharedElementCallback.returnIndex = returnIndex
-            // 延迟执行以确保视图已更新
-            supportPostponeEnterTransition()
-            // 开始延迟的过渡
-            supportStartPostponedEnterTransition()
-        }
-    }
 
     override fun onStart() {
         super.onStart()
@@ -424,32 +379,6 @@ class DetailActivity : BaseActivity() {
                 imageView = imageView,
                 url = subUrl,
                 cornerRadius = 4,
-                listener = object : RequestListener<Drawable> {
-                    override fun onLoadFailed(
-                        e: GlideException?,
-                        model: Any?,
-                        target: Target<Drawable>,
-                        isFirstResource: Boolean
-                    ): Boolean {
-                        if (model != null && model is HostInvariantGlideUrl) { 
-                            imageLoadedMap[model.originalUrl] = false 
-                        }
-                        return false
-                    }
-
-                    override fun onResourceReady(
-                        resource: Drawable,
-                        model: Any,
-                        target: Target<Drawable>?,
-                        dataSource: DataSource,
-                        isFirstResource: Boolean
-                    ): Boolean {
-                        if (model is HostInvariantGlideUrl) { 
-                            imageLoadedMap[model.originalUrl] = true 
-                        }
-                        return false
-                    }
-                }
             )
             
             imageView.setOnClickListener { view ->
@@ -459,20 +388,11 @@ class DetailActivity : BaseActivity() {
                     return@setOnClickListener
                 }
 
-                // 如果图片加载成功，才能点击查看大图
-                if (imageLoadedMap[view.tag as String] == true) {
-                    val intent = Intent(this, BigImageViewerActivity::class.java).apply {
-                        putStringArrayListExtra("IMAGES", ArrayList(imgs))
-                        putExtra("INDEX", index)
-                    }
-                    // 创建包含共享元素的ActivityOptions
-                    val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
-                        this,
-                        view, // 这是当前活动中的共享ImageView
-                        "image$index" // 与BigImageViewerActivity中的ImageView相同的transitionName
-                    )
-                    ActivityCompat.startActivityForResult(this, intent, 42, options.toBundle())
+                val intent = Intent(this, BigImageViewerActivity::class.java).apply {
+                    putStringArrayListExtra("IMAGES", ArrayList(imgs))
+                    putExtra("INDEX", index)
                 }
+                startActivity(intent)
             }
         }
     }

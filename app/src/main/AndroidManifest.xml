@@ -73,7 +73,11 @@
             android:name=".ui.common.BigImageViewerActivity"
             android:exported="${activityExported}"
             android:screenOrientation="${screenOrientation}"
-            android:theme="@style/Theme.App.BigImageViewer" />
+            android:theme="@style/Theme.App.BigImageViewer" >
+            <meta-data
+                android:name="android.app.activity.enable_content_transitions"
+                android:value="true" />
+        </activity>
 
         <!-- 异地登录的Dialog样式Activity -->
         <activity

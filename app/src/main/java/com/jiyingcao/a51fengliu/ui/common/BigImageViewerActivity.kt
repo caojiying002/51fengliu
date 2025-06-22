@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -22,6 +23,7 @@ import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.util.setContentViewWithSystemBarPaddings
 import com.jiyingcao.a51fengliu.util.vibrate
 import com.jiyingcao.a51fengliu.R
+import coil3.load
 import coil3.request.placeholder
 import coil3.request.error
 import coil3.request.ImageRequest
@@ -36,12 +38,25 @@ class BigImageViewerActivity : BaseActivity() {
     
     // 追踪图片加载状态的Map，key为图片URL，value为是否加载成功
     private val imageLoadingStates = mutableMapOf<String, Boolean>()
+    
+    // 标记是否已经开始了postponed的转场动画
+    private var hasStartedPostponedTransition = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         binding = ActivityBigImageViewerBinding.inflate(layoutInflater)
         setContentViewWithSystemBarPaddings(binding.root)
+        
+        if (AppConfig.UI.SHARED_ELEMENT_TRANSITIONS_ENABLED) {
+            // 暂停进入转场动画，等待图片加载完成
+            postponeEnterTransition()
+
+            // 设置超时机制，防止无限等待
+            binding.viewPager.postDelayed({
+                startPostponedTransitionIfNeeded()
+            }, 3000) // 3秒超时
+        }
         
         // 获取用户点击的图片索引，用于返回时的共享元素转场
         clickedImageIndex = intent.getIntExtra("CLICKED_IMAGE_INDEX", 0)
@@ -123,6 +138,29 @@ class BigImageViewerActivity : BaseActivity() {
     }
 
     /**
+     * 开始postponed的转场动画（如果还没有开始的话）
+     */
+    private fun startPostponedTransitionIfNeeded() {
+        if (AppConfig.UI.SHARED_ELEMENT_TRANSITIONS_ENABLED && !hasStartedPostponedTransition) {
+            hasStartedPostponedTransition = true
+            startPostponedEnterTransition()
+        }
+    }
+
+    /**
+     * 检查当前显示的图片是否已加载完成，如果是则开始转场动画
+     */
+    private fun checkCurrentImageLoadedAndStartTransition() {
+        if (!AppConfig.UI.SHARED_ELEMENT_TRANSITIONS_ENABLED)
+            return
+        
+        val currentImageUrl = getCurrentImageUrl()
+        if (currentImageUrl != null && isImageFullyLoaded(currentImageUrl)) {
+            startPostponedTransitionIfNeeded()
+        }
+    }
+
+    /**
      * 更新ViewPager2的transitionName以匹配当前显示的图片
      */
     private fun updateViewPagerTransitionName() {
@@ -159,6 +197,14 @@ class BigImageViewerActivity : BaseActivity() {
         }
         binding.viewPager.setCurrentItem(currentIndex, false)
         currentImageIndex = currentIndex
+        
+        // 只有在启用转场动画时才延迟检查当前图片是否已加载
+        if (AppConfig.UI.SHARED_ELEMENT_TRANSITIONS_ENABLED) {
+            // 延迟检查当前图片是否已加载（可能在缓存中）
+            binding.viewPager.post {
+                checkCurrentImageLoadedAndStartTransition()
+            }
+        }
     }
 
     inner class ImagePagerAdapter() : RecyclerView.Adapter<ImagePagerAdapter.ImageViewHolder>() {
@@ -205,10 +251,20 @@ class BigImageViewerActivity : BaseActivity() {
                     onSuccess = { _, _ ->
                         // 加载成功
                         imageLoadingStates[imageUrl] = true
+                        
+                        // 如果这是当前显示的图片，检查是否应该开始转场动画
+                        if (AppConfig.UI.SHARED_ELEMENT_TRANSITIONS_ENABLED && position == currentImageIndex) {
+                            checkCurrentImageLoadedAndStartTransition()
+                        }
                     },
                     onError = { _, _ ->
-                        // 加载失败
+                        // 加载失败，也启动转场动画，避免无限等待
                         imageLoadingStates[imageUrl] = false
+                        
+                        // 如果这是当前显示的图片，也要开始转场动画
+                        if (AppConfig.UI.SHARED_ELEMENT_TRANSITIONS_ENABLED && position == currentImageIndex) {
+                            startPostponedTransitionIfNeeded()
+                        }
                     }
                 )
                 .build()

@@ -69,7 +69,11 @@ class BigImageViewerActivity : BaseActivity() {
      * 设置初始的共享元素转场名称
      */
     private fun setupInitialSharedElementTransition() {
-        binding.viewPager.transitionName = "shared_image_$clickedImageIndex"
+        // 延迟设置，确保ViewPager2已经创建了ViewHolder
+        binding.viewPager.post {
+            val currentPhotoView = getCurrentPhotoView()
+            currentPhotoView?.transitionName = "shared_image_$clickedImageIndex"
+        }
     }
 
     /**
@@ -78,8 +82,9 @@ class BigImageViewerActivity : BaseActivity() {
     private fun finishWithSharedElementTransition() {
         // 检查是否应该使用共享元素转场
         if (AppConfig.UI.SHARED_ELEMENT_TRANSITIONS_ENABLED && shouldUseSharedElementTransition()) {
-            // 更新ViewPager2的transition name以匹配当前显示的图片
-            binding.viewPager.transitionName = "shared_image_$currentImageIndex"
+            // 更新当前显示PhotoView的transition name以匹配当前显示的图片
+            val currentPhotoView = getCurrentPhotoView()
+            currentPhotoView?.transitionName = "shared_image_$currentImageIndex"
 
             // 设置返回时的共享元素数据
             val resultIntent = Intent().apply {
@@ -134,9 +139,23 @@ class BigImageViewerActivity : BaseActivity() {
             override fun onPageSelected(position: Int) {
                 //title = "${position + 1}/${mAdapter.getItemCount()}"
                 currentImageIndex = position
+                
+                // 更新当前页面PhotoView的transition name
+                updateCurrentPhotoViewTransitionName()
             }
         })
         binding.viewPager.adapter = mAdapter
+    }
+
+    /**
+     * 更新当前显示的PhotoView的transition name
+     */
+    private fun updateCurrentPhotoViewTransitionName() {
+        // 延迟执行，确保页面切换完成
+        binding.viewPager.post {
+            val currentPhotoView = getCurrentPhotoView()
+            currentPhotoView?.transitionName = "shared_image_$currentImageIndex"
+        }
     }
 
     @SuppressLint("NotifyDataSetChanged")

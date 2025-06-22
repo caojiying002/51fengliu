@@ -63,40 +63,40 @@ class BigImageViewerActivity : BaseActivity() {
         binding.viewPager.setCurrentItem(currentIndex, false)
     }
 
-inner class ImagePagerAdapter() : RecyclerView.Adapter<ImagePagerAdapter.ImageViewHolder>() {
-    val imageUrls: MutableList<String> = mutableListOf()
-    val context: Context = this@BigImageViewerActivity
+    inner class ImagePagerAdapter() : RecyclerView.Adapter<ImagePagerAdapter.ImageViewHolder>() {
+        val imageUrls: MutableList<String> = mutableListOf()
+        val context: Context = this@BigImageViewerActivity
 
-    inner class ImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val photoView: PhotoView = itemView.findViewById(R.id.photo_view)
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
-        val holder = ImageViewHolder(
-            LayoutInflater.from(context).inflate(R.layout.page_photo_view, parent, false)
-        )
-        holder.photoView.setOnViewTapListener { _, _, _ ->
-            finish()
-        }
-        return holder
-    }
-
-    override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
-        val imageUrl = BASE_IMAGE_URL + imageUrls[position]
-
-        holder.photoView.setOnLongClickListener {
-            vibrate(context)
-            lifecycleScope.glideSaveImage(context, imageUrl)
-            true
+        inner class ImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            val photoView: PhotoView = itemView.findViewById(R.id.photo_view)
         }
 
-        // 使用ImageLoader
-        ImageLoader.loadOriginal(
-            imageView = holder.photoView,
-            url = imageUrls[position], // Use the relative URL directly
-        )
-    }
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
+            val holder = ImageViewHolder(
+                LayoutInflater.from(context).inflate(R.layout.page_photo_view, parent, false)
+            )
+            holder.photoView.setOnViewTapListener { _, _, _ ->
+                finish()
+            }
+            return holder
+        }
 
-    override fun getItemCount(): Int = imageUrls.size
-}
+        override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
+            val imageUrl = BASE_IMAGE_URL + imageUrls[position]
+
+            holder.photoView.setOnLongClickListener {
+                vibrate(context)
+                lifecycleScope.glideSaveImage(context, imageUrl)
+                true
+            }
+
+            // 使用ImageLoader
+            ImageLoader.loadOriginal(
+                imageView = holder.photoView,
+                url = imageUrls[position], // Use the relative URL directly
+            )
+        }
+
+        override fun getItemCount(): Int = imageUrls.size
+    }
 }

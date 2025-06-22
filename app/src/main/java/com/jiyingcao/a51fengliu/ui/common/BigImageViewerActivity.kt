@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -23,7 +22,6 @@ import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.util.setContentViewWithSystemBarPaddings
 import com.jiyingcao.a51fengliu.util.vibrate
 import com.jiyingcao.a51fengliu.R
-import coil3.load
 import coil3.request.placeholder
 import coil3.request.error
 import coil3.request.ImageRequest
@@ -52,7 +50,9 @@ class BigImageViewerActivity : BaseActivity() {
         setupBackPressHandler()
         setupViewPager2()
         displayImagesFromIntent(intent)
-        updateCurrentPhotoViewTransitionName()
+        
+        // 设置初始的transitionName
+        updateViewPagerTransitionName()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -71,16 +71,14 @@ class BigImageViewerActivity : BaseActivity() {
         })
     }
 
-
     /**
      * 统一的返回处理方法，包含共享元素转场逻辑
      */
     private fun finishWithSharedElementTransition() {
         // 检查是否应该使用共享元素转场
         if (AppConfig.UI.SHARED_ELEMENT_TRANSITIONS_ENABLED && shouldUseSharedElementTransition()) {
-            // 更新当前显示PhotoView的transition name以匹配当前显示的图片
-            val currentPhotoView = getCurrentPhotoView()
-            currentPhotoView?.transitionName = "shared_image_$currentImageIndex"
+            // 确保ViewPager2的transitionName对应当前显示的图片
+            updateViewPagerTransitionName()
 
             // 设置返回时的共享元素数据
             val resultIntent = Intent().apply {
@@ -125,12 +123,10 @@ class BigImageViewerActivity : BaseActivity() {
     }
 
     /**
-     * 获取当前显示的PhotoView
+     * 更新ViewPager2的transitionName以匹配当前显示的图片
      */
-    private fun getCurrentPhotoView(): PhotoView? {
-        val recyclerView = binding.viewPager.getChildAt(0) as? RecyclerView
-        val viewHolder = recyclerView?.findViewHolderForAdapterPosition(currentImageIndex) as? ImagePagerAdapter.ImageViewHolder
-        return viewHolder?.photoView
+    private fun updateViewPagerTransitionName() {
+        binding.viewPager.transitionName = "shared_image_$currentImageIndex"
     }
 
     private fun setupViewPager2() {
@@ -141,42 +137,11 @@ class BigImageViewerActivity : BaseActivity() {
                 //title = "${position + 1}/${mAdapter.getItemCount()}"
                 currentImageIndex = position
                 
-                // 更新当前页面PhotoView的transition name
-                updateCurrentPhotoViewTransitionName()
+                // 更新ViewPager2的transitionName以匹配当前显示的图片
+                updateViewPagerTransitionName()
             }
         })
         binding.viewPager.adapter = mAdapter
-    }
-
-    /**
-     * 更新当前显示的PhotoView的transition name
-     * 清除其他PhotoView的transitionName，确保只有当前PhotoView有transitionName
-     */
-    private fun updateCurrentPhotoViewTransitionName() {
-        // 延迟执行，确保页面切换完成
-        binding.viewPager.post {
-            // 清除所有PhotoView的transitionName
-            clearAllPhotoViewTransitionNames()
-            
-            // 设置当前PhotoView的transitionName
-            val currentPhotoView = getCurrentPhotoView()
-            currentPhotoView?.transitionName = "shared_image_$currentImageIndex"
-        }
-    }
-
-    /**
-     * 清除所有PhotoView的transitionName，避免多个View使用相同的transitionName
-     */
-    private fun clearAllPhotoViewTransitionNames() {
-        val recyclerView = binding.viewPager.getChildAt(0) as? RecyclerView
-        recyclerView?.let { rv ->
-            // 遍历所有可见的ViewHolder
-            for (i in 0 until rv.childCount) {
-                val child = rv.getChildAt(i)
-                val viewHolder = rv.getChildViewHolder(child) as? ImagePagerAdapter.ImageViewHolder
-                viewHolder?.photoView?.transitionName = null
-            }
-        }
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -193,6 +158,7 @@ class BigImageViewerActivity : BaseActivity() {
             notifyDataSetChanged()
         }
         binding.viewPager.setCurrentItem(currentIndex, false)
+        currentImageIndex = currentIndex
     }
 
     inner class ImagePagerAdapter() : RecyclerView.Adapter<ImagePagerAdapter.ImageViewHolder>() {

@@ -2,8 +2,8 @@ package com.jiyingcao.a51fengliu.ui
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.view.View
 import android.view.View.GONE
 import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
@@ -33,7 +33,6 @@ import com.jiyingcao.a51fengliu.ui.common.BigImageViewerActivity
 import com.jiyingcao.a51fengliu.ui.dialog.LoadingDialog
 import com.jiyingcao.a51fengliu.ui.dialog.ReportDialog
 import com.jiyingcao.a51fengliu.ui.dialog.VipPromptDialog
-import coil3.load
 import coil3.request.placeholder
 import coil3.request.error
 import coil3.request.transformations
@@ -112,7 +111,6 @@ class DetailActivity : BaseActivity() {
         if (recordId != null) viewModel.processIntent(DetailIntent.LoadDetail())
     }
 
-
     override fun onStart() {
         super.onStart()
         viewModel.setUIVisibility(true)
@@ -121,36 +119,6 @@ class DetailActivity : BaseActivity() {
     override fun onStop() {
         super.onStop()
         viewModel.setUIVisibility(false)
-    }
-
-    /**
-     * 处理共享元素返回转场
-     * 在返回转场开始之前被调用，用于设置正确的transitionName
-     */
-    override fun onActivityReenter(resultCode: Int, data: Intent?) {
-        super.onActivityReenter(resultCode, data)
-        
-        if (resultCode == RESULT_OK && data != null) {
-            val returnImageIndex = data.getIntExtra("RETURN_IMAGE_INDEX", -1)
-            if (returnImageIndex >= 0) {
-                // 清除所有ImageView的transitionName
-                clearAllImageViewTransitionNames()
-                
-                // 设置返回时的共享元素转场名称，使用与返回图片对应的transition name
-                val imageView = getImageViewByIndex(returnImageIndex)
-                imageView?.transitionName = "shared_image_$returnImageIndex"
-            }
-        }
-    }
-
-    /**
-     * 清除所有ImageView的transitionName，避免多个View使用相同的transitionName
-     */
-    private fun clearAllImageViewTransitionNames() {
-        for (index in 0..3) {
-            val imageView = getImageViewByIndex(index)
-            imageView?.transitionName = null
-        }
     }
 
     /**
@@ -414,6 +382,9 @@ class DetailActivity : BaseActivity() {
                 else -> return
             }
             
+            // 为每个ImageView设置唯一的共享元素转场名称
+            imageView.transitionName = "shared_image_$index"
+            
             val subUrl = imgs.getOrNull(index)
             if (subUrl.isNullOrBlank()) {
                 imageView.visibility = INVISIBLE
@@ -460,8 +431,9 @@ class DetailActivity : BaseActivity() {
                     return@setOnClickListener
                 }
 
-                // 检查图片是否已加载完成
-                val isImageLoaded = isImageFullyLoaded(fullUrl)
+                // 检查是否应该启用共享元素转场
+                val shouldUseSharedElementTransition = AppConfig.UI.SHARED_ELEMENT_TRANSITIONS_ENABLED && 
+                    isImageFullyLoaded(fullUrl)
                 
                 val intent = Intent(this, BigImageViewerActivity::class.java).apply {
                     putStringArrayListExtra("IMAGES", ArrayList(imgs))
@@ -469,17 +441,19 @@ class DetailActivity : BaseActivity() {
                     putExtra("CLICKED_IMAGE_INDEX", index) // 记录用户点击的图片索引
                 }
                 
-                // 根据AppConfig设置和图片加载状态决定是否使用共享元素转场
-                if (AppConfig.UI.SHARED_ELEMENT_TRANSITIONS_ENABLED && isImageLoaded) {
-                    // 清除所有ImageView的transitionName
-                    clearAllImageViewTransitionNames()
-
-                    // 只为被点击的ImageView设置transitionName
-                    val transitionName = "shared_image_$index"
-                    imageView.transitionName = transitionName
+                if (shouldUseSharedElementTransition) {
+                    // 创建所有可见ImageView的共享元素对
+                    val sharedElements = mutableListOf<Pair<View, String>>()
+                    for (i in 0..3) {
+                        val img = getImageViewByIndex(i)
+                        if (img?.visibility == VISIBLE) {
+                            sharedElements.add(Pair.create(img, "shared_image_$i"))
+                        }
+                    }
+                    
                     val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
                         this,
-                        Pair.create(imageView, transitionName)
+                        *sharedElements.toTypedArray()
                     )
                     startActivity(intent, options.toBundle())
                 } else {
@@ -496,6 +470,24 @@ class DetailActivity : BaseActivity() {
      */
     private fun isImageFullyLoaded(imageUrl: String): Boolean {
         return imageLoadingStates[imageUrl] == true
+    }
+
+    /**
+     * 检查所有可见图片是否都已加载完成
+     * @param imgs 图片URL列表
+     * @return true如果所有可见图片都已加载完成
+     */
+    private fun areAllVisibleImagesLoaded(imgs: List<String>): Boolean {
+        for (index in 0..3) {
+            val subUrl = imgs.getOrNull(index)
+            if (!subUrl.isNullOrBlank()) {
+                val fullUrl = BASE_IMAGE_URL + subUrl
+                if (imageLoadingStates[fullUrl] != true) {
+                    return false
+                }
+            }
+        }
+        return true
     }
 
     /**

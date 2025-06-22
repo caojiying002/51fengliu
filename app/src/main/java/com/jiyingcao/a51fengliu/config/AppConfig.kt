@@ -57,6 +57,17 @@ object AppConfig {
     }
 
     /**
+     * UI功能相关配置
+     */
+    object UI {
+        /**
+         * 控制是否启用共享元素转场动画
+         * 可以在发布时根据测试效果决定是否启用
+         */
+        const val SHARED_ELEMENT_TRANSITIONS_ENABLED = true
+    }
+
+    /**
      * 调试相关配置
      */
     object Debug {

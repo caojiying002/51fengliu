@@ -2,12 +2,16 @@ package com.jiyingcao.a51fengliu.ui
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.View.GONE
 import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.ActivityOptionsCompat
+import androidx.core.util.Pair
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
@@ -55,6 +59,20 @@ class DetailActivity : BaseActivity() {
     private lateinit var viewModel: DetailViewModel
 
     private var loadingDialog: LoadingDialog? = null
+    
+    // 用于处理BigImageViewerActivity返回结果的launcher
+    private val bigImageViewerLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val returnImageIndex = result.data?.getIntExtra("RETURN_IMAGE_INDEX", -1) ?: -1
+            if (returnImageIndex >= 0) {
+                // 设置返回时的共享元素转场名称，使用与返回图片对应的transition name
+                val imageView = getImageViewByIndex(returnImageIndex)
+                imageView?.transitionName = "shared_image_$returnImageIndex"
+            }
+        }
+    }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -373,6 +391,9 @@ class DetailActivity : BaseActivity() {
                 else -> return
             }
             
+            // 为每个图片设置唯一的共享元素转场名称
+            imageView.transitionName = "shared_image_$index"
+            
             val subUrl = imgs.getOrNull(index)
             if (subUrl.isNullOrBlank()) {
                 imageView.visibility = INVISIBLE
@@ -395,12 +416,59 @@ class DetailActivity : BaseActivity() {
                     return@setOnClickListener
                 }
 
+                // 检查图片是否已加载完成
+                val isImageLoaded = isImageFullyLoaded(imageView)
+                
                 val intent = Intent(this, BigImageViewerActivity::class.java).apply {
                     putStringArrayListExtra("IMAGES", ArrayList(imgs))
                     putExtra("INDEX", index)
+                    putExtra("CLICKED_IMAGE_INDEX", index) // 记录用户点击的图片索引
                 }
-                startActivity(intent)
+                
+                // 根据AppConfig设置和图片加载状态决定是否使用共享元素转场
+                if (AppConfig.UI.SHARED_ELEMENT_TRANSITIONS_ENABLED && isImageLoaded) {
+                    val transitionName = "shared_image_$index"
+                    val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                        this,
+                        Pair.create(imageView, transitionName)
+                    )
+                    bigImageViewerLauncher.launch(intent, options)
+                } else {
+                    bigImageViewerLauncher.launch(intent)
+                }
             }
+        }
+    }
+
+    /**
+     * 检查ImageView中的图片是否已完全加载
+     * @param imageView 要检查的ImageView
+     * @return true如果图片已加载完成，false如果仍在显示placeholder或错误图片
+     */
+    private fun isImageFullyLoaded(imageView: ImageView): Boolean {
+        val drawable = imageView.drawable
+        if (drawable == null) return false
+        
+        // 检查是否是placeholder或错误图片
+        val placeholderDrawable = getDrawable(R.drawable.placeholder)
+        val errorDrawable = getDrawable(R.drawable.image_broken)
+        
+        return drawable != placeholderDrawable && drawable != errorDrawable
+    }
+
+    /**
+     * 根据索引获取对应的ImageView
+     * @param index 图片索引 (0-3)
+     * @return 对应的ImageView，如果索引无效则返回null
+     */
+    private fun getImageViewByIndex(index: Int): ImageView? {
+        val imageContainer = contentBinding.imageContainer
+        return when (index) {
+            0 -> imageContainer.findViewById(R.id.image_0)
+            1 -> imageContainer.findViewById(R.id.image_1)
+            2 -> imageContainer.findViewById(R.id.image_2)
+            3 -> imageContainer.findViewById(R.id.image_3)
+            else -> null
         }
     }
 

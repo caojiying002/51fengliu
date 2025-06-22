@@ -2,45 +2,45 @@ package com.jiyingcao.a51fengliu.ui
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.view.View.GONE
-import android.view.View.INVISIBLE
-import android.view.View.VISIBLE
-import android.widget.ImageView
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.target.Target
-import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.Merchant
-import com.jiyingcao.a51fengliu.config.AppConfig.Network.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.databinding.ActivityMerchantDetailBinding
 import com.jiyingcao.a51fengliu.databinding.MerchantContentDetailBinding
-import com.jiyingcao.a51fengliu.glide.HostInvariantGlideUrl
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.auth.AuthActivity
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
-import com.jiyingcao.a51fengliu.ui.common.BigImageViewerActivity
-import com.jiyingcao.a51fengliu.util.ImageLoader
+import com.jiyingcao.a51fengliu.ui.common.transition.SharedElementTransitionHelper
+import com.jiyingcao.a51fengliu.ui.common.transition.createImageTransitionHelper
+import com.jiyingcao.a51fengliu.ui.common.transition.loadMerchantImages
 import com.jiyingcao.a51fengliu.util.copyOnLongClick
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.to2LevelName
 import com.jiyingcao.a51fengliu.viewmodel.*
 import kotlinx.coroutines.launch
 
+/**
+ * 重构后的MerchantDetailActivity - 复用相同的转场Helper
+ * 
+ * 🎯 展示了组件的强大复用性：
+ * - 与DetailActivity使用完全相同的转场Helper
+ * - 代码逻辑简洁明了，专注于业务逻辑
+ * - 图片加载和转场动画逻辑完全透明化
+ */
 class MerchantDetailActivity : BaseActivity() {
     private lateinit var binding: ActivityMerchantDetailBinding
     private val contentBinding: MerchantContentDetailBinding get() = binding.contentDetail
     private lateinit var viewModel: MerchantDetailViewModel
 
-    private val imageLoadedMap: MutableMap<String, Boolean> = mutableMapOf()
+    // 🚀 复用相同的转场Helper - 零额外配置！
+    private val transitionHelper: SharedElementTransitionHelper by lazy { 
+        createImageTransitionHelper() 
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,15 +56,7 @@ class MerchantDetailActivity : BaseActivity() {
 
         setupClickListeners()
         setupSmartRefreshLayout()
-
-        viewModel = ViewModelProvider(
-            this,
-            MerchantDetailViewModelFactory(
-                merchantId,
-                RecordRepository.getInstance(RetrofitClient.apiService)
-            )
-        )[MerchantDetailViewModel::class.java]
-
+        setupViewModel(merchantId)
         observeUiState()
 
         viewModel.processIntent(MerchantDetailIntent.LoadDetail)
@@ -90,6 +82,16 @@ class MerchantDetailActivity : BaseActivity() {
         }
     }
 
+    private fun setupViewModel(merchantId: String) {
+        viewModel = ViewModelProvider(
+            this,
+            MerchantDetailViewModelFactory(
+                merchantId,
+                RecordRepository.getInstance(RetrofitClient.apiService)
+            )
+        )[MerchantDetailViewModel::class.java]
+    }
+
     private fun observeUiState() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -102,13 +104,14 @@ class MerchantDetailActivity : BaseActivity() {
 
     /**
      * 处理UI状态变化 - 单一状态处理逻辑
-     * 重构后：Activity只负责UI展示，不再包含业务逻辑判断
+     * Activity只负责UI展示，不再包含业务逻辑判断
      */
     private fun handleUiState(uiState: MerchantDetailUiState) {
         // 处理数据展示
         uiState.merchant?.let { merchant ->
             updateMerchantInfo(merchant)
-            displayImagesIfAny(merchant)
+            // 🎯 使用DetailActivity相同的Helper处理图片
+            displayImages(merchant)
         }
 
         // 处理联系信息显示状态 - 响应式更新
@@ -161,8 +164,37 @@ class MerchantDetailActivity : BaseActivity() {
     }
 
     /**
+     * 🚀 商家图片显示 - 使用相同Helper，API保持一致
+     * 对比原来的显示逻辑：50+行复杂代码 → 现在：简洁的3行业务逻辑
+     */
+    private fun displayImages(merchant: Merchant) {
+        // 使用Helper的专门方法处理商家图片
+        transitionHelper.loadMerchantImages(
+            imageContainer = contentBinding.imageContainer,
+            merchant = merchant,
+            onImageClick = { clickedIndex ->
+                // 商家图片通常没有权限限制，直接显示
+                val images = getMerchantImages(merchant)
+                transitionHelper.startImageViewer(
+                    imageUrls = images,
+                    clickedIndex = clickedIndex,
+                    imageContainer = contentBinding.imageContainer
+                )
+            }
+        )
+    }
+
+    private fun getMerchantImages(merchant: Merchant): List<String> {
+        return when {
+            !merchant.picture.isNullOrBlank() -> merchant.picture.split(",").filter { it.isNotBlank() }
+            !merchant.coverPicture.isNullOrBlank() -> listOf(merchant.coverPicture)
+            else -> emptyList()
+        }
+    }
+
+    /**
      * 根据ViewModel计算的状态更新联系信息显示
-     * 重构后：只负责UI更新，不包含业务逻辑判断
+     * 只负责UI更新，不包含业务逻辑判断
      */
     private fun updateContactDisplay(contactState: ContactDisplayState) {
         with(contentBinding) {
@@ -200,87 +232,6 @@ class MerchantDetailActivity : BaseActivity() {
     private fun showContentView() { binding.showContent() }
     private fun showErrorView(message: String) {
         binding.showError(message) { viewModel.processIntent(MerchantDetailIntent.Retry) }
-    }
-
-    /**
-     * 显示图片，参考 DetailActivity 的实现风格
-     */
-    private fun displayImagesIfAny(merchant: Merchant) {
-        val imageContainer = contentBinding.imageContainer
-
-        // 获取图片列表，优先使用 picture，如果为空则使用 coverPicture
-        val imgs = when {
-            !merchant.picture.isNullOrBlank() -> merchant.picture.split(",").filter { it.isNotBlank() }
-            !merchant.coverPicture.isNullOrBlank() -> listOf(merchant.coverPicture)
-            else -> emptyList()
-        }
-
-        if (imgs.isEmpty()) {
-            imageContainer.visibility = GONE
-            return
-        }
-
-        imageContainer.visibility = VISIBLE
-        // 从0到3循环
-        for (index in 0..3) {
-            val imageView: ImageView = when (index) {
-                0 -> imageContainer.findViewById(R.id.image_0)
-                1 -> imageContainer.findViewById(R.id.image_1)
-                2 -> imageContainer.findViewById(R.id.image_2)
-                3 -> imageContainer.findViewById(R.id.image_3)
-                else -> return
-            }
-            val subUrl = imgs.getOrNull(index)
-            if (subUrl.isNullOrBlank()) {
-                imageView.visibility = INVISIBLE
-                continue
-            }
-
-            imageView.visibility = VISIBLE
-            imageView.tag = BASE_IMAGE_URL + subUrl  // 保存完整URL作为tag
-
-            ImageLoader.load(
-                imageView = imageView,
-                url = subUrl, // Use the relative URL directly, ImageLoader will handle the complete URL
-                cornerRadius = 4,
-                listener = object : RequestListener<Drawable> {
-                    override fun onLoadFailed(
-                        e: GlideException?,
-                        model: Any?,
-                        target: Target<Drawable>,
-                        isFirstResource: Boolean
-                    ): Boolean {
-                        if (model != null && model is HostInvariantGlideUrl) { 
-                            imageLoadedMap[model.originalUrl] = false 
-                        }
-                        return false
-                    }
-
-                    override fun onResourceReady(
-                        resource: Drawable,
-                        model: Any,
-                        target: Target<Drawable>?,
-                        dataSource: DataSource,
-                        isFirstResource: Boolean
-                    ): Boolean {
-                        if (model is HostInvariantGlideUrl) { 
-                            imageLoadedMap[model.originalUrl] = true 
-                        }
-                        return false
-                    }
-                }
-            )
-            imageView.setOnClickListener { view ->
-                // 如果图片加载成功，才能点击查看大图
-                if (imageLoadedMap[view.tag as String] == true) {
-                    val intent = Intent(this, BigImageViewerActivity::class.java).apply {
-                        putStringArrayListExtra("IMAGES", ArrayList(imgs))
-                        putExtra("INDEX", index)
-                    }
-                    startActivity(intent)
-                }
-            }
-        }
     }
 
     companion object {

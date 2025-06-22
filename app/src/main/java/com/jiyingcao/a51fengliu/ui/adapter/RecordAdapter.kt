@@ -7,11 +7,18 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import coil3.load
+import coil3.request.placeholder
+import coil3.request.error
+import coil3.request.transformations
+import coil3.transform.RoundedCornersTransformation
+import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
+import com.jiyingcao.a51fengliu.config.AppConfig
 import com.jiyingcao.a51fengliu.databinding.ItemRecordBinding
 import com.jiyingcao.a51fengliu.util.timestampToDay
 import com.jiyingcao.a51fengliu.util.to2LevelName
-import com.jiyingcao.a51fengliu.util.ImageLoader
+import com.jiyingcao.a51fengliu.util.dp
 
 class RecordAdapter : ListAdapter<RecordInfo, RecordAdapter.RecordViewHolder>(RecordDiffCallback()) {
 
@@ -54,16 +61,19 @@ class RecordAdapter : ListAdapter<RecordInfo, RecordAdapter.RecordViewHolder>(Re
                 itemCreateTime.text = timestampToDay(item.publishedAt)
                 itemBrowse.text = item.viewCount
 
-                itemImage.let {
+                itemImage.let { imageView ->
                     if (item.coverPicture.isNullOrBlank()) {
-                        it.visibility = GONE
+                        imageView.visibility = GONE
                     } else {
-                        it.visibility = VISIBLE
-                        ImageLoader.load(
-                            imageView = it,
-                            url = item.coverPicture,
-                            cornerRadius = 4
-                        )
+                        imageView.visibility = VISIBLE
+                        
+                        // 使用Coil3替代Glide加载图片，自动使用全局设置的ImageLoader
+                        val fullUrl = AppConfig.Network.BASE_IMAGE_URL + item.coverPicture
+                        imageView.load(fullUrl) {
+                            placeholder(R.drawable.placeholder)
+                            error(R.drawable.image_broken)
+                            transformations(RoundedCornersTransformation(4.dp.toFloat()))
+                        }
                     }
                 }
             }

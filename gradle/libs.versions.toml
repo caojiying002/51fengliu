@@ -32,7 +32,7 @@ brvah = "4.1.4"
 photoview = "1.0.3"
 flexbox = "3.0.0"
 activityCompose = "1.10.1"
-composeBom = "2025.04.00"
+composeBom = "2025.06.01"
 gsyvideoplayer = "v10.1.0"
 hilt = "2.56.2"
 

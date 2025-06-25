@@ -1,7 +1,8 @@
 [versions]
-agp = "8.9.1"
-kotlin = "2.0.21"
-ksp = "2.0.21-1.0.28" # 确保与kotlin版本匹配
+agp = "8.11.0"
+lint = "31.11.0" # AGP主版本号+23 (https://github.com/googlesamples/android-custom-lint-rules)
+kotlin = "2.2.0"
+ksp = "2.2.0-2.0.2" # 确保与kotlin版本匹配
 coroutines = "1.10.1"
 coreKtx = "1.16.0"
 junit = "4.13.2"
@@ -34,7 +35,6 @@ activityCompose = "1.10.1"
 composeBom = "2025.04.00"
 gsyvideoplayer = "v10.1.0"
 hilt = "2.56.2"
-lint = "31.9.1" # 确保与agp版本匹配
 
 # 测试库
 mockito = "5.8.0"

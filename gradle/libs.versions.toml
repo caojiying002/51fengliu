@@ -36,12 +36,15 @@ gsyvideoplayer = "v10.1.0"
 hilt = "2.56.2"
 lint = "31.9.1" # 确保与agp版本匹配
 
-# 新增：测试相关版本
+# 测试库
 mockito = "5.8.0"
 mockito-kotlin = "5.2.1"
 arch-core-testing = "2.2.0"
 truth = "1.1.5"
 turbine = "1.0.0"
+
+# 方法数统计
+dexcount = "4.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -53,7 +56,7 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 
-# 新增：测试库
+# 测试库
 test-mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
 test-mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockito-kotlin" }
 test-arch-core = { group = "androidx.arch.core", name = "core-testing", version.ref = "arch-core-testing" }
@@ -144,3 +147,4 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+dexcount = { id = "com.getkeepsafe.dexcount", version.ref = "dexcount" }

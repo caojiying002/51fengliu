@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.hilt.android)
     id("kotlin-kapt") // 暂时保留，直到所有ksp依赖迁移完成
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.dexcount)
 }
 
 android {

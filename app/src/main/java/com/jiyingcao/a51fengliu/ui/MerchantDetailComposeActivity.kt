@@ -3,7 +3,6 @@ package com.jiyingcao.a51fengliu.ui
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
@@ -16,13 +15,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -30,23 +28,53 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.jiyingcao.a51fengliu.R
+import com.jiyingcao.a51fengliu.api.RetrofitClient
+import com.jiyingcao.a51fengliu.api.response.Merchant
+import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.theme.*
+import com.jiyingcao.a51fengliu.util.to2LevelName
+import com.jiyingcao.a51fengliu.viewmodel.*
+import androidx.lifecycle.ViewModelProvider
 
 class MerchantDetailComposeActivity : BaseActivity() {
+    private lateinit var viewModel: MerchantDetailViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        val merchantId = intent.getMerchantId()
+        if (merchantId == null) {
+            // TODO: 显示错误提示
+            finish()
+            return
+        }
+
+        setupViewModel(merchantId)
+
         setContent {
             AppTheme {
-                MerchantDetailScreen (
-                    merchantId = intent.getMerchantId().toString(), // TODO intent参数为空的情况
+                MerchantDetailScreen(
+                    merchantId = merchantId,
+                    viewModel = viewModel,
                     onBackClick = { finish() }
                 )
             }
         }
+
+        // 触发初始加载
+        viewModel.processIntent(MerchantDetailIntent.LoadDetail)
+    }
+
+    private fun setupViewModel(merchantId: String) {
+        viewModel = ViewModelProvider(
+            this,
+            MerchantDetailViewModelFactory(
+                merchantId,
+                RecordRepository.getInstance(RetrofitClient.apiService)
+            )
+        )[MerchantDetailViewModel::class.java]
     }
 
     companion object {
@@ -67,67 +95,43 @@ class MerchantDetailComposeActivity : BaseActivity() {
     }
 }
 
-// UI 状态枚举，用于控制显示哪种布局
-enum class MerchantDetailComposeUiState {
-    Loading,        // 全屏加载
-    LoadingOverContent, // 内容上方的加载遮罩
-    Content,        // 正常内容
-    Error           // 错误状态
-}
 
-// 更新后的 MerchantDetailScreen，支持多种状态
 @Composable
 fun MerchantDetailScreen(
     merchantId: String,
+    viewModel: MerchantDetailViewModel,
     onBackClick: () -> Unit
 ) {
-    // 示例状态管理 - 实际项目中你会从 ViewModel 获取状态
-    var uiState by remember { mutableStateOf(MerchantDetailComposeUiState.Content) }
-    var errorMessage by remember { mutableStateOf("") }
+    val uiState by viewModel.uiState.collectAsState()
 
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
         CustomTitleBar(onBackClick = onBackClick)
 
-        // 内容区域 - 根据状态显示不同的布局
+        // 内容区域 - 根据ViewModel状态显示不同的布局
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .weight(1f)
         ) {
-            when (uiState) {
-                MerchantDetailComposeUiState.Loading -> {
+            when {
+                uiState.showFullScreenLoading -> {
                     LoadingLayout()
                 }
-
-                MerchantDetailComposeUiState.Content -> {
-                    MerchantDetailContent(
-                        merchantId = merchantId,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-
-                MerchantDetailComposeUiState.Error -> {
+                
+                uiState.showFullScreenError -> {
                     ErrorLayout(
-                        errorMessage = errorMessage.ifEmpty { "出错了，请稍后重试" },
+                        errorMessage = uiState.errorMessage.ifEmpty { "出错了，请稍后重试" },
                         onRetryClick = {
-                            // 重试逻辑 - 实际项目中你会调用 ViewModel 的方法
-                            uiState = MerchantDetailComposeUiState.Loading
-                            // 这里可以触发重新加载数据的逻辑
+                            viewModel.processIntent(MerchantDetailIntent.Retry)
                         }
                     )
                 }
-
-                MerchantDetailComposeUiState.LoadingOverContent -> {
-                    // 内容布局
+                
+                uiState.showContent -> {
                     MerchantDetailContent(
-                        merchantId = merchantId,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    // 加载遮罩覆盖在内容上方
-                    LoadingLayout(
-                        isOverlay = true,
+                        merchant = uiState.merchant!!,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -138,7 +142,7 @@ fun MerchantDetailScreen(
 
 @Composable
 fun MerchantDetailContent(
-    merchantId: String,
+    merchant: Merchant,
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
@@ -195,7 +199,7 @@ fun MerchantDetailContent(
             ) {
                 // 商户名称 - 对应 @+id/name
                 Text(
-                    text = "厦门可选不限次数",
+                    text = merchant.name,
                     fontSize = 18.sp,
                     color = TextTitle,
                     maxLines = 1,
@@ -216,7 +220,7 @@ fun MerchantDetailContent(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "山西省",
+                        text = merchant.cityCode.to2LevelName(),
                         fontSize = 14.sp,
                         color = Primary,
                         maxLines = 1
@@ -227,7 +231,7 @@ fun MerchantDetailContent(
                 
                 // 描述信息 - 对应 @+id/desc
                 Text(
-                    text = stringResource(R.string.lorem_ipsum),
+                    text = merchant.desc ?: merchant.intro ?: "",
                     fontSize = 14.sp,
                     color = TextContent,
                     modifier = Modifier.fillMaxWidth()
@@ -275,7 +279,7 @@ fun MerchantDetailContent(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "商户ID: $merchantId",
+                    text = "商户ID: ${merchant.id}",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -501,11 +505,25 @@ fun MerchantDetailContentOriginal(
 
 @Preview(showBackground = true)
 @Composable
-fun MerchantDetailScreenPreview() {
+fun MerchantDetailContentPreview() {
     AppTheme {
-        MerchantDetailScreen(
-            merchantId = "55",
-            onBackClick = { }
+        MerchantDetailContent(
+            merchant = Merchant(
+                id = "55",
+                name = "厦门可选不限次数",
+                cityCode = "350000",
+                showLv = null,
+                picture = null,
+                coverPicture = null,
+                intro = "无套路、不办卡、没有任何隐形消费！",
+                desc = "这是一个示例描述信息，用于展示商户的详细信息内容。",
+                validStart = null,
+                validEnd = null,
+                vipProfileStatus = null,
+                style = "merchant",
+                status = "1",
+                contact = null
+            )
         )
     }
 }

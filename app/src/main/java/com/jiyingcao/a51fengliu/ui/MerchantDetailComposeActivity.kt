@@ -35,6 +35,7 @@ import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.theme.*
 import com.jiyingcao.a51fengliu.util.to2LevelName
 import com.jiyingcao.a51fengliu.viewmodel.*
+import com.jiyingcao.a51fengliu.config.AppConfig
 import androidx.lifecycle.ViewModelProvider
 
 class MerchantDetailComposeActivity : BaseActivity() {
@@ -155,32 +156,7 @@ fun MerchantDetailContent(
         verticalArrangement = Arrangement.Top
     ) {
         // 图片容器 - 对应 merchant_content_detail.xml 的 image_container
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    color = Surface,
-                    shape = RoundedCornerShape(4.dp)
-                )
-                .padding(8.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                // 4个图片，每个占1/4宽度，2:3比例
-                repeat(4) { index ->
-                    AsyncImage(
-                        model = R.drawable.dummy_list_image,
-                        contentDescription = "商户图片 ${index + 1}",
-                        modifier = Modifier
-                            .weight(1f) // 每个图片占1/4宽度
-                            .aspectRatio(2f / 3f), // 2:3比例
-                        contentScale = ContentScale.Crop
-                    )
-                }
-            }
-        }
+        MerchantImageContainer(merchant = merchant)
 
         Spacer(modifier = Modifier.height(DividerHeight))
 
@@ -306,6 +282,52 @@ fun MerchantDetailContent(
     }
 }
 
+@Composable
+fun MerchantImageContainer(merchant: Merchant) {
+    val pictures = merchant.getPictures()
+    
+    // 如果没有图片，隐藏整个容器
+    if (pictures.isEmpty()) {
+        return
+    }
+    
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = Surface,
+                shape = RoundedCornerShape(4.dp)
+            )
+            .padding(8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            // 显示最多4张图片，每个位置都占1/4宽度
+            for (index in 0 until 4) {
+                val imageUrl = pictures.getOrNull(index)
+                
+                if (imageUrl != null) {
+                    // 显示实际图片
+                    AsyncImage(
+                        model = AppConfig.Network.BASE_IMAGE_URL + imageUrl,
+                        contentDescription = "商户图片 ${index + 1}",
+                        modifier = Modifier
+                            .weight(1f) // 每个图片占1/4宽度
+                            .aspectRatio(2f / 3f), // 2:3比例
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(R.drawable.placeholder),
+                        error = painterResource(R.drawable.image_broken)
+                    )
+                } else {
+                    // 空位置用Spacer填充，保持1/4宽度
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
 
 @Composable
 fun CustomTitleBar(
@@ -513,7 +535,7 @@ fun MerchantDetailContentPreview() {
                 name = "厦门可选不限次数",
                 cityCode = "350000",
                 showLv = null,
-                picture = null,
+                picture = "240824/3628f597-86b9-4dda-845d-fadc3172ba9d.jpg,240824/08f4a449-2cec-4478-835b-9bdee191607a.jpg",
                 coverPicture = null,
                 intro = "无套路、不办卡、没有任何隐形消费！",
                 desc = "这是一个示例描述信息，用于展示商户的详细信息内容。",

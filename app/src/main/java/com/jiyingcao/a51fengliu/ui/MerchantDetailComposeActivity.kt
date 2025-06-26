@@ -9,6 +9,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
@@ -136,17 +139,73 @@ fun MerchantDetailContent(
     merchantId: String,
     modifier: Modifier = Modifier
 ) {
-    // 这里是商户详情的主要内容区域
-    // 目前先显示一个简单的占位内容，后续你可以根据需求添加具体的UI组件
+    val scrollState = rememberScrollState()
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .verticalScroll(scrollState)
+            .padding(horizontal = DefaultHorizontalSpace, vertical = 0.dp),
+        verticalArrangement = Arrangement.Top
     ) {
-        // 占位内容
+        // 图片容器 - 对应 image_container
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(120.dp)
+                .background(
+                    color = Surface,
+                    shape = RoundedCornerShape(4.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "图片容器",
+                color = OnSurface
+            )
+        }
+
+        Spacer(modifier = Modifier.height(DividerHeight))
+
+        // 基本信息容器 - 对应 basic_info_container
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(500.dp)
+                .background(
+                    color = Surface,
+                    shape = RoundedCornerShape(4.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "基本信息容器",
+                color = OnSurface
+            )
+        }
+
+        Spacer(modifier = Modifier.height(DividerHeight))
+
+        // 联系信息容器 - 对应 contact_info_container
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(80.dp)
+                .background(
+                    color = Surface,
+                    shape = RoundedCornerShape(4.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "联系信息容器",
+                color = OnSurface
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // 占位内容，暂时不要删掉
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -182,7 +241,7 @@ fun MerchantDetailContent(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 示例按钮
+        // 示例按钮，暂时不要删掉
         Button(
             onClick = { /* 添加你的点击逻辑 */ },
             modifier = Modifier.fillMaxWidth()

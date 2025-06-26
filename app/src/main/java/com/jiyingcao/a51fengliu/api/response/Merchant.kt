@@ -70,4 +70,9 @@ data class Merchant(
 
     /* 以下字段仅VIP用户(或积分购买)可见 */
     val contact: String?,   // "电话 17685112251\n\n微信vm200922\n\nQ 3972462031"
-)
+) {
+    fun getPictures(): List<String> =
+        picture?.split(',')
+            ?.filter { it.isNotBlank() }
+            ?: emptyList()
+}

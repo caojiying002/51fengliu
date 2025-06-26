@@ -173,23 +173,14 @@ class MerchantDetailActivity : BaseActivity() {
             imageContainer = contentBinding.imageContainer,
             merchant = merchant,
             onImageClick = { clickedIndex ->
-                // 商家图片通常没有权限限制，直接显示
-                val images = getMerchantImages(merchant)
+                // 商家图片通常没有用户权限限制，直接显示
                 transitionHelper.startImageViewer(
-                    imageUrls = images,
+                    imageUrls = merchant.getPictures(),
                     clickedIndex = clickedIndex,
                     imageContainer = contentBinding.imageContainer
                 )
             }
         )
-    }
-
-    private fun getMerchantImages(merchant: Merchant): List<String> {
-        return when {
-            !merchant.picture.isNullOrBlank() -> merchant.picture.split(",").filter { it.isNotBlank() }
-            !merchant.coverPicture.isNullOrBlank() -> listOf(merchant.coverPicture)
-            else -> emptyList()
-        }
     }
 
     /**

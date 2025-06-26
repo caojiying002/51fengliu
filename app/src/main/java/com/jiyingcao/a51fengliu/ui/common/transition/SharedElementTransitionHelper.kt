@@ -297,16 +297,9 @@ fun SharedElementTransitionHelper.loadMerchantImages(
     merchant: Merchant,
     onImageClick: (clickedIndex: Int) -> Unit = {}
 ) {
-    // 获取图片列表，优先使用 picture，如果为空则使用 coverPicture
-    val images = when {
-        !merchant.picture.isNullOrBlank() -> merchant.picture.split(",").filter { it.isNotBlank() }
-        !merchant.coverPicture.isNullOrBlank() -> listOf(merchant.coverPicture)
-        else -> emptyList()
-    }
-    
     loadImagesIntoGrid(
         imageContainer = imageContainer,
-        imageUrls = images,
+        imageUrls = merchant.getPictures(),
         onImageClick = { clickedIndex, allImages ->
             onImageClick(clickedIndex)
         }

@@ -184,17 +184,55 @@ fun MerchantDetailContent(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(500.dp)
                 .background(
                     color = Surface,
                     shape = RoundedCornerShape(4.dp)
-                ),
-            contentAlignment = Alignment.Center
+                )
+                .padding(8.dp)
         ) {
-            Text(
-                text = "基本信息容器",
-                color = OnSurface
-            )
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // 商户名称 - 对应 @+id/name
+                Text(
+                    text = "厦门可选不限次数",
+                    fontSize = 18.sp,
+                    color = TextTitle,
+                    maxLines = 1,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                // 省份信息 - 对应 @+id/province
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.icon_dz),
+                        contentDescription = "位置图标",
+                        tint = Primary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "山西省",
+                        fontSize = 14.sp,
+                        color = Primary,
+                        maxLines = 1
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                // 描述信息 - 对应 @+id/desc
+                Text(
+                    text = stringResource(R.string.lorem_ipsum),
+                    fontSize = 14.sp,
+                    color = TextContent,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(DividerHeight))

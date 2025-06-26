@@ -19,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -27,6 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.theme.*
@@ -148,26 +150,37 @@ fun MerchantDetailContent(
             .padding(horizontal = DefaultHorizontalSpace, vertical = 0.dp),
         verticalArrangement = Arrangement.Top
     ) {
-        // 图片容器 - 对应 image_container
+        // 图片容器 - 对应 merchant_content_detail.xml 的 image_container
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(120.dp)
                 .background(
                     color = Surface,
                     shape = RoundedCornerShape(4.dp)
-                ),
-            contentAlignment = Alignment.Center
+                )
+                .padding(8.dp)
         ) {
-            Text(
-                text = "图片容器",
-                color = OnSurface
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                // 4个图片，每个占1/4宽度，2:3比例
+                repeat(4) { index ->
+                    AsyncImage(
+                        model = R.drawable.dummy_list_image,
+                        contentDescription = "商户图片 ${index + 1}",
+                        modifier = Modifier
+                            .weight(1f) // 每个图片占1/4宽度
+                            .aspectRatio(2f / 3f), // 2:3比例
+                        contentScale = ContentScale.Crop
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(DividerHeight))
 
-        // 基本信息容器 - 对应 basic_info_container
+        // 基本信息容器 - 对应 merchant_content_detail.xml 的 basic_info_container
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -186,7 +199,7 @@ fun MerchantDetailContent(
 
         Spacer(modifier = Modifier.height(DividerHeight))
 
-        // 联系信息容器 - 对应 contact_info_container
+        // 联系信息容器 - 对应 merchant_content_detail.xml 的 contact_info_container
         Box(
             modifier = Modifier
                 .fillMaxWidth()

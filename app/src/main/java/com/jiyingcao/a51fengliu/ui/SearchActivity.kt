@@ -8,27 +8,23 @@ import android.view.inputmethod.EditorInfo
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.RetrofitClient
-import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.databinding.ActivitySearchBinding
 import com.jiyingcao.a51fengliu.databinding.StatefulRefreshRecyclerViewBinding
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
-import com.jiyingcao.a51fengliu.ui.widget.KeyboardDismissFrameLayout
 import com.jiyingcao.a51fengliu.util.AppLogger
 import com.jiyingcao.a51fengliu.util.ImeUtil
-import com.jiyingcao.a51fengliu.util.scrollToTopIfEmpty
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.to2LevelName
 import com.jiyingcao.a51fengliu.viewmodel.SearchIntent
-import com.jiyingcao.a51fengliu.viewmodel.SearchState
-import com.jiyingcao.a51fengliu.viewmodel.SearchState.Loading
-import com.jiyingcao.a51fengliu.viewmodel.SearchState.Error
 import com.jiyingcao.a51fengliu.viewmodel.SearchViewModel
 import com.jiyingcao.a51fengliu.viewmodel.SearchViewModelFactory
 import com.scwang.smart.refresh.footer.ClassicsFooter
@@ -62,98 +58,83 @@ class SearchActivity: BaseActivity() {
         setupSmartRefreshLayout()
         setupRecyclerView()
 
-        setupFlowCollectors()
+        observeUiState()
     }
 
-    private fun setupFlowCollectors() {
+    /**
+     * 单一状态流观察 - 企业级MVI最佳实践
+     * 所有UI状态变化都在一个地方处理，便于维护和调试
+     */
+    private fun observeUiState() {
         lifecycleScope.launch {
-            viewModel.state.collect { state ->
-                when (state) {
-                    is SearchState.Loading -> handleLoadingState(state)
-                    is SearchState.Error -> handleErrorState(state)
-                    is SearchState.Success -> {
-                        showContentView()
-                        refreshLayout.finishRefresh()
-                        refreshLayout.finishLoadMore()
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { uiState ->
+                    // 处理数据展示
+                    recordAdapter.submitList(uiState.records) {
+                        // 如果数据列表为空且已搜索，将RecyclerView滚动到最顶端
+                        if (uiState.records.isEmpty() && uiState.hasSearched) {
+                            recyclerView.scrollToPosition(0)
+                        }
                     }
-                    else -> {}
+
+                    // 处理各种UI状态 - 使用when表达式确保所有状态都被处理
+                    when {
+                        uiState.showFullScreenLoading -> {
+                            showLoadingView()
+                        }
+
+                        uiState.showFullScreenError -> {
+                            showErrorView(uiState.errorMessage)
+                        }
+
+                        uiState.showEmptyState -> {
+                            statefulContent.showEmptyContent()
+                        }
+
+                        uiState.showContent -> {
+                            statefulContent.showRealContent()
+                        }
+
+                        uiState.showInitialState -> {
+                            // 初始状态，显示内容视图但不显示任何数据
+                            statefulContent.showContentView()
+                        }
+                    }
+
+                    // 处理搜索结果提示
+                    binding.introSearchResult.isVisible = uiState.hasSearched
+                    if (uiState.hasSearched) {
+                        binding.introSearchResult.text =
+                            getString(R.string.intro_search_result_format, uiState.keywords)
+                    }
+
+                    // 处理刷新状态
+                    if (!uiState.isRefreshing) {
+                        refreshLayout.finishRefresh(!uiState.isError)
+                    }
+
+                    // 处理加载更多状态
+                    if (!uiState.isLoadingMore) {
+                        refreshLayout.finishLoadMore(!uiState.isError)
+                    }
+
+                    // 处理无更多数据状态
+                    refreshLayout.setNoMoreData(uiState.noMoreData)
+
+                    // 处理错误提示 - 只对非全屏错误显示Toast
+                    if (uiState.isError && !uiState.showFullScreenError) {
+                        showToast(uiState.errorMessage)
+                    }
                 }
             }
         }
-
-        lifecycleScope.launch {
-            viewModel.records.collect { updateRecords(it) }
-        }
-
-        lifecycleScope.launch {
-            viewModel.noMoreDataState.collect { noMoreData ->
-                refreshLayout.setNoMoreData(noMoreData)
-            }
-        }
-
-        lifecycleScope.launch {
-            viewModel.keywords.collect { keywords ->
-                binding.introSearchResult.isVisible = keywords != null
-                binding.introSearchResult.text =
-                    getString(R.string.intro_search_result_format, keywords)
-            }
-        }
-
-        /*lifecycleScope.launch {
-            viewModel.refreshState.collect { state ->
-                when (state) {
-                    RefreshState.RefreshSuccess -> refreshLayout.finishRefresh()
-                    RefreshState.RefreshError -> refreshLayout.finishRefresh(false)
-                    RefreshState.LoadMoreSuccess -> refreshLayout.finishLoadMore()
-                    RefreshState.LoadMoreError -> refreshLayout.finishLoadMore(false)
-                    else -> {}
-                }
-            }
-        }*/
     }
 
+    private fun showLoadingView() { statefulContent.showLoadingView() }
     private fun showContentView() { statefulContent.showContentView() }
-    private fun showFullScreenLoading() { statefulContent.showLoadingView() }
-    private fun showPullToRefreshLoading() { /* 下拉刷新加载 */ }
-    private fun showLoadMoreLoading() { /* 分页加载 */ }
-    private fun hideAllLoadingIndicators() { /* 隐藏所有加载指示器 */ }
-    private fun showError(error: String) { statefulContent.showErrorView(error) { /* TODO 重试按钮 */ } }
-
-    private fun handleLoadingState(loading: Loading) {
-        when (loading) {
-            Loading.FullScreen -> showFullScreenLoading()
-            Loading.PullToRefresh -> showPullToRefreshLoading()
-            Loading.LoadMore -> showLoadMoreLoading()
-        }
-    }
-
-    private fun handleErrorState(error: Error) {
-        when (error) {
-            is Error.FullScreen -> showError(error.message)
-            is Error.PullToRefresh -> {
-                refreshLayout.finishRefresh(false)
-                showToast(error.message)
-            }
-            is Error.LoadMore -> {
-                refreshLayout.finishLoadMore(false)
-                showToast(error.message)
-            }
-        }
-    }
-
-    private fun updateRecords(records: List<RecordInfo>) {
-        recordAdapter.submitList(records) {
-            // 如果数据列表为空，将RecyclerView滚动到最顶端
-            if (records.isEmpty()) {
-                recyclerView.scrollToPosition(0)
-            }
-        }
-
-        // 如果没有数据，显示空状态
-        if (records.isEmpty()) {
-            statefulContent.showEmptyContent()
-        } else {
-            statefulContent.showRealContent()
+    private fun showErrorView(message: String) {
+        statefulContent.showErrorView(message) {
+            viewModel.processIntent(SearchIntent.Retry)
         }
     }
 
@@ -211,7 +192,7 @@ class SearchActivity: BaseActivity() {
             setRefreshHeader(ClassicsHeader(context))
             setRefreshFooter(ClassicsFooter(context))
             setOnRefreshListener { viewModel.processIntent(SearchIntent.Refresh) }
-            setOnLoadMoreListener { viewModel.processIntent(SearchIntent.NextPage) }
+            setOnLoadMoreListener { viewModel.processIntent(SearchIntent.LoadMore) }
             // setEnableLoadMore(false)  // 加载第一页成功前暂时禁用LoadMore
         }
     }

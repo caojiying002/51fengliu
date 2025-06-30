@@ -26,6 +26,12 @@
     <color name="divider">#383838</color>
     <color name="item_pressed">@color/divider</color>
 
+    <!-- 按钮颜色 -->
+    <color name="button_default">@color/primary</color>
+    <color name="button_pressed">#ff8cbf</color><!-- 夜间模式主按钮按下状态，比正常状态更亮 -->
+    <color name="button_disabled">#3c3c3c</color><!-- 夜间模式禁用按钮，深灰色 -->
+    <color name="button_pressed_secondary">#404040</color><!-- 夜间模式次要按钮按下时的背景色 -->
+
     <!-- 图标颜色 -->
     <color name="icon_search_default">#b0b0b0</color>
 </resources>

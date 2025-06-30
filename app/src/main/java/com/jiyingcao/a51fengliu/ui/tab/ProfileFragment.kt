@@ -25,6 +25,7 @@ import com.jiyingcao.a51fengliu.ui.FavoriteActivity
 import com.jiyingcao.a51fengliu.ui.auth.AuthActivity
 import com.jiyingcao.a51fengliu.ui.PostInfoActivity
 import com.jiyingcao.a51fengliu.ui.dialog.LoadingDialog
+import com.jiyingcao.a51fengliu.ui.dialog.ConfirmDialog
 import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.LogoutEffect
@@ -154,7 +155,15 @@ class ProfileFragment : Fragment() {
             startActivity(AuthActivity.createIntent(requireContext()))
         }
         binding.tvLogout.setOnClickListener {
-            viewModel.processIntent(ProfileIntent.Logout)
+            ConfirmDialog.newInstance(
+                message = "确定要退出登录吗？",
+                positiveButtonText = "退出",
+                negativeButtonText = "取消"
+            ).setOnConfirmDialogListener(object : ConfirmDialog.OnConfirmDialogListener {
+                override fun onConfirm() {
+                    viewModel.processIntent(ProfileIntent.Logout)
+                }
+            }).show(parentFragmentManager, ConfirmDialog.TAG)
         }
         binding.tvPostInfo.setOnClickListener {
             loginInterceptor.execute {

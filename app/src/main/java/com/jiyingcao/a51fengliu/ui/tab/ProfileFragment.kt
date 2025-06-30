@@ -156,9 +156,9 @@ class ProfileFragment : Fragment() {
         }
         binding.tvLogout.setOnClickListener {
             ConfirmDialog.newInstance(
-                message = "确定要退出登录吗？",
-                positiveButtonText = "退出",
-                negativeButtonText = "取消"
+                message = getString(R.string.logout_confirmation_message),
+                positiveButtonText = getString(R.string.quit),
+                negativeButtonText = getString(R.string.cancel)
             ).setOnConfirmDialogListener(object : ConfirmDialog.OnConfirmDialogListener {
                 override fun onConfirm() {
                     viewModel.processIntent(ProfileIntent.Logout)
@@ -187,7 +187,7 @@ class ProfileFragment : Fragment() {
             usernameText.text = ""
             tvPoints.text = "0"
             tvMessages.text = "0"
-            membershipStatus.text = "普通会员"
+            membershipStatus.text = getString(R.string.normal_member)
         }
     }
 
@@ -232,17 +232,17 @@ class ProfileFragment : Fragment() {
 
             if (profile.isVip == true) {
                 titleText.text = getString(R.string.vip_welcome)
-                membershipStatus.text = "VIP会员"
+                membershipStatus.text = getString(R.string.vip_member)
                 membershipStatus.setTextColor(resources.getColor(R.color.primary, context?.theme))
 
                 permanentMemberGroup.isVisible = true
                 normalMemberGroup.isVisible = false
 
                 // TODO 根据expiredAt显示会员到期时间，永久会员显示“永久”
-                permanentStatus.text = "永久"
+                permanentStatus.text = getString(R.string.permanent)
             } else {
                 titleText.text = getString(R.string.normal_welcome)
-                membershipStatus.text = "普通会员"
+                membershipStatus.text = getString(R.string.normal_member)
                 membershipStatus.setTextColor(resources.getColor(R.color.text_content, context?.theme))
 
                 permanentMemberGroup.isVisible = false

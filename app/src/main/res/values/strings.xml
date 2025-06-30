@@ -6,6 +6,8 @@ Phasellus in leo massa. Aliquam malesuada, enim nec auctor posuere, quam sem mal
 
     <string name="confirm">确定</string>
     <string name="cancel">取消</string>
+    <string name="quit">退出</string>
+    <string name="exit">@string/quit</string>
 
     <string name="stateful_default_loading">加载中…</string>
     <string name="stateful_default_error">加载失败</string>
@@ -44,4 +46,7 @@ Phasellus in leo massa. Aliquam malesuada, enim nec auctor posuere, quam sem mal
     <string name="upgrade_vip_now">立即升级VIP</string>
     <string name="login_required_message">你需要登录才能继续查看联系方式。</string>
     <string name="login_now">立即登录</string>
+    <string name="logout_confirmation_message">确定要退出登录吗？</string>
+    <string name="normal_member">普通会员</string>
+    <string name="vip_member">VIP会员</string>
 </resources>

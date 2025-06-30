@@ -5,6 +5,7 @@ import com.jiyingcao.a51fengliu.api.request.InfoIdRequest
 import com.jiyingcao.a51fengliu.api.request.LoginRequest
 import com.jiyingcao.a51fengliu.api.request.ReportRequest
 import com.jiyingcao.a51fengliu.api.response.*
+import com.jiyingcao.a51fengliu.util.City
 import okhttp3.MultipartBody
 import retrofit2.http.*
 
@@ -93,5 +94,5 @@ interface ApiService {
     /** 商家城市列表 */
     @TokenPolicy(Policy.OPTIONAL)
     @GET("/api/mobile/config/merchantCity.json")
-    suspend fun getMerchantCities(): ApiResponse<List<MerchantCity>>
+    suspend fun getMerchantCities(): ApiResponse<List<City>>
 }

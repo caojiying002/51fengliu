@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
@@ -196,15 +197,7 @@ class DetailViewModel(
         detailLoadJob?.cancel()
         detailLoadJob = viewModelScope.launch(remoteLoginCoroutineContext) {
             // 更新加载状态
-            updateUiState { currentState ->
-                currentState.copy(
-                    isLoading = loadingType == LoadingType.FULL_SCREEN,
-                    isRefreshing = loadingType == LoadingType.PULL_TO_REFRESH,
-                    isOverlayLoading = loadingType == LoadingType.OVERLAY,
-                    loadingType = loadingType,
-                    isError = false // 清除之前的错误状态
-                )
-            }
+            updateUiStateToLoading(loadingType)
 
             repository.getDetail(infoId)
                 .collect { result ->
@@ -220,28 +213,11 @@ class DetailViewModel(
         result.mapCatching { requireNotNull(it) }
             .onSuccess { record ->
                 hasLoadedData = true
-                updateUiState { currentState ->
-                    currentState.copy(
-                        isLoading = false,
-                        isRefreshing = false,
-                        isOverlayLoading = false,
-                        isError = false,
-                        record = record
-                    )
-                }
+                updateUiStateToSuccess(record)
             }
             .onFailure { e ->
                 if (!handleFailure(e)) { // 通用的错误处理
-                    updateUiState { currentState ->
-                        currentState.copy(
-                            isLoading = false,
-                            isRefreshing = false,
-                            isOverlayLoading = false,
-                            isError = true,
-                            errorMessage = e.toUserFriendlyMessage(),
-                            errorType = loadingType
-                        )
-                    }
+                    updateUiStateToError(e.toUserFriendlyMessage(), loadingType)
                 }
             }
     }
@@ -257,7 +233,7 @@ class DetailViewModel(
      * - 相比 forceRefresh 参数，独立的 Intent 让代码意图更清晰
      * - 未来可能需要针对登录后刷新添加特殊逻辑（如同步用户相关数据）
      *
-     * 目前和[loadDetail0]只有加载样式上的区别
+     * 目前和[loadDetail]只有加载样式上的区别
      */
     private fun refresh() { // TODO 根据登录后刷新的语义，最好能重命名
         loadDetail(LoadingType.OVERLAY)
@@ -312,6 +288,58 @@ class DetailViewModel(
         }
     }
 
+    // ===== 专门的UI状态更新方法 =====
+    
+    /**
+     * 更新UI状态到加载中
+     * @param loadingType 加载类型，决定显示哪种加载状态
+     */
+    private fun updateUiStateToLoading(loadingType: LoadingType) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                isLoading = loadingType == LoadingType.FULL_SCREEN,
+                isRefreshing = loadingType == LoadingType.PULL_TO_REFRESH,
+                isOverlayLoading = loadingType == LoadingType.OVERLAY,
+                loadingType = loadingType,
+                isError = false // 清除之前的错误状态
+            )
+        }
+    }
+    
+    /**
+     * 更新UI状态到成功状态
+     * @param record 详情记录数据
+     */
+    private fun updateUiStateToSuccess(record: RecordInfo) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                isLoading = false,
+                isRefreshing = false,
+                isOverlayLoading = false,
+                isError = false,
+                record = record
+            )
+        }
+    }
+    
+    /**
+     * 更新UI状态到错误状态
+     * @param errorMessage 错误信息
+     * @param errorType 错误类型，决定错误显示方式
+     */
+    private fun updateUiStateToError(errorMessage: String, errorType: LoadingType) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                isLoading = false,
+                isRefreshing = false,
+                isOverlayLoading = false,
+                isError = true,
+                errorMessage = errorMessage,
+                errorType = errorType
+            )
+        }
+    }
+
     /** 防止重复请求 */
     private fun shouldPreventRequest(loadingType: LoadingType): Boolean {
         val currentState = _uiState.value
@@ -320,14 +348,6 @@ class DetailViewModel(
             LoadingType.PULL_TO_REFRESH -> currentState.isRefreshing
             LoadingType.OVERLAY -> currentState.isOverlayLoading
             else -> false
-        }
-    }
-
-    private fun updateUiState(update: (DetailUiState) -> DetailUiState) {
-        val currentState = _uiState.value
-        val newState = update(currentState)
-        if (newState != currentState) {
-            _uiState.value = newState
         }
     }
 
@@ -349,6 +369,6 @@ class DetailViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return DetailViewModel(infoId, repository, tokenManager) as T
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
+        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
 }

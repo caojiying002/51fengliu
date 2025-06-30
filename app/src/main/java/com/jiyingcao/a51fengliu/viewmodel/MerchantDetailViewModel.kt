@@ -13,6 +13,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
@@ -159,15 +160,7 @@ class MerchantDetailViewModel(
         fetchJob?.cancel()
         fetchJob = viewModelScope.launch(remoteLoginCoroutineContext) {
             // 更新加载状态
-            updateUiState { currentState ->
-                currentState.copy(
-                    isLoading = loadingType == LoadingType.FULL_SCREEN,
-                    isRefreshing = loadingType == LoadingType.PULL_TO_REFRESH,
-                    isOverlayLoading = loadingType == LoadingType.OVERLAY,
-                    loadingType = loadingType,
-                    isError = false // 清除之前的错误状态
-                )
-            }
+            updateUiStateToLoading(loadingType)
 
             repository.getMerchantDetail(merchantId)
                 .collect { result ->
@@ -182,30 +175,11 @@ class MerchantDetailViewModel(
     ) {
         result.mapCatching { requireNotNull(it) }
             .onSuccess { merchant ->
-                updateUiState { currentState ->
-                    val contactDisplayState = generateContactDisplayState(merchant, currentState.isLoggedIn)
-                    currentState.copy(
-                        isLoading = false,
-                        isRefreshing = false,
-                        isOverlayLoading = false,
-                        isError = false,
-                        merchant = merchant,
-                        contactDisplayState = contactDisplayState
-                    )
-                }
+                updateUiStateToSuccess(merchant)
             }
             .onFailure { e ->
                 if (!handleFailure(e)) { // 通用错误处理，如果处理过就不用再处理了
-                    updateUiState { currentState ->
-                        currentState.copy(
-                            isLoading = false,
-                            isRefreshing = false,
-                            isOverlayLoading = false,
-                            isError = true,
-                            errorMessage = e.toUserFriendlyMessage(),
-                            errorType = loadingType
-                        )
-                    }
+                    updateUiStateToError(e.toUserFriendlyMessage(), loadingType)
                 }
             }
     }
@@ -231,6 +205,60 @@ class MerchantDetailViewModel(
         //loadDetail(LoadingType.OVERLAY)
     }
 
+    // ===== 专门的UI状态更新方法 =====
+    
+    /**
+     * 更新UI状态到加载中
+     * @param loadingType 加载类型，决定显示哪种加载状态
+     */
+    private fun updateUiStateToLoading(loadingType: LoadingType) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                isLoading = loadingType == LoadingType.FULL_SCREEN,
+                isRefreshing = loadingType == LoadingType.PULL_TO_REFRESH,
+                isOverlayLoading = loadingType == LoadingType.OVERLAY,
+                loadingType = loadingType,
+                isError = false // 清除之前的错误状态
+            )
+        }
+    }
+    
+    /**
+     * 更新UI状态到成功状态
+     * @param merchant 商家详情数据
+     */
+    private fun updateUiStateToSuccess(merchant: Merchant) {
+        _uiState.update { currentState ->
+            val contactDisplayState = generateContactDisplayState(merchant, currentState.isLoggedIn)
+            currentState.copy(
+                isLoading = false,
+                isRefreshing = false,
+                isOverlayLoading = false,
+                isError = false,
+                merchant = merchant,
+                contactDisplayState = contactDisplayState
+            )
+        }
+    }
+    
+    /**
+     * 更新UI状态到错误状态
+     * @param errorMessage 错误信息
+     * @param errorType 错误类型，决定错误显示方式
+     */
+    private fun updateUiStateToError(errorMessage: String, errorType: LoadingType) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                isLoading = false,
+                isRefreshing = false,
+                isOverlayLoading = false,
+                isError = true,
+                errorMessage = errorMessage,
+                errorType = errorType
+            )
+        }
+    }
+
     /** 防止重复请求 */
     private fun shouldPreventRequest(loadingType: LoadingType): Boolean {
         val currentState = _uiState.value
@@ -239,15 +267,6 @@ class MerchantDetailViewModel(
             LoadingType.PULL_TO_REFRESH -> currentState.isRefreshing
             LoadingType.OVERLAY -> currentState.isOverlayLoading
             else -> false
-        }
-    }
-
-    // 线程安全的状态更新
-    private fun updateUiState(update: (MerchantDetailUiState) -> MerchantDetailUiState) {
-        val currentState = _uiState.value
-        val newState = update(currentState)
-        if (newState != currentState) {
-            _uiState.value = newState
         }
     }
 
@@ -275,6 +294,6 @@ class MerchantDetailViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return MerchantDetailViewModel(merchantId, repository, loginStateManager) as T
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
+        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
 }

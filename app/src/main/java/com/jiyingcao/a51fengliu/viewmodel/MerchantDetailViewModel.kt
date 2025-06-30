@@ -8,7 +8,7 @@ import com.jiyingcao.a51fengliu.api.response.Merchant
 import com.jiyingcao.a51fengliu.data.LoginStateManager
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
-import com.jiyingcao.a51fengliu.repository.RecordRepository
+import com.jiyingcao.a51fengliu.repository.MerchantRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -64,7 +64,7 @@ sealed class MerchantDetailIntent {
 
 class MerchantDetailViewModel(
     private val merchantId: String,
-    private val repository: RecordRepository = RecordRepository.getInstance(RetrofitClient.apiService),
+    private val repository: MerchantRepository = MerchantRepository.getInstance(RetrofitClient.apiService),
     private val loginStateManager: LoginStateManager = LoginStateManager.getInstance() // 依赖注入
 ) : BaseViewModel() {
     private var fetchJob: Job? = null
@@ -267,7 +267,7 @@ class MerchantDetailViewModel(
  */
 class MerchantDetailViewModelFactory(
     private val merchantId: String,
-    private val repository: RecordRepository = RecordRepository.getInstance(RetrofitClient.apiService),
+    private val repository: MerchantRepository = MerchantRepository.getInstance(RetrofitClient.apiService),
     private val loginStateManager: LoginStateManager = LoginStateManager.getInstance()
 ): ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

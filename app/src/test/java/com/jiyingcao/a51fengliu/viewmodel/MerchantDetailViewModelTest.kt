@@ -4,7 +4,7 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.google.common.truth.Truth.assertThat
 import com.jiyingcao.a51fengliu.api.response.Merchant
 import com.jiyingcao.a51fengliu.data.LoginStateManager
-import com.jiyingcao.a51fengliu.repository.RecordRepository
+import com.jiyingcao.a51fengliu.repository.MerchantRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,7 +34,7 @@ class MerchantDetailViewModelTest {
     // ========== Mock对象 ==========
 
     @Mock 
-    private lateinit var repository: RecordRepository
+    private lateinit var repository: MerchantRepository
     
     @Mock 
     private lateinit var loginStateManager: LoginStateManager

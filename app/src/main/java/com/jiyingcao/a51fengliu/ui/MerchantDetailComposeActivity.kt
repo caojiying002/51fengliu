@@ -30,7 +30,7 @@ import coil3.compose.AsyncImage
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.Merchant
-import com.jiyingcao.a51fengliu.repository.RecordRepository
+import com.jiyingcao.a51fengliu.repository.MerchantRepository
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.theme.*
 import com.jiyingcao.a51fengliu.util.to2LevelName
@@ -73,7 +73,7 @@ class MerchantDetailComposeActivity : BaseActivity() {
             this,
             MerchantDetailViewModelFactory(
                 merchantId,
-                RecordRepository.getInstance(RetrofitClient.apiService)
+                MerchantRepository.getInstance(RetrofitClient.apiService)
             )
         )[MerchantDetailViewModel::class.java]
     }

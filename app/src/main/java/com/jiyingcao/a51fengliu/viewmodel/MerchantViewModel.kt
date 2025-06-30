@@ -8,7 +8,7 @@ import com.jiyingcao.a51fengliu.api.response.Merchant
 import com.jiyingcao.a51fengliu.api.response.PageData
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
-import com.jiyingcao.a51fengliu.repository.RecordRepository
+import com.jiyingcao.a51fengliu.repository.MerchantRepository
 import com.jiyingcao.a51fengliu.util.AppLogger
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
@@ -57,7 +57,7 @@ sealed class MerchantIntent {
 }
 
 class MerchantViewModel(
-    private val repository: RecordRepository
+    private val repository: MerchantRepository
 ) : BaseViewModel() {
     private var fetchJob: Job? = null
     
@@ -196,7 +196,7 @@ class MerchantViewModel(
 }
 
 class MerchantViewModelFactory(
-    private val repository: RecordRepository
+    private val repository: MerchantRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MerchantViewModel::class.java)) {

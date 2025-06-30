@@ -89,4 +89,9 @@ interface ApiService {
     suspend fun getMerchantDetail(
         @Query("merchantId") id: String
     ): ApiResponse<Merchant>
+
+    /** 商家城市列表 */
+    @TokenPolicy(Policy.OPTIONAL)
+    @GET("/api/mobile/config/merchantCity.json")
+    suspend fun getMerchantCities(): ApiResponse<List<MerchantCity>>
 }

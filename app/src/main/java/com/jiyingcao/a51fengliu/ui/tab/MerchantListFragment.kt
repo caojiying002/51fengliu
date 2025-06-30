@@ -22,16 +22,16 @@ import com.jiyingcao.a51fengliu.ui.showErrorView
 import com.jiyingcao.a51fengliu.ui.showLoadingView
 import com.jiyingcao.a51fengliu.ui.showRealContent
 import com.jiyingcao.a51fengliu.util.showToast
-import com.jiyingcao.a51fengliu.viewmodel.MerchantIntent
-import com.jiyingcao.a51fengliu.viewmodel.MerchantState
-import com.jiyingcao.a51fengliu.viewmodel.MerchantViewModel
-import com.jiyingcao.a51fengliu.viewmodel.MerchantViewModelFactory
+import com.jiyingcao.a51fengliu.viewmodel.MerchantListIntent
+import com.jiyingcao.a51fengliu.viewmodel.MerchantListState
+import com.jiyingcao.a51fengliu.viewmodel.MerchantListViewModel
+import com.jiyingcao.a51fengliu.viewmodel.MerchantListViewModelFactory
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
 import kotlinx.coroutines.launch
 
-class MerchantFragment : Fragment() {
+class MerchantListFragment : Fragment() {
     private var _binding: FragmentMerchantBinding? = null
     private val binding get() = _binding!!
 
@@ -43,8 +43,8 @@ class MerchantFragment : Fragment() {
 
     private lateinit var merchantAdapter: MerchantAdapter
 
-    private val viewModel: MerchantViewModel by viewModels {
-        MerchantViewModelFactory(
+    private val viewModel: MerchantListViewModel by viewModels {
+        MerchantListViewModelFactory(
             MerchantRepository.getInstance(RetrofitClient.apiService)
         )
     }
@@ -79,8 +79,8 @@ class MerchantFragment : Fragment() {
         refreshLayout.apply {
             setRefreshHeader(ClassicsHeader(context))
             setRefreshFooter(ClassicsFooter(context))
-            setOnRefreshListener { viewModel.processIntent(MerchantIntent.Refresh) }
-            setOnLoadMoreListener { viewModel.processIntent(MerchantIntent.LoadMore) }
+            setOnRefreshListener { viewModel.processIntent(MerchantListIntent.Refresh) }
+            setOnLoadMoreListener { viewModel.processIntent(MerchantListIntent.LoadMore) }
         }
     }
 
@@ -111,11 +111,11 @@ class MerchantFragment : Fragment() {
         }
     }
 
-    private fun handleStateChange(state: MerchantState) {
+    private fun handleStateChange(state: MerchantListState) {
         when (state) {
-            is MerchantState.Loading -> handleLoadingState(state)
-            is MerchantState.Error -> handleErrorState(state)
-            is MerchantState.Success -> {
+            is MerchantListState.Loading -> handleLoadingState(state)
+            is MerchantListState.Error -> handleErrorState(state)
+            is MerchantListState.Success -> {
                 statefulBinding.showContentView()
                 refreshLayout.finishRefresh()
                 refreshLayout.finishLoadMore()
@@ -124,26 +124,26 @@ class MerchantFragment : Fragment() {
         }
     }
 
-    private fun handleLoadingState(loading: MerchantState.Loading) {
+    private fun handleLoadingState(loading: MerchantListState.Loading) {
         when (loading) {
-            MerchantState.Loading.FullScreen -> statefulBinding.showLoadingView()
-            MerchantState.Loading.PullToRefresh -> { /* 下拉刷新加载处理 */ }
-            MerchantState.Loading.LoadMore -> { /* 加载更多处理 */ }
+            MerchantListState.Loading.FullScreen -> statefulBinding.showLoadingView()
+            MerchantListState.Loading.PullToRefresh -> { /* 下拉刷新加载处理 */ }
+            MerchantListState.Loading.LoadMore -> { /* 加载更多处理 */ }
         }
     }
 
-    private fun handleErrorState(error: MerchantState.Error) {
+    private fun handleErrorState(error: MerchantListState.Error) {
         when (error) {
-            is MerchantState.Error.FullScreen -> {
+            is MerchantListState.Error.FullScreen -> {
                 statefulBinding.showErrorView(error.message) {
-                    viewModel.processIntent(MerchantIntent.Retry)
+                    viewModel.processIntent(MerchantListIntent.Retry)
                 }
             }
-            is MerchantState.Error.PullToRefresh -> {
+            is MerchantListState.Error.PullToRefresh -> {
                 refreshLayout.finishRefresh(false)
                 requireContext().showToast(error.message)
             }
-            is MerchantState.Error.LoadMore -> {
+            is MerchantListState.Error.LoadMore -> {
                 refreshLayout.finishLoadMore(false)
                 requireContext().showToast(error.message)
             }
@@ -152,7 +152,7 @@ class MerchantFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.processIntent(MerchantIntent.InitialLoad)
+        viewModel.processIntent(MerchantListIntent.InitialLoad)
     }
 
     override fun onPause() {

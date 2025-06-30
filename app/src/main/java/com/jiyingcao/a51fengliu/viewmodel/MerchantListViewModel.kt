@@ -16,52 +16,52 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-private enum class MerchantLoadingType {
+private enum class MerchantListLoadingType {
     FULL_SCREEN,
     PULL_TO_REFRESH,
     LOAD_MORE
 }
 
-private fun MerchantLoadingType.toLoadingState(): MerchantState.Loading = when (this) {
-    MerchantLoadingType.FULL_SCREEN -> MerchantState.Loading.FullScreen
-    MerchantLoadingType.PULL_TO_REFRESH -> MerchantState.Loading.PullToRefresh
-    MerchantLoadingType.LOAD_MORE -> MerchantState.Loading.LoadMore
+private fun MerchantListLoadingType.toLoadingState(): MerchantListState.Loading = when (this) {
+    MerchantListLoadingType.FULL_SCREEN -> MerchantListState.Loading.FullScreen
+    MerchantListLoadingType.PULL_TO_REFRESH -> MerchantListState.Loading.PullToRefresh
+    MerchantListLoadingType.LOAD_MORE -> MerchantListState.Loading.LoadMore
 }
 
-private fun MerchantLoadingType.toErrorState(message: String): MerchantState.Error = when (this) {
-    MerchantLoadingType.FULL_SCREEN -> MerchantState.Error.FullScreen(message)
-    MerchantLoadingType.PULL_TO_REFRESH -> MerchantState.Error.PullToRefresh(message)
-    MerchantLoadingType.LOAD_MORE -> MerchantState.Error.LoadMore(message)
+private fun MerchantListLoadingType.toErrorState(message: String): MerchantListState.Error = when (this) {
+    MerchantListLoadingType.FULL_SCREEN -> MerchantListState.Error.FullScreen(message)
+    MerchantListLoadingType.PULL_TO_REFRESH -> MerchantListState.Error.PullToRefresh(message)
+    MerchantListLoadingType.LOAD_MORE -> MerchantListState.Error.LoadMore(message)
 }
 
-sealed class MerchantState {
-    data object Init : MerchantState()
-    sealed class Loading : MerchantState() {
+sealed class MerchantListState {
+    data object Init : MerchantListState()
+    sealed class Loading : MerchantListState() {
         data object FullScreen : Loading()
         data object PullToRefresh : Loading()
         data object LoadMore : Loading()
     }
-    data object Success : MerchantState()
-    sealed class Error(open val message: String) : MerchantState() {
+    data object Success : MerchantListState()
+    sealed class Error(open val message: String) : MerchantListState() {
         data class FullScreen(override val message: String) : Error(message)
         data class PullToRefresh(override val message: String) : Error(message)
         data class LoadMore(override val message: String) : Error(message)
     }
 }
 
-sealed class MerchantIntent {
-    data object InitialLoad : MerchantIntent()
-    data object Retry : MerchantIntent()
-    data object Refresh : MerchantIntent()
-    data object LoadMore : MerchantIntent()
+sealed class MerchantListIntent {
+    data object InitialLoad : MerchantListIntent()
+    data object Retry : MerchantListIntent()
+    data object Refresh : MerchantListIntent()
+    data object LoadMore : MerchantListIntent()
 }
 
-class MerchantViewModel(
+class MerchantListViewModel(
     private val repository: MerchantRepository
 ) : BaseViewModel() {
     private var fetchJob: Job? = null
     
-    private val _state = MutableStateFlow<MerchantState>(MerchantState.Init)
+    private val _state = MutableStateFlow<MerchantListState>(MerchantListState.Init)
     val state = _state.asStateFlow()
     
     private val _noMoreDataState = MutableStateFlow(false)
@@ -114,18 +114,18 @@ class MerchantViewModel(
         }
     }
     
-    fun processIntent(intent: MerchantIntent) {
+    fun processIntent(intent: MerchantListIntent) {
         when (intent) {
-            MerchantIntent.InitialLoad -> checkAndLoadPendingData()
-            MerchantIntent.Retry -> retry()
-            MerchantIntent.Refresh -> refresh()
-            MerchantIntent.LoadMore -> loadMore()
+            MerchantListIntent.InitialLoad -> checkAndLoadPendingData()
+            MerchantListIntent.Retry -> retry()
+            MerchantListIntent.Refresh -> refresh()
+            MerchantListIntent.LoadMore -> loadMore()
         }
     }
     
     private fun fetchData(
         page: Int,
-        loadingType: MerchantLoadingType = MerchantLoadingType.FULL_SCREEN
+        loadingType: MerchantListLoadingType = MerchantListLoadingType.FULL_SCREEN
     ) {
         fetchJob?.cancel()
         fetchJob = viewModelScope.launch(remoteLoginCoroutineContext) {
@@ -143,12 +143,12 @@ class MerchantViewModel(
     private suspend fun handleDataResult(
         page: Int,
         result: Result<PageData<Merchant>?>,
-        loadingType: MerchantLoadingType
+        loadingType: MerchantListLoadingType
     ) {
         result.mapCatching { requireNotNull(it) }
             .onSuccess { pageData ->
                 _pageLoaded.value = if (page == 1) 1 else _pageLoaded.value + 1
-                _state.value = MerchantState.Success
+                _state.value = MerchantListState.Success
                 _noMoreDataState.value = pageData.isLastPage()
                 
                 updateMerchants {
@@ -168,15 +168,15 @@ class MerchantViewModel(
     }
 
     private fun retry() {
-        fetchData(1, MerchantLoadingType.FULL_SCREEN)
+        fetchData(1, MerchantListLoadingType.FULL_SCREEN)
     }
 
     private fun refresh() {
-        fetchData(1, MerchantLoadingType.PULL_TO_REFRESH)
+        fetchData(1, MerchantListLoadingType.PULL_TO_REFRESH)
     }
 
     private fun loadMore() {
-        fetchData(_pageLoaded.value + 1, MerchantLoadingType.LOAD_MORE)
+        fetchData(_pageLoaded.value + 1, MerchantListLoadingType.LOAD_MORE)
     }
     
     private fun clearMerchants() {
@@ -191,17 +191,17 @@ class MerchantViewModel(
     }
 
     companion object {
-        private const val TAG: String = "MerchantViewModel"
+        private const val TAG: String = "MerchantListViewModel"
     }
 }
 
-class MerchantViewModelFactory(
+class MerchantListViewModelFactory(
     private val repository: MerchantRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(MerchantViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(MerchantListViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return MerchantViewModel(repository) as T
+            return MerchantListViewModel(repository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

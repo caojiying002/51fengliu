@@ -122,7 +122,7 @@ class MainActivity : BaseActivity() {
                 targetFragment = when (tag) {
                     TAG_HOME -> HomeFragment().also { homeFragment = it }
                     TAG_CITY_RECORDS -> CityRecordsFragment().also { cityRecordsFragment = it }
-                    TAG_MERCHANT -> MerchantFragment().also { merchantFragment = it }
+                    TAG_MERCHANT -> MerchantListFragment().also { merchantFragment = it }
                     TAG_PROFILE -> ProfileFragment().also { profileFragment = it }
                     else -> throw IllegalArgumentException("Unknown fragment tag: $tag")
                 }

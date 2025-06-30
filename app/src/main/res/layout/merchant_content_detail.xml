@@ -199,5 +199,10 @@
                     android:text="@string/login_now" />
             </LinearLayout>
         </FrameLayout>
+
+        <Space
+            android:id="@id/system_bottom_bar_space"
+            android:layout_width="match_parent"
+            android:layout_height="0dp" />
     </LinearLayout>
 </ScrollView>

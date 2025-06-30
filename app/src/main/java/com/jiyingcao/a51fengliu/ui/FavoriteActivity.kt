@@ -101,12 +101,10 @@ class FavoriteActivity : BaseActivity() {
                         }
 
                         uiState.showEmptyState -> {
-                            statefulContent.showContentView()
                             statefulContent.showEmptyContent()
                         }
 
                         uiState.showContent -> {
-                            statefulContent.showContentView()
                             statefulContent.showRealContent()
                         }
                     }

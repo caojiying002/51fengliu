@@ -56,9 +56,16 @@ class MerchantListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupClickListeners()
         setupRecyclerView()
         setupSmartRefreshLayout()
         setupFlowCollectors()
+    }
+
+    private fun setupClickListeners() {
+        binding.titleBarChooseCity.setOnClickListener {
+            // TODO 选择城市
+        }
     }
 
     private fun setupRecyclerView() {

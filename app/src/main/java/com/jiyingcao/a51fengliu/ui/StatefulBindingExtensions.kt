@@ -70,32 +70,26 @@ fun StatefulRefreshRecyclerViewBinding.showErrorView(
 
 /**
  * Shows the empty content view and hides the real content view.
- * 
- * Note: The parent contentLayout must be visible for this to work.
- * Call [showContentView] first if needed.
+ * Automatically calls [showContentView] to ensure the content layout is visible.
  * 
  * 显示空内容视图并隐藏实际内容视图。
- * 
- * 注意：父布局contentLayout必须可见才能使此方法生效。
- * 如有需要，请先调用[showContentView]。
+ * 自动调用[showContentView]确保内容布局可见。
  */
 fun StatefulRefreshRecyclerViewBinding.showEmptyContent() {
+    showContentView()
     emptyContent.isVisible = true
     realContent.isVisible = false
 }
 
 /**
  * Shows the real content view and hides the empty content view.
- * 
- * Note: The parent contentLayout must be visible for this to work.
- * Call [showContentView] first if needed.
+ * Automatically calls [showContentView] to ensure the content layout is visible.
  * 
  * 显示实际内容视图并隐藏空内容视图。
- * 
- * 注意：父布局contentLayout必须可见才能使此方法生效。
- * 如有需要，请先调用[showContentView]。
+ * 自动调用[showContentView]确保内容布局可见。
  */
 fun StatefulRefreshRecyclerViewBinding.showRealContent() {
+    showContentView()
     emptyContent.isVisible = false
     realContent.isVisible = true
 }
@@ -165,32 +159,26 @@ fun StatefulViewpager2RecyclerViewBinding.showErrorView(
 
 /**
  * Shows the empty content view and hides the real content view.
- * 
- * Note: The parent contentLayout must be visible for this to work.
- * Call [showContentView] first if needed.
+ * Automatically calls [showContentView] to ensure the content layout is visible.
  * 
  * 显示空内容视图并隐藏实际内容视图。
- * 
- * 注意：父布局contentLayout必须可见才能使此方法生效。
- * 如有需要，请先调用[showContentView]。
+ * 自动调用[showContentView]确保内容布局可见。
  */
 fun StatefulViewpager2RecyclerViewBinding.showEmptyContent() {
+    showContentView()
     emptyContent.isVisible = true
     realContent.isVisible = false
 }
 
 /**
  * Shows the real content view and hides the empty content view.
- * 
- * Note: The parent contentLayout must be visible for this to work.
- * Call [showContentView] first if needed.
+ * Automatically calls [showContentView] to ensure the content layout is visible.
  * 
  * 显示实际内容视图并隐藏空内容视图。
- * 
- * 注意：父布局contentLayout必须可见才能使此方法生效。
- * 如有需要，请先调用[showContentView]。
+ * 自动调用[showContentView]确保内容布局可见。
  */
 fun StatefulViewpager2RecyclerViewBinding.showRealContent() {
+    showContentView()
     emptyContent.isVisible = false
     realContent.isVisible = true
 }

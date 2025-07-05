@@ -24,6 +24,7 @@ import com.jiyingcao.a51fengliu.repository.UserRepository
 import com.jiyingcao.a51fengliu.ui.base.BaseFragment
 import com.jiyingcao.a51fengliu.util.AppLogger
 import com.jiyingcao.a51fengliu.util.ImeUtil
+import com.jiyingcao.a51fengliu.util.NotificationPermissionHelper
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.LoginEffect
 import com.jiyingcao.a51fengliu.viewmodel.LoginErrorType
@@ -99,6 +100,9 @@ class LoginFragment : BaseFragment() {
                         }
                         is LoginEffect.NavigateToMain -> {
                             navigateToMainActivity()
+                        }
+                        is LoginEffect.RequestNotificationPermission -> {
+                            requestNotificationPermission()
                         }
                     }
                 }
@@ -240,6 +244,41 @@ class LoginFragment : BaseFragment() {
         }
     }
 
+
+    private fun requestNotificationPermission() {
+        if (!NotificationPermissionHelper.hasNotificationPermission(requireContext())) {
+            // 如果需要显示权限说明
+            if (NotificationPermissionHelper.shouldShowRequestPermissionRationale(requireActivity())) {
+                // 向用户解释为什么需要通知权限
+                requireContext().showToast("为了及时提醒您账号安全信息，请允许通知权限")
+            }
+            
+            // 请求权限
+            NotificationPermissionHelper.requestNotificationPermission(this)
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        
+        NotificationPermissionHelper.handlePermissionResult(
+            requestCode,
+            permissions,
+            grantResults,
+            onGranted = {
+                // 权限获取成功
+                AppLogger.d(TAG, "通知权限获取成功")
+            },
+            onDenied = {
+                // 权限被拒绝，但不影响主要功能
+                AppLogger.d(TAG, "通知权限被拒绝")
+            }
+        )
+    }
 
     companion object {
         private const val TAG = "LoginFragment"

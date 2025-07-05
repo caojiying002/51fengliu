@@ -7,6 +7,7 @@ import com.jiyingcao.a51fengliu.coil.CoilConfig
 import com.jiyingcao.a51fengliu.config.AppConfig
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager
 import com.jiyingcao.a51fengliu.ui.common.RemoteLoginActivity
+import com.jiyingcao.a51fengliu.util.NotificationManagerHelper
 import coil3.SingletonImageLoader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,6 +27,7 @@ class App: Application() {
 
         AppConfig.init(this)
         initCoil()
+        initNotificationChannels()
         registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
         registerActivityLifecycleCallbacks(EdgeToEdgeWindowInsetsCallbacks)
         initRemoteLoginHandler()
@@ -35,10 +37,15 @@ class App: Application() {
         SingletonImageLoader.setSafe { CoilConfig.createImageLoader(this) }
     }
 
+    private fun initNotificationChannels() {
+        NotificationManagerHelper.createNotificationChannels(this)
+    }
+    
     private fun initRemoteLoginHandler() {
         applicationScope.launch {
             RemoteLoginManager.remoteLoginEvent
                 .collect {
+                    NotificationManagerHelper.sendRemoteLoginNotification(applicationContext)
                     RemoteLoginActivity.start(applicationContext)
                 }
         }

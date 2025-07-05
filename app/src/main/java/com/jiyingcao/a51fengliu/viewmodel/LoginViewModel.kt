@@ -46,6 +46,7 @@ sealed class LoginIntent {
 sealed class LoginEffect {
     data class ShowToast(val message: String) : LoginEffect()
     object NavigateToMain : LoginEffect()   // TODO 改成更合适的语义命名
+    object RequestNotificationPermission : LoginEffect()
 }
 
 class LoginViewModel(
@@ -73,6 +74,7 @@ class LoginViewModel(
                     result.onSuccess { token ->
                         TokenManager.getInstance().saveToken(token)
                         _state.value = LoginState.Success(token)
+                        _effect.send(LoginEffect.RequestNotificationPermission)
                         _effect.send(LoginEffect.NavigateToMain)
                     }.onFailure { e ->
                         when (e) {

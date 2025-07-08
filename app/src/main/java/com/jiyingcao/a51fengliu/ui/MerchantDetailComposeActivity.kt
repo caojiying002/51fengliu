@@ -230,50 +230,6 @@ fun MerchantDetailContent(
         )
 
         Spacer(modifier = Modifier.height(24.dp))
-
-        // 占位内容，暂时不要删掉
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = "商户详情页面",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "商户ID: ${merchant.id}",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "这是使用Jetpack Compose构建的新页面。\n你可以在这里添加商户的详细信息、图片、介绍等内容。",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // 示例按钮，暂时不要删掉
-        Button(
-            onClick = { /* 添加你的点击逻辑 */ },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("示例操作按钮")
-        }
     }
 }
 
@@ -504,88 +460,6 @@ fun MerchantContactInfo(
                             }
                         }
                         .padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-            }
-        }
-    }
-}
-
-// ==== 以下是保留的Material TopAppBar实现，作为学习参考 ====
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MerchantDetailScreenWithMaterialTopBar(
-    merchantId: String,
-    onBackClick: () -> Unit
-) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "商户详情", // 你可以根据需要修改标题
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "返回"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
-                )
-            )
-        }
-    ) { paddingValues ->
-        MerchantDetailContentOriginal(
-            merchantId = merchantId,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        )
-    }
-}
-
-@Composable
-fun MerchantDetailContentOriginal(
-    merchantId: String,
-    modifier: Modifier = Modifier
-) {
-    // 原来的占位内容实现，保留作为参考
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = "商户详情页面 (Material版本)",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "商户ID: $merchantId",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

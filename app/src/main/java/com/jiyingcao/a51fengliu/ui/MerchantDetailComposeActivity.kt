@@ -26,11 +26,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import coil3.compose.AsyncImage
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.Merchant
 import com.jiyingcao.a51fengliu.repository.MerchantRepository
+import com.jiyingcao.a51fengliu.ui.auth.AuthActivity
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.theme.*
 import com.jiyingcao.a51fengliu.util.to2LevelName
@@ -133,6 +135,7 @@ fun MerchantDetailScreen(
                 uiState.showContent -> {
                     MerchantDetailContent(
                         merchant = uiState.merchant!!,
+                        contactDisplayState = uiState.contactDisplayState,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -144,6 +147,7 @@ fun MerchantDetailScreen(
 @Composable
 fun MerchantDetailContent(
     merchant: Merchant,
+    contactDisplayState: ContactDisplayState?,
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
@@ -218,21 +222,9 @@ fun MerchantDetailContent(
         Spacer(modifier = Modifier.height(DividerHeight))
 
         // 联系信息容器 - 对应 merchant_content_detail.xml 的 contact_info_container
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(80.dp)
-                .background(
-                    color = Surface,
-                    shape = RoundedCornerShape(4.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "联系信息容器",
-                color = OnSurface
-            )
-        }
+        MerchantContactInfo(
+            contactDisplayState = contactDisplayState
+        )
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -443,6 +435,79 @@ fun ErrorLayout(
     }
 }
 
+@Composable
+fun MerchantContactInfo(
+    contactDisplayState: ContactDisplayState?,
+    modifier: Modifier = Modifier
+) {
+    // 如果没有contactDisplayState，不显示联系信息容器
+    if (contactDisplayState == null) {
+        return
+    }
+    
+    val context = LocalContext.current
+    
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(
+                color = Surface,
+                shape = RoundedCornerShape(4.dp)
+            )
+            .padding(8.dp)
+    ) {
+        if (contactDisplayState.showContact && !contactDisplayState.contactText.isNullOrBlank()) {
+            // 显示实际联系方式 - 对应 contact_vip TextView
+            Text(
+                text = contactDisplayState.contactText,
+                fontSize = 14.sp,
+                color = TextContent,
+                modifier = Modifier.fillMaxWidth()
+            )
+        } else {
+            // 显示提示信息和操作按钮 - 对应 contact_not_vip_container
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // 提示信息 - 对应 contact_not_vip TextView
+                Text(
+                    text = contactDisplayState.promptMessage,
+                    fontSize = 14.sp,
+                    color = TextContent,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+                
+                // 操作按钮 - 对应 click_not_vip TextView
+                Text(
+                    text = contactDisplayState.actionButtonText,
+                    fontSize = 14.sp,
+                    color = Primary,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .padding(vertical = 8.dp)
+                        .clickable {
+                            when (contactDisplayState.actionType) {
+                                ContactActionType.LOGIN -> {
+                                    AuthActivity.start(context)
+                                }
+                                ContactActionType.UPGRADE_VIP -> {
+                                    // TODO: Handle upgrade VIP action
+                                    // 可能需要跳转到VIP升级页面
+                                }
+                                ContactActionType.NONE -> { /* 无操作 */ }
+                            }
+                        }
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
+        }
+    }
+}
+
 // ==== 以下是保留的Material TopAppBar实现，作为学习参考 ====
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -545,7 +610,8 @@ fun MerchantDetailContentPreview() {
                 style = "merchant",
                 status = "1",
                 contact = null
-            )
+            ),
+            contactDisplayState = null
         )
     }
 }

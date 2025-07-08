@@ -45,7 +45,7 @@ data class MerchantDetailUiState(
     val isOverlayLoading: Boolean = false,
     // 新增：登录状态相关
     val isLoggedIn: Boolean = false,
-    val contactDisplayState: ContactDisplayState? = null
+    val contactDisplayState: ContactDisplayState? = null    // TODO 真的需要null状态吗
 ) {
     // 派生状态 - 通过计算得出，避免状态冗余
     val showFullScreenLoading: Boolean get() = isLoading && loadingType == LoadingType.FULL_SCREEN

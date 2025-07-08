@@ -44,8 +44,7 @@ data class MerchantDetailUiState(
     val isRefreshing: Boolean = false,
     val isOverlayLoading: Boolean = false,
     // 新增：登录状态相关
-    val isLoggedIn: Boolean = false,
-    val contactDisplayState: ContactDisplayState? = null    // TODO 真的需要null状态吗
+    val isLoggedIn: Boolean = false
 ) {
     // 派生状态 - 通过计算得出，避免状态冗余
     val showFullScreenLoading: Boolean get() = isLoading && loadingType == LoadingType.FULL_SCREEN
@@ -53,6 +52,25 @@ data class MerchantDetailUiState(
     val showContent: Boolean get() = !isLoading && !isError && merchant != null
     val showFullScreenError: Boolean get() = isError && errorType == LoadingType.FULL_SCREEN
     val hasData: Boolean get() = merchant != null
+    
+    // 联系信息显示的派生状态 - 避免空判断，始终与merchant和isLoggedIn保持一致
+    val showContact: Boolean get() = !merchant?.contact.isNullOrBlank()
+    val contactText: String? get() = merchant?.contact?.takeIf { !it.isNullOrBlank() }
+    val contactPromptMessage: String get() = when {
+        !merchant?.contact.isNullOrBlank() -> ""
+        isLoggedIn -> "你需要VIP才能继续查看联系方式。"
+        else -> "你需要登录才能继续查看联系方式。"
+    }
+    val contactActionButtonText: String get() = when {
+        !merchant?.contact.isNullOrBlank() -> ""
+        isLoggedIn -> "立即升级VIP"
+        else -> "立即登录"
+    }
+    val contactActionType: ContactActionType get() = when {
+        !merchant?.contact.isNullOrBlank() -> ContactActionType.NONE
+        isLoggedIn -> ContactActionType.UPGRADE_VIP
+        else -> ContactActionType.LOGIN
+    }
 }
 
 sealed class MerchantDetailIntent {
@@ -87,62 +105,15 @@ class MerchantDetailViewModel(
      */
     private fun observeLoginStateChanges() {
         viewModelScope.launch {
-            // 组合登录状态和商家数据，生成联系信息显示状态
-            combine(
-                loginStateManager.isLoggedIn,
-                _uiState
-            ) { isLoggedIn, currentState ->
-                val contactDisplayState = currentState.merchant?.let { merchant ->
-                    generateContactDisplayState(merchant, isLoggedIn)
+            // 只需要同步登录状态，联系信息显示状态现在是派生状态
+            loginStateManager.isLoggedIn.collect { isLoggedIn ->
+                _uiState.update { currentState ->
+                    currentState.copy(isLoggedIn = isLoggedIn)
                 }
-                
-                currentState.copy(
-                    isLoggedIn = isLoggedIn,
-                    contactDisplayState = contactDisplayState
-                )
-            }.collect { newState ->
-                _uiState.value = newState
             }
         }
     }
 
-    /**
-     * 根据商家信息和登录状态生成联系信息显示状态
-     * 业务逻辑集中在ViewModel中，便于测试和维护
-     */
-    private fun generateContactDisplayState(
-        merchant: Merchant,
-        isLoggedIn: Boolean
-    ): ContactDisplayState {
-        return when {
-            // 有联系方式 - 直接显示
-            !merchant.contact.isNullOrBlank() -> ContactDisplayState(
-                showContact = true,
-                contactText = merchant.contact,
-                promptMessage = "",
-                actionButtonText = "",
-                actionType = ContactActionType.NONE
-            )
-            
-            // 已登录但没有联系方式 - 需要升级VIP
-            isLoggedIn -> ContactDisplayState(
-                showContact = false,
-                contactText = null,
-                promptMessage = "你需要VIP才能继续查看联系方式。", // TODO 从资源文件获取
-                actionButtonText = "立即升级VIP",
-                actionType = ContactActionType.UPGRADE_VIP
-            )
-            
-            // 未登录 - 需要先登录
-            else -> ContactDisplayState(
-                showContact = false,
-                contactText = null,
-                promptMessage = "你需要登录才能继续查看联系方式。",
-                actionButtonText = "立即登录",
-                actionType = ContactActionType.LOGIN
-            )
-        }
-    }
 
     fun processIntent(intent: MerchantDetailIntent) {
         when (intent) {
@@ -229,14 +200,12 @@ class MerchantDetailViewModel(
      */
     private fun updateUiStateToSuccess(merchant: Merchant) {
         _uiState.update { currentState ->
-            val contactDisplayState = generateContactDisplayState(merchant, currentState.isLoggedIn)
             currentState.copy(
                 isLoading = false,
                 isRefreshing = false,
                 isOverlayLoading = false,
                 isError = false,
-                merchant = merchant,
-                contactDisplayState = contactDisplayState
+                merchant = merchant
             )
         }
     }

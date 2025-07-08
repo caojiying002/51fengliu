@@ -134,8 +134,7 @@ fun MerchantDetailScreen(
                 
                 uiState.showContent -> {
                     MerchantDetailContent(
-                        merchant = uiState.merchant!!,
-                        contactDisplayState = uiState.contactDisplayState,
+                        uiState = uiState,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -146,10 +145,10 @@ fun MerchantDetailScreen(
 
 @Composable
 fun MerchantDetailContent(
-    merchant: Merchant,
-    contactDisplayState: ContactDisplayState?,
+    uiState: MerchantDetailUiState,
     modifier: Modifier = Modifier
 ) {
+    val merchant = uiState.merchant!!
     val scrollState = rememberScrollState()
 
     Column(
@@ -223,7 +222,11 @@ fun MerchantDetailContent(
 
         // 联系信息容器 - 对应 merchant_content_detail.xml 的 contact_info_container
         MerchantContactInfo(
-            contactDisplayState = contactDisplayState
+            showContact = uiState.showContact,
+            contactText = uiState.contactText,
+            promptMessage = uiState.contactPromptMessage,
+            actionButtonText = uiState.contactActionButtonText,
+            actionType = uiState.contactActionType
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -437,14 +440,13 @@ fun ErrorLayout(
 
 @Composable
 fun MerchantContactInfo(
-    contactDisplayState: ContactDisplayState?,
+    showContact: Boolean,
+    contactText: String?,
+    promptMessage: String,
+    actionButtonText: String,
+    actionType: ContactActionType,
     modifier: Modifier = Modifier
 ) {
-    // 如果没有contactDisplayState，不显示联系信息容器
-    if (contactDisplayState == null) {
-        return
-    }
-    
     val context = LocalContext.current
     
     Box(
@@ -456,10 +458,10 @@ fun MerchantContactInfo(
             )
             .padding(8.dp)
     ) {
-        if (contactDisplayState.showContact && !contactDisplayState.contactText.isNullOrBlank()) {
+        if (showContact && !contactText.isNullOrBlank()) {
             // 显示实际联系方式 - 对应 contact_vip TextView
             Text(
-                text = contactDisplayState.contactText,
+                text = contactText,
                 fontSize = 14.sp,
                 color = TextContent,
                 modifier = Modifier.fillMaxWidth()
@@ -472,7 +474,7 @@ fun MerchantContactInfo(
             ) {
                 // 提示信息 - 对应 contact_not_vip TextView
                 Text(
-                    text = contactDisplayState.promptMessage,
+                    text = promptMessage,
                     fontSize = 14.sp,
                     color = TextContent,
                     fontWeight = FontWeight.Bold,
@@ -482,7 +484,7 @@ fun MerchantContactInfo(
                 
                 // 操作按钮 - 对应 click_not_vip TextView
                 Text(
-                    text = contactDisplayState.actionButtonText,
+                    text = actionButtonText,
                     fontSize = 14.sp,
                     color = Primary,
                     fontWeight = FontWeight.Bold,
@@ -490,7 +492,7 @@ fun MerchantContactInfo(
                     modifier = Modifier
                         .padding(vertical = 8.dp)
                         .clickable {
-                            when (contactDisplayState.actionType) {
+                            when (actionType) {
                                 ContactActionType.LOGIN -> {
                                     AuthActivity.start(context)
                                 }
@@ -595,23 +597,25 @@ fun MerchantDetailContentOriginal(
 fun MerchantDetailContentPreview() {
     AppTheme {
         MerchantDetailContent(
-            merchant = Merchant(
-                id = "55",
-                name = "厦门可选不限次数",
-                cityCode = "350000",
-                showLv = null,
-                picture = "240824/3628f597-86b9-4dda-845d-fadc3172ba9d.jpg,240824/08f4a449-2cec-4478-835b-9bdee191607a.jpg",
-                coverPicture = null,
-                intro = "无套路、不办卡、没有任何隐形消费！",
-                desc = "这是一个示例描述信息，用于展示商户的详细信息内容。",
-                validStart = null,
-                validEnd = null,
-                vipProfileStatus = null,
-                style = "merchant",
-                status = "1",
-                contact = null
-            ),
-            contactDisplayState = null
+            uiState = MerchantDetailUiState(
+                merchant = Merchant(
+                    id = "55",
+                    name = "厦门可选不限次数",
+                    cityCode = "350000",
+                    showLv = null,
+                    picture = "240824/3628f597-86b9-4dda-845d-fadc3172ba9d.jpg,240824/08f4a449-2cec-4478-835b-9bdee191607a.jpg",
+                    coverPicture = null,
+                    intro = "无套路、不办卡、没有任何隐形消费！",
+                    desc = "这是一个示例描述信息，用于展示商户的详细信息内容。",
+                    validStart = null,
+                    validEnd = null,
+                    vipProfileStatus = null,
+                    style = "merchant",
+                    status = "1",
+                    contact = null
+                ),
+                isLoggedIn = false
+            )
         )
     }
 }

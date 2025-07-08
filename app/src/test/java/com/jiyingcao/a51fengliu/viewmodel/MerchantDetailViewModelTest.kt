@@ -163,10 +163,10 @@ class MerchantDetailViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
 
         // Assert
-        val contactState = viewModel.uiState.value.contactDisplayState
-        assertThat(contactState?.showContact).isTrue()
-        assertThat(contactState?.contactText).isEqualTo("13800138000")
-        assertThat(contactState?.actionType).isEqualTo(ContactActionType.NONE)
+        val state = viewModel.uiState.value
+        assertThat(state.showContact).isTrue()
+        assertThat(state.contactText).isEqualTo("13800138000")
+        assertThat(state.contactActionType).isEqualTo(ContactActionType.NONE)
     }
 
     @Test
@@ -186,11 +186,10 @@ class MerchantDetailViewModelTest {
         val state = viewModel.uiState.value
         assertThat(state.isLoggedIn).isFalse()
 
-        val contactState = state.contactDisplayState
-        assertThat(contactState?.showContact).isFalse()
-        assertThat(contactState?.actionType).isEqualTo(ContactActionType.LOGIN)
-        assertThat(contactState?.promptMessage).contains("登录")
-        assertThat(contactState?.actionButtonText).contains("登录")
+        assertThat(state.showContact).isFalse()
+        assertThat(state.contactActionType).isEqualTo(ContactActionType.LOGIN)
+        assertThat(state.contactPromptMessage).contains("登录")
+        assertThat(state.contactActionButtonText).contains("登录")
     }
 
     @Test
@@ -210,11 +209,10 @@ class MerchantDetailViewModelTest {
         val state = viewModel.uiState.value
         assertThat(state.isLoggedIn).isTrue()
 
-        val contactState = state.contactDisplayState
-        assertThat(contactState?.showContact).isFalse()
-        assertThat(contactState?.actionType).isEqualTo(ContactActionType.UPGRADE_VIP)
-        assertThat(contactState?.promptMessage).contains("VIP")
-        assertThat(contactState?.actionButtonText).contains("升级")
+        assertThat(state.showContact).isFalse()
+        assertThat(state.contactActionType).isEqualTo(ContactActionType.UPGRADE_VIP)
+        assertThat(state.contactPromptMessage).contains("VIP")
+        assertThat(state.contactActionButtonText).contains("升级")
     }
 
     @Test
@@ -231,7 +229,7 @@ class MerchantDetailViewModelTest {
 
         // 验证初始状态
         var state = viewModel.uiState.value
-        assertThat(state.contactDisplayState?.actionType).isEqualTo(ContactActionType.LOGIN)
+        assertThat(state.contactActionType).isEqualTo(ContactActionType.LOGIN)
 
         // Act - 模拟用户登录
         loginStateFlow.value = true
@@ -240,7 +238,7 @@ class MerchantDetailViewModelTest {
         // Assert - UI状态应该自动更新
         state = viewModel.uiState.value
         assertThat(state.isLoggedIn).isTrue()
-        assertThat(state.contactDisplayState?.actionType).isEqualTo(ContactActionType.UPGRADE_VIP)
+        assertThat(state.contactActionType).isEqualTo(ContactActionType.UPGRADE_VIP)
     }
 
     // ========== 刷新相关测试 ==========

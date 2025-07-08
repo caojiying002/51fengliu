@@ -114,10 +114,8 @@ class MerchantDetailActivity : BaseActivity() {
             displayImages(merchant)
         }
 
-        // 处理联系信息显示状态 - 响应式更新
-        uiState.contactDisplayState?.let { contactState ->
-            updateContactDisplay(contactState)
-        }
+        // 处理联系信息显示状态
+        updateContactDisplay(uiState)
 
         // 处理各种UI状态
         when {
@@ -187,23 +185,23 @@ class MerchantDetailActivity : BaseActivity() {
      * 根据ViewModel计算的状态更新联系信息显示
      * 只负责UI更新，不包含业务逻辑判断
      */
-    private fun updateContactDisplay(contactState: ContactDisplayState) {
+    private fun updateContactDisplay(uiState: MerchantDetailUiState) {
         with(contentBinding) {
-            if (contactState.showContact && !contactState.contactText.isNullOrBlank()) {
+            if (uiState.showContact && !uiState.contactText.isNullOrBlank()) {
                 // 显示联系方式
                 contactNotVipContainer.isVisible = false
                 contactVip.isVisible = true
-                contactVip.text = contactState.contactText
+                contactVip.text = uiState.contactText
             } else {
                 // 显示提示信息和操作按钮
                 contactVip.isVisible = false
                 contactNotVipContainer.isVisible = true
-                contactNotVip.text = contactState.promptMessage
-                clickNotVip.text = contactState.actionButtonText
+                contactNotVip.text = uiState.contactPromptMessage
+                clickNotVip.text = uiState.contactActionButtonText
                 
                 // 设置点击事件
                 clickNotVip.setOnClickListener {
-                    when (contactState.actionType) {
+                    when (uiState.contactActionType) {
                         ContactActionType.LOGIN -> {
                             AuthActivity.start(this@MerchantDetailActivity)
                         }

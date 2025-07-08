@@ -229,7 +229,18 @@ fun MerchantDetailContent(
             actionType = uiState.contactActionType
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(DividerHeight))
+
+        // 底部导航栏占位，适配EdgeToEdge效果
+        Spacer(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(
+                    WindowInsets.navigationBars
+                        .asPaddingValues()
+                        .calculateBottomPadding()
+                )
+        )
     }
 }
 

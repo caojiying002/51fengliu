@@ -18,10 +18,11 @@ import coil3.SingletonImageLoader
 import com.jiyingcao.a51fengliu.config.AppConfig
 import com.jiyingcao.a51fengliu.config.AppConfig.Network.BASE_IMAGE_URL
 import com.jiyingcao.a51fengliu.databinding.ActivityBigImageViewerBinding
-import com.jiyingcao.a51fengliu.glide.glideSaveImage
+import com.jiyingcao.a51fengliu.coil.coilSaveImageFromCache
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.util.setContentViewWithSystemBarPaddings
 import com.jiyingcao.a51fengliu.util.vibrate
+import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.R
 import coil3.load
 import coil3.request.placeholder
@@ -38,6 +39,9 @@ class BigImageViewerActivity : BaseActivity() {
     
     // 追踪图片加载状态的Map，key为图片URL，value为是否加载成功
     private val imageLoadingStates = mutableMapOf<String, Boolean>()
+    
+    // 追踪图片磁盘缓存Key的Map，key为图片URL，value为diskCacheKey
+    private val imageDiskCacheKeys = mutableMapOf<String, String>()
     
     // 标记是否已经开始了postponed的转场动画
     private var hasStartedPostponedTransition = false
@@ -189,6 +193,7 @@ class BigImageViewerActivity : BaseActivity() {
 
         // 清空之前的加载状态
         imageLoadingStates.clear()
+        imageDiskCacheKeys.clear()
 
         mAdapter.apply {
             imageUrls.clear()
@@ -230,7 +235,20 @@ class BigImageViewerActivity : BaseActivity() {
 
             holder.photoView.setOnLongClickListener {
                 vibrate(context)
-                lifecycleScope.glideSaveImage(context, imageUrl)
+                
+                // 检查图片是否已加载成功
+                if (imageLoadingStates[imageUrl] == true) {
+                    // 获取磁盘缓存Key
+                    val diskCacheKey = imageDiskCacheKeys[imageUrl]
+                    if (diskCacheKey != null) {
+                        // 使用Coil磁盘缓存保存图片到相册
+                        lifecycleScope.coilSaveImageFromCache(context, imageUrl, diskCacheKey)
+                    } else {
+                        context.showToast("图片缓存不可用")
+                    }
+                } else {
+                    context.showToast("请等待图片加载完成")
+                }
                 true
             }
 
@@ -248,9 +266,14 @@ class BigImageViewerActivity : BaseActivity() {
                         // 开始加载
                         imageLoadingStates[imageUrl] = false
                     },
-                    onSuccess = { _, _ ->
+                    onSuccess = { _, result ->
                         // 加载成功
                         imageLoadingStates[imageUrl] = true
+                        
+                        // 保存磁盘缓存Key
+                        result.diskCacheKey?.let { diskCacheKey ->
+                            imageDiskCacheKeys[imageUrl] = diskCacheKey
+                        }
                         
                         // 如果这是当前显示的图片，检查是否应该开始转场动画
                         if (AppConfig.UI.SHARED_ELEMENT_TRANSITIONS_ENABLED && position == currentImageIndex) {

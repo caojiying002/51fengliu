@@ -8,6 +8,7 @@ import com.jiyingcao.a51fengliu.config.AppConfig
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager
 import com.jiyingcao.a51fengliu.ui.common.RemoteLoginActivity
 import com.jiyingcao.a51fengliu.util.NotificationManagerHelper
+import com.jiyingcao.a51fengliu.util.ProcessUtil
 import coil3.SingletonImageLoader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,19 +19,29 @@ import kotlinx.coroutines.launch
 @HiltAndroidApp
 class App: Application() {
 
-    /** 为应用全局事件处理创建专门的作用域 */
-    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    /** 为应用全局事件处理创建专门的作用域，只在主进程创建 */
+    private var applicationScope: CoroutineScope? = null
 
     override fun onCreate() {
         super.onCreate()
         INSTANCE = this
 
+        // 所有进程都需要初始化AppConfig（提供基础配置）
         AppConfig.init(this)
-        initCoil()
-        initNotificationChannels()
-        registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
-        registerActivityLifecycleCallbacks(EdgeToEdgeWindowInsetsCallbacks)
-        initRemoteLoginHandler()
+
+        // 仅在主进程执行UI相关初始化
+        if (ProcessUtil.isMainProcess(this)) {
+            initApplicationScope()
+            initCoil()
+            initNotificationChannels()
+            registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
+            registerActivityLifecycleCallbacks(EdgeToEdgeWindowInsetsCallbacks)
+            initRemoteLoginHandler()
+        }
+    }
+
+    private fun initApplicationScope() {
+        applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     }
 
     private fun initCoil() {
@@ -42,7 +53,7 @@ class App: Application() {
     }
     
     private fun initRemoteLoginHandler() {
-        applicationScope.launch {
+        applicationScope?.launch {
             RemoteLoginManager.remoteLoginEvent
                 .collect {
                     NotificationManagerHelper.sendRemoteLoginNotification(applicationContext)
@@ -53,7 +64,7 @@ class App: Application() {
 
     override fun onTerminate() {
         super.onTerminate()
-        applicationScope.cancel() // 清理资源
+        applicationScope?.cancel()
     }
 
     companion object {

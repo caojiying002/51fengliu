@@ -24,6 +24,7 @@ meida3 = "1.6.0"
 retrofit = "3.0.0"
 okhttp = "4.12.0"
 okio = "3.13.0"
+leakcanary = "2.14"
 gson = "2.13.1"
 glide = "4.16.0"
 coil = "3.2.0"
@@ -100,6 +101,7 @@ squareup-retrofit-converter-gson = { group = "com.squareup.retrofit2", name = "c
 squareup-okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 squareup-okhttp-logginginterceptor  = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 squareup-okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
+leakcanary-android = { group = "com.squareup.leakcanary", name = "leakcanary-android", version.ref = "leakcanary" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 
 # Glide

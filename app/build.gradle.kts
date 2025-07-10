@@ -117,8 +117,10 @@ dependencies {
     implementation(libs.gsyvideoplayer)
     implementation(libs.gsyvideoplayer.exo2)
     implementation(libs.hilt.android)
+    //debugImplementation(libs.leakcanary.android)
     ksp(libs.hilt.compiler)
     ksp(libs.androidx.room.compiler)
+    //noinspection KaptUsageInsteadOfKsp
     kapt(libs.bumptech.glide.compiler)
 
     // Compose

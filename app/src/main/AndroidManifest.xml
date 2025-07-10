@@ -99,35 +99,5 @@
             android:exported="${activityExported}"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="portrait" />
-
-        <!-- Android Startup 初始化配置 -->
-        <provider
-            android:name="androidx.startup.InitializationProvider"
-            android:authorities="${applicationId}.androidx-startup"
-            android:exported="false"
-            tools:node="merge" >
-
-            <!-- AppConfig 初始化 -->
-            <meta-data
-                android:name="com.jiyingcao.a51fengliu.startup.AppConfigInitializer"
-                android:value="androidx.startup" />
-            <!-- ApplicationScope 初始化 -->
-            <meta-data
-                android:name="com.jiyingcao.a51fengliu.startup.ApplicationScopeInitializer"
-                android:value="androidx.startup" />
-            <!-- Coil 初始化 -->
-            <meta-data
-                android:name="com.jiyingcao.a51fengliu.startup.CoilInitializer"
-                android:value="androidx.startup" />
-            <!-- 通知渠道初始化 -->
-            <meta-data
-                android:name="com.jiyingcao.a51fengliu.startup.NotificationChannelsInitializer"
-                android:value="androidx.startup" />
-            <!-- 远程登录事件处理初始化 -->
-            <meta-data
-                android:name="com.jiyingcao.a51fengliu.startup.RemoteLoginHandlerInitializer"
-                android:value="androidx.startup" />
-        </provider>
     </application>
-
 </manifest>

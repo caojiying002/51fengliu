@@ -3,9 +3,18 @@ package com.jiyingcao.a51fengliu
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
 import com.jiyingcao.a51fengliu.ActivityManager.activityLifecycleCallbacks
+import com.jiyingcao.a51fengliu.coil.CoilConfig
+import com.jiyingcao.a51fengliu.config.AppConfig
+import com.jiyingcao.a51fengliu.data.RemoteLoginManager
+import com.jiyingcao.a51fengliu.ui.common.RemoteLoginActivity
+import com.jiyingcao.a51fengliu.util.NotificationManagerHelper
 import com.jiyingcao.a51fengliu.util.ProcessUtil
+import coil3.SingletonImageLoader
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 @HiltAndroidApp
 class App: Application() {
@@ -13,27 +22,43 @@ class App: Application() {
     /** 为应用全局事件处理创建专门的作用域，只在主进程创建 */
     private var applicationScope: CoroutineScope? = null
 
-    fun getApplicationScope(): CoroutineScope? = applicationScope
-    
-    fun setApplicationScope(scope: CoroutineScope?) {
-        applicationScope = scope
-    }
-
     override fun onCreate() {
         super.onCreate()
         INSTANCE = this
 
-        // Android Startup 库会自动处理以下初始化：
-        // - AppConfig.init(this)
-        // - ApplicationScope 创建
-        // - Coil 初始化
-        // - 通知渠道创建
-        // - 远程登录事件处理
+        // 所有进程都需要初始化AppConfig（提供基础配置）
+        AppConfig.init(this)
 
-        // 仅在主进程执行Activity生命周期回调注册（不适合用Startup库）
+        // 仅在主进程执行UI相关初始化
         if (ProcessUtil.isMainProcess(this)) {
+            initApplicationScope()
+            initCoil()
+            initNotificationChannels()
             registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
             registerActivityLifecycleCallbacks(EdgeToEdgeWindowInsetsCallbacks)
+            initRemoteLoginHandler()
+        }
+    }
+
+    private fun initApplicationScope() {
+        applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    }
+
+    private fun initCoil() {
+        SingletonImageLoader.setSafe { CoilConfig.createImageLoader(this) }
+    }
+
+    private fun initNotificationChannels() {
+        NotificationManagerHelper.createNotificationChannels(this)
+    }
+
+    private fun initRemoteLoginHandler() {
+        applicationScope?.launch {
+            RemoteLoginManager.remoteLoginEvent
+                .collect {
+                    NotificationManagerHelper.sendRemoteLoginNotification(applicationContext)
+                    RemoteLoginActivity.start(applicationContext)
+                }
         }
     }
 

@@ -63,28 +63,10 @@ object RetrofitClient {
     }
 
     /**
-     * 主要的API服务实例（包含所有接口）
-     * 保持向后兼容性，推荐继续使用此实例
+     * API服务实例
+     * 提供所有后端API接口的访问入口
      */
     val apiService by lazy {
         retrofit.create(ApiService::class.java)
-    }
-
-    /**
-     * 领域特定的API服务实例
-     * 可以根据需要使用特定领域的接口，提供更好的代码组织
-     */
-    object Domain {
-        /** 用户认证相关接口 */
-        val auth by lazy { retrofit.create(AuthApiService::class.java) }
-        
-        /** 用户个人资料相关接口 */
-        val user by lazy { retrofit.create(UserApiService::class.java) }
-        
-        /** 信息内容相关接口 */
-        val records by lazy { retrofit.create(RecordApiService::class.java) }
-        
-        /** 商家相关接口 */
-        val merchant by lazy { retrofit.create(MerchantApiService::class.java) }
     }
 }

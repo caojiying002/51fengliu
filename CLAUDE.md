@@ -109,3 +109,13 @@ _uiState.update { currentState ->
 - Use `ActivityResultContracts` for navigation between View and Compose screens
 - State hoisting pattern with ViewModels providing state to Composables
 - Material 3 theming with custom color schemes
+
+## Development Preferences
+
+- Follow enterprise-level development best practices
+- 遵循企业级开发最佳实践
+- Prioritize code maintainability, scalability, and performance
+- Use established design patterns and architectural principles
+- Ensure proper error handling and logging
+- Write clean, readable, and well-documented code
+- Follow SOLID principles and clean architecture guidelines

@@ -7,6 +7,7 @@ import com.jiyingcao.a51fengliu.config.AppConfig
 import com.jiyingcao.a51fengliu.util.AppLogger
 import com.jiyingcao.a51fengliu.util.SaveImageResult
 import com.jiyingcao.a51fengliu.util.saveImage
+import com.jiyingcao.a51fengliu.util.needsStoragePermission
 import com.jiyingcao.a51fengliu.util.showToast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,6 +32,12 @@ fun coilSaveImageFromCache(
     subFolder: String? = AppConfig.Storage.IMAGE_SUB_FOLDER,
     scope: CoroutineScope? = null
 ) {
+    // 检查权限，避免无权限时的无效操作
+    if (needsStoragePermission(context)) {
+        context.showToast("需要存储权限才能保存图片")
+        return
+    }
+    
     val actualScope = scope ?: CoroutineScope(Dispatchers.IO + SupervisorJob())
     
     actualScope.launch(Dispatchers.IO) {

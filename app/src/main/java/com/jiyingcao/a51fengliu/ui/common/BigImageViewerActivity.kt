@@ -23,6 +23,8 @@ import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.util.setContentViewWithSystemBarPaddings
 import com.jiyingcao.a51fengliu.util.vibrate
 import com.jiyingcao.a51fengliu.util.showToast
+import com.jiyingcao.a51fengliu.util.StoragePermissionHelper
+import com.jiyingcao.a51fengliu.util.needsStoragePermission
 import com.jiyingcao.a51fengliu.R
 import coil3.load
 import coil3.request.placeholder
@@ -45,6 +47,10 @@ class BigImageViewerActivity : BaseActivity() {
     
     // 标记是否已经开始了postponed的转场动画
     private var hasStartedPostponedTransition = false
+    
+    // 待保存的图片信息，在权限授予后使用
+    private var pendingSaveImageUrl: String? = null
+    private var pendingSaveDiskCacheKey: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -241,8 +247,8 @@ class BigImageViewerActivity : BaseActivity() {
                     // 获取磁盘缓存Key
                     val diskCacheKey = imageDiskCacheKeys[imageUrl]
                     if (diskCacheKey != null) {
-                        // 使用Coil磁盘缓存保存图片到相册
-                        lifecycleScope.coilSaveImageFromCache(context, imageUrl, diskCacheKey)
+                        // 使用新的权限处理方法保存图片到相册
+                        saveImageToAlbum(imageUrl, diskCacheKey)
                     } else {
                         context.showToast("图片缓存不可用")
                     }
@@ -297,5 +303,53 @@ class BigImageViewerActivity : BaseActivity() {
         }
 
         override fun getItemCount(): Int = imageUrls.size
+    }
+    
+    /**
+     * 保存图片到相册，包含权限检查和申请
+     */
+    private fun saveImageToAlbum(imageUrl: String, diskCacheKey: String) {
+        if (needsStoragePermission(this)) {
+            // 需要权限，待获取权限成功后保存
+            pendingSaveImageUrl = imageUrl
+            pendingSaveDiskCacheKey = diskCacheKey
+            
+            if (StoragePermissionHelper.shouldShowRequestPermissionRationale(this)) {
+                showToast("需要存储权限才能保存图片到相册")
+            }
+            StoragePermissionHelper.requestStoragePermission(this)
+        } else {
+            // 已有权限，直接保存
+            lifecycleScope.coilSaveImageFromCache(this, imageUrl, diskCacheKey)
+        }
+    }
+    
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        
+        StoragePermissionHelper.handlePermissionResult(
+            requestCode,
+            permissions,
+            grantResults,
+            onGranted = {
+                // 获取到权限，执行待保存的操作
+                val imageUrl = pendingSaveImageUrl
+                val diskCacheKey = pendingSaveDiskCacheKey
+                if (imageUrl != null && diskCacheKey != null) {
+                    lifecycleScope.coilSaveImageFromCache(this, imageUrl, diskCacheKey)
+                }
+                pendingSaveImageUrl = null
+                pendingSaveDiskCacheKey = null
+            },
+            onDenied = {
+                showToast("没有存储权限，无法保存图片")
+                pendingSaveImageUrl = null
+                pendingSaveDiskCacheKey = null
+            }
+        )
     }
 }

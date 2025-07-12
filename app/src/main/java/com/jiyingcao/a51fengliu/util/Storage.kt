@@ -152,6 +152,11 @@ private fun saveImageLegacyAPI(
     subFolder: String,
     fileName: String
 ): SaveImageResult {
+    // 检查存储权限
+    if (!StoragePermissionHelper.hasStoragePermission(context)) {
+        return SaveImageResult.Error("缺少存储权限，请授予WRITE_EXTERNAL_STORAGE权限后重试")
+    }
+    
     val picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
     val saveDir = if (subFolder.isEmpty()) picturesDir else File(picturesDir, subFolder)
     
@@ -174,4 +179,12 @@ private fun saveImageLegacyAPI(
     MediaScannerConnection.scanFile(context, arrayOf(saveFile.absolutePath), null, null)
     
     return SaveImageResult.Success(saveFile.absolutePath)
+}
+
+/**
+ * 检查保存图片是否需要权限
+ * 在调用saveImage前可以先调用此方法检查权限状态
+ */
+fun needsStoragePermission(context: Context): Boolean {
+    return StoragePermissionHelper.needsPermission() && !StoragePermissionHelper.hasStoragePermission(context)
 }

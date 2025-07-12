@@ -192,6 +192,12 @@ object ImageLoader {
         subFolder: String? = AppConfig.Storage.IMAGE_SUB_FOLDER,
         scope: CoroutineScope? = null
     ) {
+        // 检查权限，避免无权限时的无效下载
+        if (needsStoragePermission(context)) {
+            context.showToast("需要存储权限才能保存图片")
+            return
+        }
+        
         val actualScope = scope ?: CoroutineScope(Dispatchers.IO)
         val glideUrl = createGlideUrl(imageUrl)
         

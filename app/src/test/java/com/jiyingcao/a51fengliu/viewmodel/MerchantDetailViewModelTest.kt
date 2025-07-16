@@ -116,7 +116,7 @@ class MerchantDetailViewModelTest {
         createViewModel()
 
         // Act
-        viewModel.processIntent(MerchantDetailIntent.LoadDetail)
+        viewModel.processIntent(MerchantDetailIntent.InitialLoad)
         testDispatcher.scheduler.advanceUntilIdle()  // 等待协程执行完成
 
         // Assert
@@ -137,7 +137,7 @@ class MerchantDetailViewModelTest {
         createViewModel()
 
         // Act
-        viewModel.processIntent(MerchantDetailIntent.LoadDetail)
+        viewModel.processIntent(MerchantDetailIntent.InitialLoad)
         testDispatcher.scheduler.advanceUntilIdle()
 
         // Assert
@@ -159,7 +159,7 @@ class MerchantDetailViewModelTest {
         createViewModel()
 
         // Act
-        viewModel.processIntent(MerchantDetailIntent.LoadDetail)
+        viewModel.processIntent(MerchantDetailIntent.InitialLoad)
         testDispatcher.scheduler.advanceUntilIdle()
 
         // Assert
@@ -179,7 +179,7 @@ class MerchantDetailViewModelTest {
         createViewModel()
 
         // Act
-        viewModel.processIntent(MerchantDetailIntent.LoadDetail)
+        viewModel.processIntent(MerchantDetailIntent.InitialLoad)
         testDispatcher.scheduler.advanceUntilIdle()
 
         // Assert
@@ -202,7 +202,7 @@ class MerchantDetailViewModelTest {
         createViewModel()
 
         // Act
-        viewModel.processIntent(MerchantDetailIntent.LoadDetail)
+        viewModel.processIntent(MerchantDetailIntent.InitialLoad)
         testDispatcher.scheduler.advanceUntilIdle()
 
         // Assert
@@ -224,7 +224,7 @@ class MerchantDetailViewModelTest {
         loginStateFlow.value = false  // 初始未登录
         createViewModel()
 
-        viewModel.processIntent(MerchantDetailIntent.LoadDetail)
+        viewModel.processIntent(MerchantDetailIntent.InitialLoad)
         testDispatcher.scheduler.advanceUntilIdle()
 
         // 验证初始状态

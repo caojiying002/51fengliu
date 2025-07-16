@@ -6,13 +6,15 @@ import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.Merchant
 import com.jiyingcao.a51fengliu.data.LoginStateManager
+import com.jiyingcao.a51fengliu.data.LoginEvent
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.MerchantRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -74,11 +76,9 @@ data class MerchantDetailUiState(
 }
 
 sealed class MerchantDetailIntent {
-    object LoadDetail : MerchantDetailIntent()
+    object InitialLoad : MerchantDetailIntent()
     object PullToRefresh : MerchantDetailIntent()
     object Retry : MerchantDetailIntent()
-    // 从未登录态跳转登录页面登录成功返回到本页面，本页面再次可见(onStart/onResume)时需要重新加载数据
-    object HandleLoginSuccess : MerchantDetailIntent()
 }
 
 class MerchantDetailViewModel(
@@ -92,7 +92,10 @@ class MerchantDetailViewModel(
     private val _uiState = MutableStateFlow(MerchantDetailUiState())
     val uiState = _uiState.asStateFlow()
 
-    private var pendingInitialLoad = true
+    // 内部状态管理
+    @Volatile private var isUIVisible: Boolean = false
+    @Volatile private var needsRefresh: Boolean = false
+    @Volatile private var pendingInitialLoad: Boolean = true
 
     init {
         // 观察登录状态变化，响应式更新UI
@@ -104,23 +107,54 @@ class MerchantDetailViewModel(
      * 这是最佳实践：在ViewModel中处理跨组件状态同步
      */
     private fun observeLoginStateChanges() {
+        // 监听登录状态以更新UI显示
         viewModelScope.launch {
-            // 只需要同步登录状态，联系信息显示状态现在是派生状态
             loginStateManager.isLoggedIn.collect { isLoggedIn ->
                 _uiState.update { currentState ->
                     currentState.copy(isLoggedIn = isLoggedIn)
                 }
             }
         }
+        
+        // 监听登录状态变化事件以触发数据刷新
+        loginStateManager.loginEvents
+            .onEach { event ->
+                when (event) {
+                    LoginEvent.LoggedIn, LoginEvent.LoggedOut -> {
+                        needsRefresh = true
+                        checkAndRefresh()
+                    }
+                }
+            }
+            .launchIn(viewModelScope)
     }
 
+    private fun checkAndRefresh() {
+        if (needsRefresh &&
+            isUIVisible &&
+            _uiState.value.hasData  // 第三个条件：确保之前已经加载过数据
+        ) {
+            needsRefresh = false
+            refreshOnLoginStateChange()
+        }
+    }
+
+    /**
+     * UI可见性管理 - 实用主义方法
+     * 虽然不是严格的MVI，但在生命周期管理方面很实用
+     */
+    fun setUIVisibility(isVisible: Boolean) {
+        isUIVisible = isVisible
+        if (isVisible) {
+            checkAndRefresh()
+        }
+    }
 
     fun processIntent(intent: MerchantDetailIntent) {
         when (intent) {
-            MerchantDetailIntent.LoadDetail -> initialLoad()
+            MerchantDetailIntent.InitialLoad -> initialLoad()
             MerchantDetailIntent.PullToRefresh -> pullToRefresh()
             MerchantDetailIntent.Retry -> retry()
-            MerchantDetailIntent.HandleLoginSuccess -> handleLoginSuccess()
         }
     }
 
@@ -171,9 +205,8 @@ class MerchantDetailViewModel(
         loadDetail(LoadingType.FULL_SCREEN)
     }
 
-    private fun handleLoginSuccess() {
-        // TODO: 登录成功后重新加载数据以获取最新权限状态
-        //loadDetail(LoadingType.OVERLAY)
+    private fun refreshOnLoginStateChange() {
+        loadDetail(LoadingType.FULL_SCREEN)
     }
 
     // ===== 专门的UI状态更新方法 =====

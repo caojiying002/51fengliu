@@ -59,17 +59,17 @@ class MerchantDetailActivity : BaseActivity() {
         setupViewModel(merchantId)
         observeUiState()
 
-        viewModel.processIntent(MerchantDetailIntent.LoadDetail)
+        viewModel.processIntent(MerchantDetailIntent.InitialLoad)
     }
 
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        setIntent(intent)
+    override fun onStart() {
+        super.onStart()
+        viewModel.setUIVisibility(true)
+    }
 
-        val merchantId = intent.getMerchantId()
-        if (merchantId != null) {
-            viewModel.processIntent(MerchantDetailIntent.LoadDetail)
-        }
+    override fun onStop() {
+        super.onStop()
+        viewModel.setUIVisibility(false)
     }
 
     private fun setupClickListeners() {

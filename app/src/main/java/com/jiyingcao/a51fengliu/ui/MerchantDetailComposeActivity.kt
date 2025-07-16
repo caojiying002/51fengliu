@@ -67,7 +67,7 @@ class MerchantDetailComposeActivity : BaseActivity() {
         }
 
         // 触发初始加载
-        viewModel.processIntent(MerchantDetailIntent.LoadDetail)
+        viewModel.processIntent(MerchantDetailIntent.InitialLoad)
     }
 
     private fun setupViewModel(merchantId: String) {

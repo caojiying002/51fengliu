@@ -210,15 +210,6 @@ class DetailViewModel(
         loadDetail(LoadingType.PULL_TO_REFRESH)
     }
 
-    /**
-     * 对于登录状态变化后刷新，更推荐使用 DetailIntent.RefreshOnLoginStateChange，因为：
-     *
-     * - 登录状态变化后刷新是一个特定场景，需要确保显示正确权限下的数据
-     * - 相比 forceRefresh 参数，独立的 Intent 让代码意图更清晰
-     * - 未来可能需要针对登录状态变化添加特殊逻辑（如同步用户相关数据）
-     *
-     * 使用全屏加载样式确保数据完全刷新
-     */
     private fun refreshOnLoginStateChange() {
         loadDetail(LoadingType.FULL_SCREEN)
     }

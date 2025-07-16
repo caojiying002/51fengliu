@@ -15,7 +15,7 @@ import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.config.AppConfig
-import com.jiyingcao.a51fengliu.data.TokenManager
+import com.jiyingcao.a51fengliu.data.LoginStateManager
 import com.jiyingcao.a51fengliu.databinding.ActivityDetailBinding
 import com.jiyingcao.a51fengliu.databinding.ContentDetail0Binding
 import com.jiyingcao.a51fengliu.repository.RecordRepository
@@ -78,9 +78,8 @@ class DetailActivity : BaseActivity() {
         setupViewModel(recordId)
         setupStateObservers()
 
-        if (!viewModel.hasLoadedData) {  // 横竖屏等配置更改时，不需要重新加载数据
-            viewModel.processIntent(DetailIntent.LoadDetail())
-        }
+        // 横竖屏等配置更改时，不需要重新加载数据
+        viewModel.processIntent(DetailIntent.InitialLoad)
     }
 
     private fun setupSmartRefreshLayout() {
@@ -95,7 +94,7 @@ class DetailActivity : BaseActivity() {
             DetailViewModelFactory(
                 recordId,
                 RecordRepository.getInstance(RetrofitClient.apiService),
-                TokenManager.getInstance(App.INSTANCE.dataStore)
+                LoginStateManager.getInstance()
             )
         )[DetailViewModel::class.java]
     }
@@ -105,7 +104,7 @@ class DetailActivity : BaseActivity() {
         setIntent(intent)
 
         val recordId = intent.getRecordId()
-        if (recordId != null) viewModel.processIntent(DetailIntent.LoadDetail())
+        if (recordId != null) viewModel.processIntent(DetailIntent.InitialLoad)
     }
 
     override fun onStart() {

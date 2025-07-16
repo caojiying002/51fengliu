@@ -5,7 +5,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
-import com.jiyingcao.a51fengliu.data.TokenManager
+import com.jiyingcao.a51fengliu.data.LoginStateManager
+import com.jiyingcao.a51fengliu.data.LoginEvent
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import kotlinx.coroutines.Job
@@ -13,9 +14,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
@@ -57,11 +56,10 @@ sealed class FavoriteProgress {
 }
 
 sealed class DetailIntent {
-    /** [forceRefresh]一般用于区分从本地缓存加载还是从网络加载，目前APP没有本地缓存功能，可忽略 */
-    class LoadDetail(val forceRefresh: Boolean = false) : DetailIntent()
+    object InitialLoad : DetailIntent()
     object PullToRefresh : DetailIntent()
     object Retry : DetailIntent()
-    object Refresh : DetailIntent() // 用于登录成功后刷新。登录成功后刷新是一个特定场景，可能需要清除未登录态的缓存数据，也可能未来需要针对登录后刷新添加特殊逻辑（如同步用户相关数据等）
+    object RefreshOnLoginStateChange : DetailIntent() // 用于登录状态变化后刷新。登录状态变化刷新是一个特定场景，可能需要清除登录态缓存数据，也可能未来需要针对登录状态变化添加特殊逻辑（如同步用户相关数据等）
     object ToggleFavorite : DetailIntent()
 }
 
@@ -77,7 +75,7 @@ sealed class DetailEffect {
 class DetailViewModel(
     private val infoId: String,
     private val repository: RecordRepository,
-    private val tokenManager: TokenManager
+    private val loginStateManager: LoginStateManager
 ) : BaseViewModel() {
 
     // 单一状态源 - 详情页的所有UI状态
@@ -89,40 +87,35 @@ class DetailViewModel(
     val effect = _effect.receiveAsFlow()
 
     // 内部状态管理
-    private val _isLoggedIn = MutableStateFlow<Boolean?>(null)
-    private val _isUIVisible = MutableStateFlow(false)
-    private val _needsRefresh = MutableStateFlow(false)
-
-    @Volatile
-    var hasLoadedData = false
+    @Volatile private var isUIVisible: Boolean = false
+    @Volatile private var needsRefresh: Boolean = false
+    @Volatile private var pendingInitialLoad: Boolean = true
 
     // Job tracking
     private var detailLoadJob: Job? = null
     private var favoriteToggleJob: Job? = null
 
     init {
-        // 监听登录状态变化
-        tokenManager.token
-            .map { token -> !token.isNullOrBlank() }
-            .distinctUntilChanged()
-            .onEach { isLoggedIn ->
-                val wasLoggedIn = _isLoggedIn.value
-                _isLoggedIn.value = isLoggedIn
-                if (isLoggedIn && wasLoggedIn == false) {
-                    _needsRefresh.value = true
-                    checkAndRefresh()
+        // 监听登录状态变化事件
+        loginStateManager.loginEvents
+            .onEach { event ->
+                when (event) {
+                    LoginEvent.LoggedIn, LoginEvent.LoggedOut -> {
+                        needsRefresh = true
+                        checkAndRefresh()
+                    }
                 }
             }
             .launchIn(viewModelScope)
     }
 
     private fun checkAndRefresh() {
-        if (_needsRefresh.value &&
-            _isUIVisible.value &&
-            hasLoadedData  // 第三个条件：确保之前已经加载过数据
+        if (needsRefresh &&
+            isUIVisible &&
+            _uiState.value.hasData  // 第三个条件：确保之前已经加载过数据
         ) {
-            _needsRefresh.value = false
-            processIntent(DetailIntent.Refresh)
+            needsRefresh = false
+            processIntent(DetailIntent.RefreshOnLoginStateChange)
         }
     }
 
@@ -161,7 +154,7 @@ class DetailViewModel(
      * 虽然不是严格的MVI，但在生命周期管理方面很实用
      */
     fun setUIVisibility(isVisible: Boolean) {
-        _isUIVisible.value = isVisible
+        isUIVisible = isVisible
         if (isVisible) {
             checkAndRefresh()
         }
@@ -169,11 +162,19 @@ class DetailViewModel(
 
     fun processIntent(intent: DetailIntent) {
         when (intent) {
-            is DetailIntent.LoadDetail -> loadDetail()
+            DetailIntent.InitialLoad -> initialLoad()
             DetailIntent.PullToRefresh -> pullToRefresh()
             DetailIntent.Retry -> retry()
-            DetailIntent.Refresh -> refresh()    // 用于登录成功后刷新
+            DetailIntent.RefreshOnLoginStateChange -> refreshOnLoginStateChange()    // 用于登录状态变化后刷新
             DetailIntent.ToggleFavorite -> toggleFavorite()
+        }
+    }
+
+    private fun initialLoad() {
+        // 避免UI发生配置更改时ViewModel重新加载数据
+        if (pendingInitialLoad) {
+            loadDetail(LoadingType.FULL_SCREEN)
+            pendingInitialLoad = false
         }
     }
 
@@ -198,7 +199,6 @@ class DetailViewModel(
     ) {
         result.mapCatching { requireNotNull(it) }
             .onSuccess { record ->
-                hasLoadedData = true
                 updateUiStateToSuccess(record)
             }
             .onFailure { e ->
@@ -213,16 +213,16 @@ class DetailViewModel(
     }
 
     /**
-     * 对于登录后刷新，更推荐使用 DetailIntent.Refresh，因为：
+     * 对于登录状态变化后刷新，更推荐使用 DetailIntent.RefreshOnLoginStateChange，因为：
      *
-     * - 登录成功后刷新是一个特定场景，可能需要清除未登录态的缓存数据
+     * - 登录状态变化后刷新是一个特定场景，需要确保显示正确权限下的数据
      * - 相比 forceRefresh 参数，独立的 Intent 让代码意图更清晰
-     * - 未来可能需要针对登录后刷新添加特殊逻辑（如同步用户相关数据）
+     * - 未来可能需要针对登录状态变化添加特殊逻辑（如同步用户相关数据）
      *
-     * 目前和[loadDetail]只有加载样式上的区别
+     * 使用全屏加载样式确保数据完全刷新
      */
-    private fun refresh() { // TODO 根据登录后刷新的语义，最好能重命名
-        loadDetail(LoadingType.OVERLAY)
+    private fun refreshOnLoginStateChange() {
+        loadDetail(LoadingType.FULL_SCREEN)
     }
 
     /**
@@ -342,19 +342,18 @@ class DetailViewModel(
         super.onCleared()
         detailLoadJob?.cancel()
         favoriteToggleJob?.cancel()
-        hasLoadedData = false
     }
 }
 
 class DetailViewModelFactory(
     private val infoId: String,
     private val repository: RecordRepository,
-    private val tokenManager: TokenManager
+    private val loginStateManager: LoginStateManager
 ): ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(DetailViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return DetailViewModel(infoId, repository, tokenManager) as T
+            return DetailViewModel(infoId, repository, loginStateManager) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }

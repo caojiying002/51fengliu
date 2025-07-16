@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -33,7 +32,8 @@ data class DetailUiState(
     val errorMessage: String = "",
     val errorType: LoadingType = LoadingType.FULL_SCREEN,
     val isRefreshing: Boolean = false,
-    val isOverlayLoading: Boolean = false
+    val isOverlayLoading: Boolean = false,
+    val favoriteProgress: FavoriteProgress = FavoriteProgress.None
 ) {
     // 派生状态 - 通过计算得出，避免状态冗余
     val showFullScreenLoading: Boolean get() = isLoading && loadingType == LoadingType.FULL_SCREEN
@@ -41,20 +41,19 @@ data class DetailUiState(
     val showContent: Boolean get() = !isLoading && !isError && record != null
     val showFullScreenError: Boolean get() = isError && errorType == LoadingType.FULL_SCREEN
     val hasData: Boolean get() = record != null
+    val isFavorited: Boolean get() = record?.isFavorite == true
 }
 
 /**
- * 收藏按钮状态 - 保持独立，因为它有自己的状态机逻辑
+ * 收藏操作进度 - 用于表示当前有没有进行中的收藏/取消收藏请求
  */
-sealed class FavoriteButtonState {
-    /** 静止状态：已收藏或未收藏 */
-    data class Idle(val isFavorited: Boolean) : FavoriteButtonState()
-
-    /** 过渡状态：正在切换到收藏或未收藏 */
-    data class InProgress(val targetState: Boolean) : FavoriteButtonState()
-
-    // Error state (optional, if you want to show specific UI for errors)
-    //data class Error(val isFavorited: Boolean, val errorMessage: String) : FavoriteButtonState()
+sealed class FavoriteProgress {
+    /** 无操作 */
+    object None : FavoriteProgress()
+    /** 收藏中 */
+    object Favoriting : FavoriteProgress()
+    /** 取消收藏中 */
+    object Unfavoriting : FavoriteProgress()
 }
 
 sealed class DetailIntent {
@@ -85,10 +84,6 @@ class DetailViewModel(
     private val _uiState = MutableStateFlow(DetailUiState())
     val uiState: StateFlow<DetailUiState> = _uiState.asStateFlow()
 
-    // 收藏按钮独立状态 - 因为它有自己的状态机逻辑
-    private val _favoriteButtonState = MutableStateFlow<FavoriteButtonState>(FavoriteButtonState.Idle(false))
-    val favoriteButtonState: StateFlow<FavoriteButtonState> = _favoriteButtonState.asStateFlow()
-
     // 副作用通道
     private val _effect = Channel<DetailEffect>()
     val effect = _effect.receiveAsFlow()
@@ -106,15 +101,6 @@ class DetailViewModel(
     private var favoriteToggleJob: Job? = null
 
     init {
-        // 监听详情数据变化，同步更新收藏按钮状态
-        _uiState
-            .map { it.record }
-            .filterNotNull()
-            .onEach { record ->
-                _favoriteButtonState.value = FavoriteButtonState.Idle(record.isFavorite == true)
-            }
-            .launchIn(viewModelScope)
-
         // 监听登录状态变化
         tokenManager.token
             .map { token -> !token.isNullOrBlank() }
@@ -250,36 +236,37 @@ class DetailViewModel(
     }
 
     private fun toggleFavorite() {
-        // 获取当前按钮状态，如果正在进行中则忽略本次点击
-        val currentButtonState = _favoriteButtonState.value
-        if (currentButtonState is FavoriteButtonState.InProgress) return
+        val currentState = _uiState.value
+        val record = currentState.record ?: return
 
-        assert(currentButtonState is FavoriteButtonState.Idle)
+        // 如果有进行中的收藏或者取消收藏请求，忽略本次点击
+        if (currentState.favoriteProgress != FavoriteProgress.None) return
 
-        // 【注意】这里强制转换类型为 Idle，因为逻辑上它只能是 Idle。
-        // 如果未来 FavoriteButtonState 增加了其他状态（例如 Error），需要重新处理这段类型强转代码。
-        val wasFavorited = (currentButtonState as FavoriteButtonState.Idle).isFavorited
-        val targetState = !wasFavorited
+        val wasFavorited = record.isFavorite == true
+        val progress = if (wasFavorited) FavoriteProgress.Unfavoriting else FavoriteProgress.Favoriting
 
-        // 上面基于 FavoriteButtonState.InProgress 的状态检查已经可以避免发送重复请求，
-        // 这里仍然保留了 Job?.cancel() 的模式符合最佳实践，并且符合代码一致性。
-        // The existing check prevents multiple clicks, but we can also handle job cancellation
         favoriteToggleJob?.cancel()
         favoriteToggleJob = viewModelScope.launch(remoteLoginCoroutineContext) {
-            // 立即更新UI状态为InProgress，不等待网络请求
-            _favoriteButtonState.value = FavoriteButtonState.InProgress(targetState)
+            // 立即更新UI状态为收藏操作进行中，不等待网络请求
+            _uiState.update { it.copy(favoriteProgress = progress) }
 
             val toggleFavoriteFlow =
                 if (wasFavorited) repository.unfavorite(infoId) else repository.favorite(infoId)
             toggleFavoriteFlow.collect { result ->
                 result.onSuccess {
-                    // 网络请求成功，更新为成功状态
-                    _favoriteButtonState.value = FavoriteButtonState.Idle(targetState)
+                    // 网络请求成功，更新record中的收藏/未收藏状态，清除进行中状态
+                    val updatedRecord = record.copy(isFavorite = !wasFavorited)
+                    _uiState.update { currentState ->
+                        currentState.copy(
+                            record = updatedRecord,
+                            favoriteProgress = FavoriteProgress.None
+                        )
+                    }
                     val message = if (wasFavorited) "取消收藏成功" else "收藏成功"
                     _effect.send(DetailEffect.ShowToast(message))
                 }.onFailure { e ->
-                    // 网络请求失败，恢复原状态
-                    _favoriteButtonState.value = FavoriteButtonState.Idle(wasFavorited)
+                    // 网络请求失败，恢复原来的收藏/未收藏状态
+                    _uiState.update { it.copy(favoriteProgress = FavoriteProgress.None) }
                     if (!handleFailure(e)) {
                         _effect.send(DetailEffect.ShowToast(e.toUserFriendlyMessage()))
                     }

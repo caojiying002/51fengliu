@@ -38,7 +38,7 @@ import com.jiyingcao.a51fengliu.viewmodel.DetailIntent
 import com.jiyingcao.a51fengliu.viewmodel.DetailUiState
 import com.jiyingcao.a51fengliu.viewmodel.DetailViewModel
 import com.jiyingcao.a51fengliu.viewmodel.DetailViewModelFactory
-import com.jiyingcao.a51fengliu.viewmodel.FavoriteButtonState
+import com.jiyingcao.a51fengliu.viewmodel.FavoriteProgress
 import kotlinx.coroutines.launch
 
 /**
@@ -131,14 +131,6 @@ class DetailActivity : BaseActivity() {
             }
         }
 
-        // 观察收藏按钮状态
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.favoriteButtonState.collect { state ->
-                    handleFavoriteButtonState(state)
-                }
-            }
-        }
 
         // 观察副作用
         lifecycleScope.launch {
@@ -157,6 +149,7 @@ class DetailActivity : BaseActivity() {
         // 处理数据展示
         uiState.record?.let { record ->
             updateUI(record)
+            handleFavoriteButtonState(uiState.isFavorited, uiState.favoriteProgress)
         }
 
         // 处理各种UI状态
@@ -187,21 +180,25 @@ class DetailActivity : BaseActivity() {
             showToast(uiState.errorMessage)
         }
     }
-
+    
     /**
      * 处理收藏按钮状态
      */
-    private fun handleFavoriteButtonState(state: FavoriteButtonState) {
-        when (state) {
-            is FavoriteButtonState.Idle -> {
-                contentBinding.clickFavorite.isEnabled = true
-                contentBinding.clickFavorite.alpha = 1.0f
-                contentBinding.clickFavorite.isSelected = state.isFavorited
-            }
-            is FavoriteButtonState.InProgress -> {
-                contentBinding.clickFavorite.isEnabled = false
-                contentBinding.clickFavorite.alpha = 0.7f
-                contentBinding.clickFavorite.isSelected = state.targetState
+    private fun handleFavoriteButtonState(isFavorited: Boolean, progress: FavoriteProgress) {
+        with(contentBinding.clickFavorite) {
+            isSelected = isFavorited
+
+            // 根据是否有进行中的“收藏”或者“取消收藏”请求，启用或者禁用按钮点击
+            when (progress) {
+                FavoriteProgress.None -> {
+                    isEnabled = true
+                    alpha = 1.0f
+                }
+                FavoriteProgress.Favoriting,
+                FavoriteProgress.Unfavoriting -> {
+                    isEnabled = false
+                    alpha = 0.7f
+                }
             }
         }
     }
@@ -236,10 +233,10 @@ class DetailActivity : BaseActivity() {
             }
             
             clickFavorite.setOnClickListener {
-                val currentButtonState = viewModel.favoriteButtonState.value
-                if (currentButtonState !is FavoriteButtonState.Idle) return@setOnClickListener
+                val currentUiState = viewModel.uiState.value
+                if (currentUiState.favoriteProgress != FavoriteProgress.None) return@setOnClickListener
 
-                if (!currentButtonState.isFavorited) {
+                if (!currentUiState.isFavorited) {
                     // 从未收藏变为收藏要震动，反之则不用
                     vibrate(this@DetailActivity)
                 }

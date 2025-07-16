@@ -59,7 +59,6 @@ sealed class DetailIntent {
     object InitialLoad : DetailIntent()
     object PullToRefresh : DetailIntent()
     object Retry : DetailIntent()
-    object RefreshOnLoginStateChange : DetailIntent() // 用于登录状态变化后刷新。登录状态变化刷新是一个特定场景，可能需要清除登录态缓存数据，也可能未来需要针对登录状态变化添加特殊逻辑（如同步用户相关数据等）
     object ToggleFavorite : DetailIntent()
 }
 
@@ -115,7 +114,7 @@ class DetailViewModel(
             _uiState.value.hasData  // 第三个条件：确保之前已经加载过数据
         ) {
             needsRefresh = false
-            processIntent(DetailIntent.RefreshOnLoginStateChange)
+            refreshOnLoginStateChange()
         }
     }
 
@@ -165,7 +164,6 @@ class DetailViewModel(
             DetailIntent.InitialLoad -> initialLoad()
             DetailIntent.PullToRefresh -> pullToRefresh()
             DetailIntent.Retry -> retry()
-            DetailIntent.RefreshOnLoginStateChange -> refreshOnLoginStateChange()    // 用于登录状态变化后刷新
             DetailIntent.ToggleFavorite -> toggleFavorite()
         }
     }

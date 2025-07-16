@@ -99,14 +99,6 @@ class DetailActivity : BaseActivity() {
         )[DetailViewModel::class.java]
     }
 
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        setIntent(intent)
-
-        val recordId = intent.getRecordId()
-        if (recordId != null) viewModel.processIntent(DetailIntent.InitialLoad)
-    }
-
     override fun onStart() {
         super.onStart()
         viewModel.setUIVisibility(true)

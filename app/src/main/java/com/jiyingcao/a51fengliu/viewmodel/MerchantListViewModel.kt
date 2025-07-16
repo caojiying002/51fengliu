@@ -106,7 +106,7 @@ class MerchantListViewModel(
     /**
      * 检查并加载第一页数据
      */
-    private fun checkAndLoadPendingData() {
+    private fun initialLoad() {
         // 如果有待初始化加载的数据，则加载第一页
         if (pendingInitialLoad) {
             fetchData(1)
@@ -116,7 +116,7 @@ class MerchantListViewModel(
     
     fun processIntent(intent: MerchantListIntent) {
         when (intent) {
-            MerchantListIntent.InitialLoad -> checkAndLoadPendingData()
+            MerchantListIntent.InitialLoad -> initialLoad()
             MerchantListIntent.Retry -> retry()
             MerchantListIntent.Refresh -> refresh()
             MerchantListIntent.LoadMore -> loadMore()

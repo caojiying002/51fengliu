@@ -109,7 +109,7 @@ class HomeViewModel(
     /**
      * 检查并加载第一页数据
      */
-    private fun checkAndLoadPendingData() {
+    private fun initialLoad() {
         // 如果有待初始化加载的数据，则加载第一页
         if (pendingInitialLoad) {
             fetchData(1)
@@ -118,7 +118,7 @@ class HomeViewModel(
     }    
     fun processIntent(intent: HomeIntent) {
         when (intent) {
-            HomeIntent.InitialLoad -> checkAndLoadPendingData()
+            HomeIntent.InitialLoad -> initialLoad()
             HomeIntent.Retry -> retry()
             HomeIntent.Refresh -> refresh()
             HomeIntent.LoadMore -> loadMore()

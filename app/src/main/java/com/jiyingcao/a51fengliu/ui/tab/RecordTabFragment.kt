@@ -25,7 +25,7 @@ import com.jiyingcao.a51fengliu.util.to2LevelName
 import com.jiyingcao.a51fengliu.viewmodel.CitySelectionViewModel
 import kotlinx.coroutines.launch
 
-class CityRecordsFragment : Fragment() {
+class RecordTabFragment : Fragment() {
     private var _binding: FragmentCityTabPagerBinding? = null
     private val binding get() = _binding!!
     private val tabTitles = listOf("最新发布", "一周热门", "本月热门", "上月热门")

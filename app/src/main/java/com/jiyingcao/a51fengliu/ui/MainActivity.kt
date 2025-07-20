@@ -16,15 +16,15 @@ import com.jiyingcao.a51fengliu.util.AppLogger
 class MainActivity : BaseActivity() {
 
     private lateinit var tabHome: View
-    private lateinit var tabCityRecords: View
+    private lateinit var tabRecord: View
     private lateinit var tabStreet: View
-    private lateinit var tabNotifications: View
+    private lateinit var tabMerchant: View
     private lateinit var tabProfile: View
 
     private var homeFragment: Fragment? = null
-    private var cityRecordsFragment: Fragment? = null
+    private var recordTabFragment: Fragment? = null
     private var streetTabFragment: Fragment? = null
-    private var merchantFragment: Fragment? = null
+    private var merchantListFragment: Fragment? = null
     private var profileFragment: Fragment? = null
 
     private var currentTabTag: String = TAG_HOME
@@ -33,7 +33,7 @@ class MainActivity : BaseActivity() {
         // Fragment tags
         private const val TAG_PREFIX = "MAIN_ACTIVITY_TAB_"
         private const val TAG_HOME = "${TAG_PREFIX}HOME"
-        private const val TAG_CITY_RECORDS = "${TAG_PREFIX}CITY_RECORDS"
+        private const val TAG_RECORD = "${TAG_PREFIX}RECORD"
         private const val TAG_STREET = "${TAG_PREFIX}STREET"
         private const val TAG_MERCHANT = "${TAG_PREFIX}MERCHANT"
         private const val TAG_PROFILE = "${TAG_PREFIX}PROFILE"
@@ -47,9 +47,9 @@ class MainActivity : BaseActivity() {
         setContentView(R.layout.activity_main)
 
         tabHome = findViewById(R.id.tabHome)
-        tabCityRecords = findViewById(R.id.tabCityRecords)
+        tabRecord = findViewById(R.id.tabRecord)
         tabStreet = findViewById(R.id.tabStreet)
-        tabNotifications = findViewById(R.id.tabNotifications)
+        tabMerchant = findViewById(R.id.tabMerchant)
         tabProfile = findViewById(R.id.tabProfile)
 
         setupTabs()
@@ -81,9 +81,9 @@ class MainActivity : BaseActivity() {
 
     private fun setupTabs() {
         setupTab(tabHome, R.drawable.ic_home, "首页", TAG_HOME)
-        setupTab(tabCityRecords, R.drawable.ic_search, "信息", TAG_CITY_RECORDS)
+        setupTab(tabRecord, R.drawable.ic_record, "信息", TAG_RECORD)
         setupTab(tabStreet, R.drawable.ic_street, "暗巷", TAG_STREET)
-        setupTab(tabNotifications, R.drawable.ic_notification, "商家", TAG_MERCHANT)
+        setupTab(tabMerchant, R.drawable.ic_merchant, "商家", TAG_MERCHANT)
         setupTab(tabProfile, R.drawable.ic_profile, "我的", TAG_PROFILE)
     }
 
@@ -98,9 +98,9 @@ class MainActivity : BaseActivity() {
 
     private fun updateTabStates(selectedTag: String) {
         updateTabState(tabHome, selectedTag == TAG_HOME)
-        updateTabState(tabCityRecords, selectedTag == TAG_CITY_RECORDS)
+        updateTabState(tabRecord, selectedTag == TAG_RECORD)
         updateTabState(tabStreet, selectedTag == TAG_STREET)
-        updateTabState(tabNotifications, selectedTag == TAG_MERCHANT)
+        updateTabState(tabMerchant, selectedTag == TAG_MERCHANT)
         updateTabState(tabProfile, selectedTag == TAG_PROFILE)
         currentTabTag = selectedTag
     }
@@ -127,9 +127,9 @@ class MainActivity : BaseActivity() {
             if (targetFragment == null) {
                 targetFragment = when (tag) {
                     TAG_HOME -> HomeFragment().also { homeFragment = it }
-                    TAG_CITY_RECORDS -> CityRecordsFragment().also { cityRecordsFragment = it }
+                    TAG_RECORD -> RecordTabFragment().also { recordTabFragment = it }
                     TAG_STREET -> StreetTabFragment().also { streetTabFragment = it }
-                    TAG_MERCHANT -> MerchantListFragment().also { merchantFragment = it }
+                    TAG_MERCHANT -> MerchantListFragment().also { merchantListFragment = it }
                     TAG_PROFILE -> ProfileFragment().also { profileFragment = it }
                     else -> throw IllegalArgumentException("Unknown fragment tag: $tag")
                 }
@@ -138,9 +138,9 @@ class MainActivity : BaseActivity() {
                 // 更新 Activity 持有的引用
                 when (tag) {
                     TAG_HOME -> homeFragment = targetFragment
-                    TAG_CITY_RECORDS -> cityRecordsFragment = targetFragment
+                    TAG_RECORD -> recordTabFragment = targetFragment
                     TAG_STREET -> streetTabFragment = targetFragment
-                    TAG_MERCHANT -> merchantFragment = targetFragment
+                    TAG_MERCHANT -> merchantListFragment = targetFragment
                     TAG_PROFILE -> profileFragment = targetFragment
                 }
                 show(targetFragment)

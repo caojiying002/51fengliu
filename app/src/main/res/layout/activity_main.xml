@@ -40,7 +40,7 @@
                 android:layout_weight="1" />
 
             <include
-                android:id="@+id/tabCityRecords"
+                android:id="@+id/tabRecord"
                 layout="@layout/item_tab"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -54,7 +54,7 @@
                 android:layout_weight="1" />
 
             <include
-                android:id="@+id/tabNotifications"
+                android:id="@+id/tabMerchant"
                 layout="@layout/item_tab"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"

@@ -16,37 +16,27 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-private enum class MerchantListLoadingType {
-    FULL_SCREEN,
-    PULL_TO_REFRESH,
-    LOAD_MORE
-}
-
-private fun MerchantListLoadingType.toLoadingState(): MerchantListState.Loading = when (this) {
-    MerchantListLoadingType.FULL_SCREEN -> MerchantListState.Loading.FullScreen
-    MerchantListLoadingType.PULL_TO_REFRESH -> MerchantListState.Loading.PullToRefresh
-    MerchantListLoadingType.LOAD_MORE -> MerchantListState.Loading.LoadMore
-}
-
-private fun MerchantListLoadingType.toErrorState(message: String): MerchantListState.Error = when (this) {
-    MerchantListLoadingType.FULL_SCREEN -> MerchantListState.Error.FullScreen(message)
-    MerchantListLoadingType.PULL_TO_REFRESH -> MerchantListState.Error.PullToRefresh(message)
-    MerchantListLoadingType.LOAD_MORE -> MerchantListState.Error.LoadMore(message)
-}
-
-sealed class MerchantListState {
-    data object Init : MerchantListState()
-    sealed class Loading : MerchantListState() {
-        data object FullScreen : Loading()
-        data object PullToRefresh : Loading()
-        data object LoadMore : Loading()
-    }
-    data object Success : MerchantListState()
-    sealed class Error(open val message: String) : MerchantListState() {
-        data class FullScreen(override val message: String) : Error(message)
-        data class PullToRefresh(override val message: String) : Error(message)
-        data class LoadMore(override val message: String) : Error(message)
-    }
+/**
+ * 单一UI状态
+ * 包含商户列表页面所有需要的状态信息
+ */
+data class MerchantListUiState(
+    val isLoading: Boolean = false,
+    val loadingType: LoadingType = LoadingType.FULL_SCREEN,
+    val merchants: List<Merchant> = emptyList(),
+    val isError: Boolean = false,
+    val errorMessage: String = "",
+    val errorType: LoadingType = LoadingType.FULL_SCREEN,
+    val noMoreData: Boolean = false,
+    val isRefreshing: Boolean = false,
+    val isLoadingMore: Boolean = false,
+    val hasLoaded: Boolean = false // 是否已经加载过数据
+) {
+    // 派生状态 - 通过计算得出，避免状态冗余
+    val showContent: Boolean get() = !isLoading && !isError && merchants.isNotEmpty()
+    val showEmpty: Boolean get() = !isLoading && !isError && merchants.isEmpty() && hasLoaded
+    val showFullScreenLoading: Boolean get() = isLoading && loadingType == LoadingType.FULL_SCREEN
+    val showFullScreenError: Boolean get() = isError && errorType == LoadingType.FULL_SCREEN
 }
 
 sealed class MerchantListIntent {
@@ -60,57 +50,25 @@ class MerchantListViewModel(
     private val repository: MerchantRepository
 ) : BaseViewModel() {
     private var fetchJob: Job? = null
-    
-    private val _state = MutableStateFlow<MerchantListState>(MerchantListState.Init)
-    val state = _state.asStateFlow()
-    
-    private val _noMoreDataState = MutableStateFlow(false)
-    val noMoreDataState = _noMoreDataState.asStateFlow()
-
-    /** 标记是否需要初始化加载，当首次UI可见时加载 */
-    private var pendingInitialLoad = true
-    
-    /**
-     * 加载成功的页数，每次加载成功后加1，用于加载更多时的页码计算。
-     * 0表示没有加载成功过，1表示第一页加载成功，以此类推。
-     */
-    private val _pageLoaded = MutableStateFlow(0)
-    
-    /** 保护[data]列表，确保在多线程环境下的数据安全。 */
     private val dataLock = Mutex()
     
-    /**
-     * 存放Merchants的列表，刷新时清空。
-     *
-     * 【注意】应当使用[updateMerchants]方法修改这个列表，确保[_merchants]流每次都能获得更新。
-     */
+    // 单一状态源 - 这是MVI的核心原则
+    private val _uiState = MutableStateFlow(MerchantListUiState())
+    val uiState = _uiState.asStateFlow()
+    
+    // 内部状态管理
     @GuardedBy("dataLock")
-    private var data: MutableList<Merchant> = mutableListOf()
-    
-    /**
-     * 【注意】不要直接修改这个流，应当使用[updateMerchants]。
-     */
-    private val _merchants = MutableStateFlow<List<Merchant>>(emptyList())
-    val merchants = _merchants.asStateFlow()
-    
-    /**
-     * 修改[data]列表并同时更新[_merchants]流。
-     */
-    private suspend fun updateMerchants(operation: suspend (MutableList<Merchant>) -> Unit) {
-        dataLock.withLock {
-            operation(data)
-            _merchants.value = data.toList()
-        }
-    }
+    private var currentMerchants: MutableList<Merchant> = mutableListOf()
+    private var currentPage = 0
+    private var pendingInitialLoad = true
     
     /**
      * 检查并加载第一页数据
      */
     private fun initialLoad() {
-        // 如果有待初始化加载的数据，则加载第一页
         if (pendingInitialLoad) {
-            fetchData(1)
             pendingInitialLoad = false
+            fetchData(page = 1, loadingType = LoadingType.FULL_SCREEN)
         }
     }
     
@@ -123,13 +81,13 @@ class MerchantListViewModel(
         }
     }
     
-    private fun fetchData(
-        page: Int,
-        loadingType: MerchantListLoadingType = MerchantListLoadingType.FULL_SCREEN
-    ) {
+    private fun fetchData(page: Int, loadingType: LoadingType) {
+        if (shouldPreventRequest(loadingType)) return
+
         fetchJob?.cancel()
         fetchJob = viewModelScope.launch(remoteLoginCoroutineContext) {
-            _state.value = loadingType.toLoadingState()
+            // 更新加载状态
+            updateUiStateToLoading(loadingType)
             
             repository.getMerchants(page)
                 .onEach { result -> 
@@ -143,45 +101,111 @@ class MerchantListViewModel(
     private suspend fun handleDataResult(
         page: Int,
         result: Result<PageData<Merchant>?>,
-        loadingType: MerchantListLoadingType
+        loadingType: LoadingType
     ) {
         result.mapCatching { requireNotNull(it) }
             .onSuccess { pageData ->
-                _pageLoaded.value = if (page == 1) 1 else _pageLoaded.value + 1
-                _state.value = MerchantListState.Success
-                _noMoreDataState.value = pageData.isLastPage()
-                
-                updateMerchants {
-                    it.apply {
-                        // 只有下拉刷新或初次加载时清空列表，其他情况直接添加
-                        if (page == 1) clear()
-                        addAll(pageData.records)
-                    }
-                }
+                currentPage = page
+                val newMerchants = updateMerchantsList(page, pageData.records)
+                updateUiStateToSuccess(newMerchants, pageData.noMoreData())
             }
             .onFailure { e ->
-                if (!handleFailure(e)) {
-                    _state.value = loadingType.toErrorState(e.toUserFriendlyMessage())
+                if (!handleFailure(e)) {    // 通用错误处理(如远程登录), 如果处理过就不用再处理了
+                    updateUiStateToError(e.toUserFriendlyMessage(), loadingType)
                 }
                 AppLogger.w(TAG, "网络请求失败: ", e)
             }
     }
 
+    private suspend fun updateMerchantsList(page: Int, newMerchants: List<Merchant>): List<Merchant> {
+        return dataLock.withLock {
+            if (page == 1) {
+                // 首页或刷新 - 替换数据
+                currentMerchants.clear()
+                currentMerchants.addAll(newMerchants)
+            } else {
+                // 加载更多 - 追加数据
+                currentMerchants.addAll(newMerchants)
+            }
+            currentMerchants.toList() // 返回不可变副本
+        }
+    }
+
     private fun retry() {
-        fetchData(1, MerchantListLoadingType.FULL_SCREEN)
+        fetchData(page = 1, loadingType = LoadingType.FULL_SCREEN)
     }
 
     private fun refresh() {
-        fetchData(1, MerchantListLoadingType.PULL_TO_REFRESH)
+        fetchData(page = 1, loadingType = LoadingType.PULL_TO_REFRESH)
     }
 
     private fun loadMore() {
-        fetchData(_pageLoaded.value + 1, MerchantListLoadingType.LOAD_MORE)
+        fetchData(page = currentPage + 1, loadingType = LoadingType.LOAD_MORE)
+    }
+
+    // ===== 专门的UI状态更新方法 =====
+    
+    /**
+     * 更新UI状态到加载中
+     * @param loadingType 加载类型，决定显示哪种加载状态
+     */
+    private fun updateUiStateToLoading(loadingType: LoadingType) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                isLoading = loadingType == LoadingType.FULL_SCREEN,
+                isRefreshing = loadingType == LoadingType.PULL_TO_REFRESH,
+                isLoadingMore = loadingType == LoadingType.LOAD_MORE,
+                loadingType = loadingType,
+                isError = false // 清除之前的错误状态
+            )
+        }
     }
     
-    private fun clearMerchants() {
-        viewModelScope.launch {
-            updateMerchants { it.clear() }
+    /**
+     * 更新UI状态到成功状态
+     * @param merchants 商户列表
+     * @param noMoreData 是否没有更多数据
+     */
+    private fun updateUiStateToSuccess(merchants: List<Merchant>, noMoreData: Boolean = false) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                isLoading = false,
+                isRefreshing = false,
+                isLoadingMore = false,
+                isError = false,
+                merchants = merchants,
+                noMoreData = noMoreData,
+                hasLoaded = true // 标记已经加载过数据
+            )
+        }
+    }
+    
+    /**
+     * 更新UI状态到错误状态
+     * @param errorMessage 错误信息
+     * @param errorType 错误类型，决定错误显示方式
+     */
+    private fun updateUiStateToError(errorMessage: String, errorType: LoadingType) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                isLoading = false,
+                isRefreshing = false,
+                isLoadingMore = false,
+                isError = true,
+                errorMessage = errorMessage,
+                errorType = errorType
+            )
+        }
+    }
+
+    /** 防止重复请求 */
+    private fun shouldPreventRequest(loadingType: LoadingType): Boolean {
+        val currentState = _uiState.value
+        return when (loadingType) {
+            LoadingType.FULL_SCREEN -> currentState.isLoading
+            LoadingType.PULL_TO_REFRESH -> currentState.isRefreshing
+            LoadingType.LOAD_MORE -> currentState.isLoadingMore || currentState.noMoreData
+            else -> false
         }
     }
 

@@ -33,9 +33,8 @@ data class SearchUiState(
     val hasSearched: Boolean = false // 是否已经进行过搜索
 ) {
     // 派生状态 - 通过计算得出，避免状态冗余
-    val isEmpty: Boolean get() = !isLoading && !isError && records.isEmpty() && hasSearched
     val showContent: Boolean get() = !isLoading && !isError && records.isNotEmpty()
-    val showEmptyState: Boolean get() = !isLoading && !isError && records.isEmpty() && hasSearched
+    val showEmpty: Boolean get() = !isLoading && !isError && records.isEmpty() && hasSearched
     val showFullScreenLoading: Boolean get() = isLoading && loadingType == LoadingType.FULL_SCREEN
     val showFullScreenError: Boolean get() = isError && errorType == LoadingType.FULL_SCREEN
     val showInitialState: Boolean get() = !hasSearched && !isLoading && !isError

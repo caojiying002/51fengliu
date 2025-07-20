@@ -33,9 +33,8 @@ data class FavoriteUiState(
     val isLoadingMore: Boolean = false
 ) {
     // 派生状态 - 通过计算得出，避免状态冗余
-    val isEmpty: Boolean get() = !isLoading && !isError && records.isEmpty()
     val showContent: Boolean get() = !isLoading && !isError && records.isNotEmpty()
-    val showEmptyState: Boolean get() = !isLoading && !isError && records.isEmpty()
+    val showEmpty: Boolean get() = !isLoading && !isError && records.isEmpty()
     val showFullScreenLoading: Boolean get() = isLoading && loadingType == LoadingType.FULL_SCREEN
     val showFullScreenError: Boolean get() = isError && errorType == LoadingType.FULL_SCREEN
 }

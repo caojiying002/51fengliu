@@ -175,7 +175,7 @@ interface ApiService {
     @GET(ApiEndpoints.Merchant.PAGE)
     suspend fun getMerchants(
         @Query("page") page: Int = 1,
-        @Query("perPage") perPage: Int? = null
+        @Query("perPage") perPage: Int = 12
     ): ApiResponse<PageData<Merchant>>
 
     /**

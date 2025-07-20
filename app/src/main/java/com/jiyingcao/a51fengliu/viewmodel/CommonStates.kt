@@ -114,6 +114,38 @@ inline fun <reified T : BaseState> LoadingType.toErrorState(message: String): T 
     return StateFactory.createError<T>(message, this)
 }
 
+// ========== 分页相关扩展 ==========
+
+/**
+ * 分页相关的扩展函数和工具类
+ */
+
+/**
+ * PageData扩展函数 - 判断是否为最后一页
+ */
+fun <T> com.jiyingcao.a51fengliu.api.response.PageData<T>.isLastPage(): Boolean {
+    return this.noMoreData()
+}
+
+/**
+ * LoadingType扩展 - 获取对应的UI显示状态
+ */
+val LoadingType.isFullScreen: Boolean get() = this == LoadingType.FULL_SCREEN
+val LoadingType.isPullToRefresh: Boolean get() = this == LoadingType.PULL_TO_REFRESH  
+val LoadingType.isLoadMore: Boolean get() = this == LoadingType.LOAD_MORE
+val LoadingType.isOverlay: Boolean get() = this == LoadingType.OVERLAY
+
+/**
+ * 通用分页Intent - 在PagingComponents.kt中定义了BasePagingIntent
+ * 这里提供便捷的创建函数
+ */
+object PagingIntents {
+    fun initialLoad() = com.jiyingcao.a51fengliu.viewmodel.BasePagingIntent.InitialLoad
+    fun retry() = com.jiyingcao.a51fengliu.viewmodel.BasePagingIntent.Retry
+    fun refresh() = com.jiyingcao.a51fengliu.viewmodel.BasePagingIntent.Refresh
+    fun loadMore() = com.jiyingcao.a51fengliu.viewmodel.BasePagingIntent.LoadMore
+}
+
 // ========== 使用示例和文档 ==========
 
 /**
@@ -148,6 +180,25 @@ inline fun <reified T : BaseState> LoadingType.toErrorState(message: String): T 
  *     is YourState.Loading -> handleLoadingState(state.loadingType)
  *     is YourState.Error -> handleErrorState(state.message, state.errorType)
  *     // ...
+ * }
+ * ```
+ * 
+ * ### 4. 分页组件使用示例
+ * ```kotlin
+ * // 使用PagingStateManager
+ * class YourViewModel : BaseViewModel() {
+ *     private val dataSource = YourPagingDataSource(repository)
+ *     private val pagingManager = PagingStateManager(
+ *         dataSource = dataSource,
+ *         scope = viewModelScope,
+ *         handleFailure = ::handleFailure
+ *     )
+ *     
+ *     val uiState = pagingManager.uiState
+ *     
+ *     fun processIntent(intent: BasePagingIntent) {
+ *         pagingManager.processIntent(intent)
+ *     }
  * }
  * ```
  */

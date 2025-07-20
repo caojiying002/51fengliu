@@ -24,7 +24,6 @@ import com.jiyingcao.a51fengliu.util.AppLogger
 import com.jiyingcao.a51fengliu.util.ImeUtil
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.to2LevelName
-import com.jiyingcao.a51fengliu.viewmodel.BasePagingIntent
 import com.jiyingcao.a51fengliu.viewmodel.SearchIntent
 import com.jiyingcao.a51fengliu.viewmodel.SearchViewModel
 import com.jiyingcao.a51fengliu.viewmodel.SearchViewModelFactory
@@ -135,7 +134,7 @@ class SearchActivity: BaseActivity() {
     private fun showContentView() { statefulContent.showContentView() }
     private fun showErrorView(message: String) {
         statefulContent.showErrorView(message) {
-            viewModel.processIntent(BasePagingIntent.Retry)
+            viewModel.processIntent(SearchIntent.Retry)
         }
     }
 
@@ -192,8 +191,8 @@ class SearchActivity: BaseActivity() {
         refreshLayout.apply {
             setRefreshHeader(ClassicsHeader(context))
             setRefreshFooter(ClassicsFooter(context))
-            setOnRefreshListener { viewModel.processIntent(BasePagingIntent.Refresh) }
-            setOnLoadMoreListener { viewModel.processIntent(BasePagingIntent.LoadMore) }
+            setOnRefreshListener { viewModel.processIntent(SearchIntent.Refresh) }
+            setOnLoadMoreListener { viewModel.processIntent(SearchIntent.LoadMore) }
             // setEnableLoadMore(false)  // 加载第一页成功前暂时禁用LoadMore
         }
     }

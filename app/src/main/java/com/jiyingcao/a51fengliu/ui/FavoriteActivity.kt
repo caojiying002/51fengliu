@@ -15,7 +15,7 @@ import com.jiyingcao.a51fengliu.databinding.StatefulRefreshRecyclerViewBinding
 import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.util.showToast
-import com.jiyingcao.a51fengliu.viewmodel.BasePagingIntent
+import com.jiyingcao.a51fengliu.viewmodel.FavoriteIntent
 import com.jiyingcao.a51fengliu.viewmodel.FavoriteViewModel
 import com.jiyingcao.a51fengliu.viewmodel.FavoriteViewModelFactory
 import com.scwang.smart.refresh.footer.ClassicsFooter
@@ -48,7 +48,7 @@ class FavoriteActivity : BaseActivity() {
         setupSmartRefreshLayout()
         observeUiState()
 
-        viewModel.processIntent(BasePagingIntent.InitialLoad)
+        viewModel.processIntent(FavoriteIntent.InitialLoad)
     }
 
     private fun setupTitleBar() {
@@ -74,8 +74,8 @@ class FavoriteActivity : BaseActivity() {
         refreshLayout.apply {
             setRefreshHeader(ClassicsHeader(context))
             setRefreshFooter(ClassicsFooter(context))
-            setOnRefreshListener { viewModel.processIntent(BasePagingIntent.Refresh) }
-            setOnLoadMoreListener { viewModel.processIntent(BasePagingIntent.LoadMore) }
+            setOnRefreshListener { viewModel.processIntent(FavoriteIntent.Refresh) }
+            setOnLoadMoreListener { viewModel.processIntent(FavoriteIntent.LoadMore) }
         }
     }
 
@@ -88,7 +88,7 @@ class FavoriteActivity : BaseActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { uiState ->
                     // 处理数据展示, 最好优化一下避免每次都提交列表数据
-                    recordAdapter.submitList(uiState.items)
+                    recordAdapter.submitList(uiState.records)
 
                     // 处理各种UI状态 - 使用when表达式确保所有状态都被处理
                     when {
@@ -135,7 +135,7 @@ class FavoriteActivity : BaseActivity() {
     private fun showContentView() { statefulContent.showContentView() }
     private fun showErrorView(message: String) {
         statefulContent.showErrorView(message) {
-            viewModel.processIntent(BasePagingIntent.Retry)
+            viewModel.processIntent(FavoriteIntent.Retry)
         }
     }
 

@@ -24,17 +24,17 @@ import com.jiyingcao.a51fengliu.ui.showRealContent
 import com.jiyingcao.a51fengliu.util.AppLogger
 import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.showToast
-import com.jiyingcao.a51fengliu.viewmodel.CityIntent
+import com.jiyingcao.a51fengliu.viewmodel.CityRecordListIntent
+import com.jiyingcao.a51fengliu.viewmodel.CityRecordListViewModel
+import com.jiyingcao.a51fengliu.viewmodel.CityRecordListViewModelFactory
 import com.jiyingcao.a51fengliu.viewmodel.CitySelectionViewModel
-import com.jiyingcao.a51fengliu.viewmodel.CityState
-import com.jiyingcao.a51fengliu.viewmodel.CityViewModel
-import com.jiyingcao.a51fengliu.viewmodel.CityViewModelFactory
+import com.jiyingcao.a51fengliu.viewmodel.LoadingType
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
 import kotlinx.coroutines.launch
 
-class CityRecordsSubFragment : Fragment() {
+class CityRecordListFragment : Fragment() {
 
     private var _binding: StatefulViewpager2RecyclerViewBinding? = null
     private val binding get() = _binding!!
@@ -50,26 +50,23 @@ class CityRecordsSubFragment : Fragment() {
      *
      * 用于保存当前城市的Records列表数据。
      */
-    private val viewModel: CityViewModel by viewModels {
-        CityViewModelFactory(
+    private val viewModel: CityRecordListViewModel by viewModels {
+        CityRecordListViewModelFactory(
             RecordRepository.getInstance(RetrofitClient.apiService),
             sort
         )
     }
 
     /**
-     * Saving selected city, shared with other [CityRecordsSubFragment] instances.
+     * Saving selected city, shared with other [CityRecordListFragment] instances.
      *
-     * 保存选中的城市，与其他 [CityRecordsSubFragment] 实例共享。
+     * 保存选中的城市，与其他 [CityRecordListFragment] 实例共享。
      */
     private val citySelectionViewModel: CitySelectionViewModel by activityViewModels {
         CitySelectionViewModel.Factory(App.INSTANCE.dataStore)
     }
 
     private lateinit var recordAdapter: RecordAdapter
-    
-    /** 标记是否需要重置列表滚动位置 */
-    private var shouldResetScroll = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -109,8 +106,8 @@ class CityRecordsSubFragment : Fragment() {
         refreshLayout.apply {
             setRefreshHeader(ClassicsHeader(context))
             setRefreshFooter(ClassicsFooter(context))
-            setOnRefreshListener { viewModel.processIntent(CityIntent.Refresh) }
-            setOnLoadMoreListener { viewModel.processIntent(CityIntent.LoadMore) }
+            setOnRefreshListener { viewModel.processIntent(CityRecordListIntent.Refresh) }
+            setOnLoadMoreListener { viewModel.processIntent(CityRecordListIntent.LoadMore) }
         }
     }
 
@@ -118,84 +115,65 @@ class CityRecordsSubFragment : Fragment() {
         // 监听选择的城市
         viewLifecycleOwner.lifecycleScope.launch {
             citySelectionViewModel.selectedCity.collect { cityCode ->
-                AppLogger.d(TAG, "$TAG@${this@CityRecordsSubFragment.hashCode()}: city code selected: $cityCode")
+                AppLogger.d(TAG, "$TAG@${this@CityRecordListFragment.hashCode()}: city code selected: $cityCode")
                 cityCode?.let {
-                    // StateFlow保证值不会重复发射，所以每次收到新的城市代码时都需要重置滚动
-                    shouldResetScroll = true
-                    viewModel.processIntent(CityIntent.UpdateCity(it))
+                    viewModel.processIntent(CityRecordListIntent.UpdateCity(it))
                 }
             }
         }
         
-        // 监听ViewModel状态
+        // 监听单一UI状态
         viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.state.collect { state ->
-                when (state) {
-                    is CityState.Loading -> handleLoadingState(state)
-                    is CityState.Error -> handleErrorState(state)
-                    is CityState.Success -> {
-                        binding.showContentView()
-                        refreshLayout.finishRefresh()
-                        refreshLayout.finishLoadMore()
-                    }
-                    else -> {}
-                }
-            }
-        }
-        
-        // 监听记录数据
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.records.collect { records ->
-                recordAdapter.submitList(records) {
+            viewModel.uiState.collect { uiState ->
+                // 更新记录数据和滚动重置
+                recordAdapter.submitList(uiState.records) {
                     // 如果需要重置滚动位置（切换过城市），则滚动到顶部
-                    if (shouldResetScroll) {
+                    if (uiState.shouldResetScroll) {
                         recyclerView.scrollToPosition(0)
-                        shouldResetScroll = false
+                        viewModel.processIntent(CityRecordListIntent.ScrollResetHandled)
                     }
                 }
                 
-                // 如果没有数据，显示空状态
-                if (records.isEmpty()) {
-                    binding.showEmptyContent()
+                // 处理加载状态
+                when {
+                    uiState.showFullScreenLoading -> binding.showLoadingView()
+                    uiState.showFullScreenError -> {
+                        binding.showErrorView(uiState.errorMessage) {
+                            viewModel.processIntent(CityRecordListIntent.Retry)
+                        }
+                    }
+                    uiState.showEmpty -> binding.showEmptyContent()
+                    uiState.showContent -> {
+                        binding.showContentView()
+                        binding.showRealContent()
+                    }
+                }
+                
+                // 处理刷新状态
+                if (uiState.isRefreshing) {
+                    // 下拉刷新中 - SmartRefreshLayout 自动处理
                 } else {
-                    binding.showRealContent()
+                    refreshLayout.finishRefresh(!uiState.isError || uiState.errorType != LoadingType.PULL_TO_REFRESH)
                 }
-            }
-        }
-        
-        // 监听是否还有更多数据
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.noMoreDataState.collect { noMoreData ->
-                refreshLayout.setNoMoreData(noMoreData)
+                
+                // 处理加载更多状态
+                if (uiState.isLoadingMore) {
+                    // 加载更多中 - SmartRefreshLayout 自动处理
+                } else {
+                    refreshLayout.finishLoadMore(!uiState.isError || uiState.errorType != LoadingType.LOAD_MORE)
+                }
+                
+                // 设置是否还有更多数据
+                refreshLayout.setNoMoreData(uiState.noMoreData)
+                
+                // 处理错误消息（非全屏错误）
+                if (uiState.isError && !uiState.showFullScreenError) {
+                    requireContext().showToast(uiState.errorMessage)
+                }
             }
         }
     }
     
-    private fun handleLoadingState(loading: CityState.Loading) {
-        when (loading) {
-            CityState.Loading.FullScreen -> binding.showLoadingView()
-            CityState.Loading.PullToRefresh -> { /* 下拉刷新加载处理 */ }
-            CityState.Loading.LoadMore -> { /* 加载更多处理 */ }
-        }
-    }
-    
-    private fun handleErrorState(error: CityState.Error) {
-        when (error) {
-            is CityState.Error.FullScreen -> {
-                binding.showErrorView(error.message) {
-                    viewModel.processIntent(CityIntent.Retry)
-                }
-            }
-            is CityState.Error.PullToRefresh -> {
-                refreshLayout.finishRefresh(false)
-                requireContext().showToast(error.message)
-            }
-            is CityState.Error.LoadMore -> {
-                refreshLayout.finishLoadMore(false)
-                requireContext().showToast(error.message)
-            }
-        }
-    }
 
     override fun onDestroyView() {
         super.onDestroyView()
@@ -204,13 +182,11 @@ class CityRecordsSubFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.setUIVisibility(true)
         onFragmentVisible()
     }
 
     override fun onPause() {
         super.onPause()
-        viewModel.setUIVisibility(false)
         onFragmentInvisible()
     }
 
@@ -226,10 +202,10 @@ class CityRecordsSubFragment : Fragment() {
 
     companion object {
         private const val ARG_SORT = "sort"
-        private const val TAG = "CityRecordsSubFragment"
+        private const val TAG = "CityRecordListFragment"
         
-        fun newInstance(sort: String): CityRecordsSubFragment {
-            return CityRecordsSubFragment().apply {
+        fun newInstance(sort: String): CityRecordListFragment {
+            return CityRecordListFragment().apply {
                 arguments = Bundle().apply {
                     putString(ARG_SORT, sort)
                 }

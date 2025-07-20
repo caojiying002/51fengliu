@@ -74,7 +74,7 @@ class HomeFragment : Fragment() {
                 1 -> "publish"
                 else -> "daily"
             }
-            return HomeSubFragment.newInstance(sort)
+            return HomeRecordListFragment.newInstance(sort)
         }
     }
 }

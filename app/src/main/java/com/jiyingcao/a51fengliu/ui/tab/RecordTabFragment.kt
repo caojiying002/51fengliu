@@ -8,9 +8,7 @@ import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
@@ -31,9 +29,9 @@ class RecordTabFragment : Fragment() {
     private val tabTitles = listOf("最新发布", "一周热门", "本月热门", "上月热门")
 
     /**
-     * Shared by all [CityRecordsSubFragment]s.
+     * Shared by all [CityRecordListFragment]s.
      *
-     * 由所有 [CityRecordsSubFragment] 共享。
+     * 由所有 [CityRecordListFragment] 共享。
      */
     private val citySelectionViewModel: CitySelectionViewModel by activityViewModels {
         CitySelectionViewModel.Factory(App.INSTANCE.dataStore)
@@ -119,7 +117,7 @@ class RecordTabFragment : Fragment() {
 
     /**
      * 处理[ChooseCityActivity]返回的城市代码。
-     * 通知[CityRecordsSubFragment]们更新数据。
+     * 通知[CityRecordListFragment]们更新数据。
      * TODO remove this method
      */
     private fun handleCityCode(cityCode: String) {
@@ -163,7 +161,7 @@ class RecordTabFragment : Fragment() {
                 3 -> "lastMonth"
                 else -> "publish"
             }
-            return CityRecordsSubFragment.newInstance(sort)
+            return CityRecordListFragment.newInstance(sort)
         }
     }
 

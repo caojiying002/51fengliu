@@ -21,16 +21,16 @@ import com.jiyingcao.a51fengliu.ui.showLoadingView
 import com.jiyingcao.a51fengliu.ui.showRealContent
 import com.jiyingcao.a51fengliu.util.AppLogger
 import com.jiyingcao.a51fengliu.util.showToast
-import com.jiyingcao.a51fengliu.viewmodel.HomeIntent
-import com.jiyingcao.a51fengliu.viewmodel.HomeState
-import com.jiyingcao.a51fengliu.viewmodel.HomeViewModel
-import com.jiyingcao.a51fengliu.viewmodel.HomeViewModelFactory
+import com.jiyingcao.a51fengliu.viewmodel.HomeRecordListIntent
+import com.jiyingcao.a51fengliu.viewmodel.HomeRecordListViewModel
+import com.jiyingcao.a51fengliu.viewmodel.HomeRecordListViewModelFactory
+import com.jiyingcao.a51fengliu.viewmodel.LoadingType
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
 import kotlinx.coroutines.launch
 
-class HomeSubFragment : Fragment() {
+class HomeRecordListFragment : Fragment() {
 
     private var _binding: StatefulViewpager2RecyclerViewBinding? = null
     private val binding get() = _binding!!
@@ -41,10 +41,10 @@ class HomeSubFragment : Fragment() {
     /** daily热门，publish最新 */
     private lateinit var sort: String
 
-    private val viewModel: HomeViewModel by viewModels {
-        HomeViewModelFactory(
-            RecordRepository.getInstance(RetrofitClient.apiService),
-            sort
+    private val viewModel: HomeRecordListViewModel by viewModels {
+        HomeRecordListViewModelFactory(
+            sort,
+            RecordRepository.getInstance(RetrofitClient.apiService)
         )
     }
 
@@ -88,76 +88,59 @@ class HomeSubFragment : Fragment() {
         refreshLayout.apply {
             setRefreshHeader(ClassicsHeader(context))
             setRefreshFooter(ClassicsFooter(context))
-            setOnRefreshListener { viewModel.processIntent(HomeIntent.Refresh) }
-            setOnLoadMoreListener { viewModel.processIntent(HomeIntent.LoadMore) }
+            setOnRefreshListener { viewModel.processIntent(HomeRecordListIntent.Refresh) }
+            setOnLoadMoreListener { viewModel.processIntent(HomeRecordListIntent.LoadMore) }
             // setEnableLoadMore(false)  // 加载第一页成功前暂时禁用LoadMore
         }
     }
 
     private fun setupFlowCollectors() {
-        // 监听ViewModel状态
+        // 监听单一UI状态
         viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.state.collect { state ->
-                when (state) {
-                    is HomeState.Loading -> handleLoadingState(state)
-                    is HomeState.Error -> handleErrorState(state)
-                    is HomeState.Success -> {
-                        binding.showContentView()
-                        refreshLayout.finishRefresh()
-                        refreshLayout.finishLoadMore()
-                    }
-                    else -> {}
-                }
-            }
-        }
-        
-        // 监听记录数据
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.records.collect { records ->
-                recordAdapter.submitList(records)
+            viewModel.uiState.collect { uiState ->
+                // 更新记录数据
+                recordAdapter.submitList(uiState.records)
                 
-                // 如果没有数据，显示空状态
-                if (records.isEmpty()) {
-                    binding.showEmptyContent()
+                // 处理加载状态
+                when {
+                    uiState.showFullScreenLoading -> binding.showLoadingView()
+                    uiState.showFullScreenError -> {
+                        binding.showErrorView(uiState.errorMessage) {
+                            viewModel.processIntent(HomeRecordListIntent.Retry)
+                        }
+                    }
+                    uiState.showEmpty -> binding.showEmptyContent()
+                    uiState.showContent -> {
+                        binding.showContentView()
+                        binding.showRealContent()
+                    }
+                }
+                
+                // 处理刷新状态
+                if (uiState.isRefreshing) {
+                    // 下拉刷新中 - SmartRefreshLayout 自动处理
                 } else {
-                    binding.showRealContent()
+                    refreshLayout.finishRefresh(!uiState.isError || uiState.errorType != LoadingType.PULL_TO_REFRESH)
                 }
-            }
-        }
-        
-        // 监听是否还有更多数据
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.noMoreDataState.collect { noMoreData ->
-                refreshLayout.setNoMoreData(noMoreData)
+                
+                // 处理加载更多状态
+                if (uiState.isLoadingMore) {
+                    // 加载更多中 - SmartRefreshLayout 自动处理
+                } else {
+                    refreshLayout.finishLoadMore(!uiState.isError || uiState.errorType != LoadingType.LOAD_MORE)
+                }
+                
+                // 设置是否还有更多数据
+                refreshLayout.setNoMoreData(uiState.noMoreData)
+                
+                // 处理错误消息（非全屏错误）
+                if (uiState.isError && !uiState.showFullScreenError) {
+                    requireContext().showToast(uiState.errorMessage)
+                }
             }
         }
     }
     
-    private fun handleLoadingState(loading: HomeState.Loading) {
-        when (loading) {
-            HomeState.Loading.FullScreen -> binding.showLoadingView()
-            HomeState.Loading.PullToRefresh -> { /* 下拉刷新加载处理 */ }
-            HomeState.Loading.LoadMore -> { /* 加载更多处理 */ }
-        }
-    }
-    
-    private fun handleErrorState(error: HomeState.Error) {
-        when (error) {
-            is HomeState.Error.FullScreen -> {
-                binding.showErrorView(error.message) {
-                    viewModel.processIntent(HomeIntent.Retry)
-                }
-            }
-            is HomeState.Error.PullToRefresh -> {
-                refreshLayout.finishRefresh(false)
-                requireContext().showToast(error.message)
-            }
-            is HomeState.Error.LoadMore -> {
-                refreshLayout.finishLoadMore(false)
-                requireContext().showToast(error.message)
-            }
-        }
-    }
 
     override fun onDestroyView() {
         super.onDestroyView()
@@ -166,7 +149,7 @@ class HomeSubFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.processIntent(HomeIntent.InitialLoad)
+        viewModel.processIntent(HomeRecordListIntent.InitialLoad)
         onFragmentVisible()
     }
 
@@ -186,11 +169,11 @@ class HomeSubFragment : Fragment() {
     }
 
     companion object {
-        private const val TAG = "HomeSubFragment"
+        private const val TAG = "HomeRecordListFragment"
         private const val ARG_SORT = "sort"
         
-        fun newInstance(sort: String): HomeSubFragment {
-            return HomeSubFragment().apply {
+        fun newInstance(sort: String): HomeRecordListFragment {
+            return HomeRecordListFragment().apply {
                 arguments = Bundle().apply {
                     putString(ARG_SORT, sort)
                 }

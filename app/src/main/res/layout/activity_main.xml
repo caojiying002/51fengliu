@@ -47,6 +47,13 @@
                 android:layout_weight="1" />
 
             <include
+                android:id="@+id/tabStreet"
+                layout="@layout/item_tab"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <include
                 android:id="@+id/tabNotifications"
                 layout="@layout/item_tab"
                 android:layout_width="0dp"

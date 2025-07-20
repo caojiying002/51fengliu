@@ -14,8 +14,5 @@ data class PageData<T>(
 ) {
     fun isFirstPage() = (current == 1)
 
-    @Deprecated("Use noMoreData instead", ReplaceWith("noMoreData"))
-    fun isLastPage() = (current == pages)
-
     fun noMoreData() = (current >= pages)
 }

@@ -192,7 +192,7 @@ class SearchViewModel(
             .onSuccess { pageData ->
                 currentPage = page
                 val newRecords = updateRecordsList(page, pageData.records)
-                updateUiStateToSuccess(newRecords, pageData.isLastPage())
+                updateUiStateToSuccess(newRecords, pageData.noMoreData())
             }
             .onFailure { e ->
                 if (!handleFailure(e)) { // 通用错误处理

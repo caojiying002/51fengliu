@@ -4,6 +4,7 @@ import com.jiyingcao.a51fengliu.api.TokenPolicy.Policy
 import com.jiyingcao.a51fengliu.api.request.InfoIdRequest
 import com.jiyingcao.a51fengliu.api.request.LoginRequest
 import com.jiyingcao.a51fengliu.api.request.ReportRequest
+import com.jiyingcao.a51fengliu.api.request.StreetIdRequest
 import com.jiyingcao.a51fengliu.api.response.*
 import com.jiyingcao.a51fengliu.util.City
 import okhttp3.MultipartBody
@@ -145,6 +146,21 @@ interface ApiService {
         @Query("page") page: Int = 1
     ): ApiResponse<PageData<RecordInfo>>
 
+    /**
+     * 获取我的暗巷收藏列表
+     * 需要用户登录状态
+     * 
+     * @param page 页码，默认从1开始
+     * @param perPage 每页数量，默认30
+     * @return 分页的暗巷收藏列表
+     */
+    @TokenPolicy(Policy.REQUIRED)
+    @GET(ApiEndpoints.User.FAVORITE_STREETS)
+    suspend fun getFavoriteStreets(
+        @Query("page") page: Int = 1,
+        @Query("perPage") perPage: Int = 30
+    ): ApiResponse<PageData<Street>>
+
     // ========== 商家相关接口 ==========
 
     /**
@@ -184,4 +200,64 @@ interface ApiService {
     @TokenPolicy(Policy.OPTIONAL)
     @GET(ApiEndpoints.Merchant.CITIES)
     suspend fun getMerchantCities(): ApiResponse<List<City>>
+
+    // ========== 暗巷相关接口 ==========
+
+    /**
+     * 获取暗巷列表（分页）
+     * 获取所有暗巷信息的分页列表
+     * 
+     * @param cityCode 城市代码
+     * @param sort 排序方式，如"publish"
+     * @param page 页码，默认从1开始
+     * @param perPage 每页数量，默认30
+     * @return 分页的暗巷列表
+     */
+    @TokenPolicy(Policy.OPTIONAL)
+    @GET(ApiEndpoints.Street.PAGE)
+    suspend fun getStreets(
+        @Query("cityCode") cityCode: String,
+        @Query("sort") sort: String = "publish",
+        @Query("page") page: Int = 1,
+        @Query("perPage") perPage: Int = 30
+    ): ApiResponse<PageData<Street>>
+
+    /**
+     * 获取暗巷详情
+     * 获取指定暗巷信息的详细内容
+     * 
+     * @param streetId 暗巷ID
+     * @return 暗巷详情数据
+     */
+    @TokenPolicy(Policy.OPTIONAL)
+    @GET(ApiEndpoints.Street.DETAIL)
+    suspend fun getStreetDetail(
+        @Query("streetId") streetId: String
+    ): ApiResponse<Street>
+
+    /**
+     * 收藏暗巷
+     * 需要用户登录状态，已收藏会报错（code=-2，msg=\"已经收藏过了\"）
+     * 
+     * @param body 包含暗巷ID的请求体
+     * @return 收藏操作结果
+     */
+    @TokenPolicy(Policy.REQUIRED)
+    @POST(ApiEndpoints.Street.FAVORITE)
+    suspend fun postStreetFavorite(
+        @Body body: StreetIdRequest
+    ): ApiResponse<Nothing>
+
+    /**
+     * 取消收藏暗巷
+     * 需要用户登录状态，未收藏会报错（code=-2，msg=\"Failed\"）
+     * 
+     * @param body 包含暗巷ID的请求体
+     * @return 取消收藏操作结果
+     */
+    @TokenPolicy(Policy.REQUIRED)
+    @POST(ApiEndpoints.Street.UNFAVORITE)
+    suspend fun postStreetUnfavorite(
+        @Body body: StreetIdRequest
+    ): ApiResponse<Nothing>
 }

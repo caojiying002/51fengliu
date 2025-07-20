@@ -19,6 +19,7 @@ object ApiEndpoints {
     object User {
         const val PROFILE = "/api/mobile/authUser/detail.json"
         const val FAVORITES = "/api/mobile/authUser/favoritePage.json"
+        const val FAVORITE_STREETS = "/api/mobile/authUser/favoriteStreetPage.json"
     }
     
     /** 信息内容相关接口 */
@@ -36,5 +37,13 @@ object ApiEndpoints {
         const val PAGE = "/api/mobile/merchant/page.json"
         const val DETAIL = "/api/mobile/merchant/detail.json"
         const val CITIES = "/api/mobile/config/merchantCity.json"
+    }
+    
+    /** 暗巷相关接口 */
+    object Street {
+        const val PAGE = "/api/mobile/street/page.json"
+        const val DETAIL = "/api/mobile/street/detail.json"
+        const val FAVORITE = "/api/mobile/street/favorite.json"
+        const val UNFAVORITE = "/api/mobile/street/unfavorite.json"
     }
 }

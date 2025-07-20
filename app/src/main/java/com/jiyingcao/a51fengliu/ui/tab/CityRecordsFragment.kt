@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -14,10 +13,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
-import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.jiyingcao.a51fengliu.App
-import com.jiyingcao.a51fengliu.R
+import com.jiyingcao.a51fengliu.databinding.FragmentCityTabPagerBinding
 import com.jiyingcao.a51fengliu.ui.ChooseCityActivity
 import com.jiyingcao.a51fengliu.ui.widget.ViewPager2TouchInterceptor
 import com.jiyingcao.a51fengliu.util.AppLogger
@@ -28,9 +26,8 @@ import com.jiyingcao.a51fengliu.viewmodel.CitySelectionViewModel
 import kotlinx.coroutines.launch
 
 class CityRecordsFragment : Fragment() {
-    private lateinit var viewPager: ViewPager2
-    private lateinit var tabLayout: TabLayout
-    private lateinit var titleBarChooseCity: TextView
+    private var _binding: FragmentCityTabPagerBinding? = null
+    private val binding get() = _binding!!
     private val tabTitles = listOf("最新发布", "一周热门", "本月热门", "上月热门")
 
     /**
@@ -42,18 +39,16 @@ class CityRecordsFragment : Fragment() {
         CitySelectionViewModel.Factory(App.INSTANCE.dataStore)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_city_records, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = FragmentCityTabPagerBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewPager = view.findViewById(R.id.viewPager)
-        tabLayout = view.findViewById(R.id.tabLayout)
-
         setupViewPager()
         setupTabLayout()
-        setupClickListeners(view)
+        setupClickListeners()
         //setupNestedScrolling() // 不需要，用嵌套布局解决滑动冲突了
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -70,10 +65,10 @@ class CityRecordsFragment : Fragment() {
      */
     private fun setupNestedScrolling() {
         // 在ViewPager2层次设置触摸拦截器
-        ViewPager2TouchInterceptor.setupWithViewPager(viewPager)
+        ViewPager2TouchInterceptor.setupWithViewPager(binding.viewPager)
         
         // 额外设置嵌套滚动视图处理
-        ViewPager2TouchInterceptor.setupNestedScrollableViews(viewPager)
+        ViewPager2TouchInterceptor.setupNestedScrollableViews(binding.viewPager)
         
         // 日志输出
         AppLogger.d(TAG, "ViewPager2TouchInterceptor setup complete")
@@ -87,34 +82,39 @@ class CityRecordsFragment : Fragment() {
         super.onPause()
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
     private fun setupViewPager() {
         val adapter = CityRecordsTabAdapter(this)
-        viewPager.adapter = adapter
-        viewPager.offscreenPageLimit = 3
-
-        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                super.onPageSelected(position)
-                // 不再需要手动更新生命周期
-            }
-        })
+        with (binding.viewPager) {
+            this.adapter = adapter
+            offscreenPageLimit = 3
+            registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+                override fun onPageSelected(position: Int) {
+                    super.onPageSelected(position)
+                    // 不再需要手动更新生命周期
+                }
+            })
+        }
     }
 
     private fun setupTabLayout() {
-        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = tabTitles[position]
         }.attach()
     }
 
-    private fun setupClickListeners(view: View) {
-        titleBarChooseCity = view.findViewById(R.id.title_bar_choose_city)
-        titleBarChooseCity.setOnClickListener { v ->
+    private fun setupClickListeners() {
+        binding.titleBarChooseCity.setOnClickListener { v ->
             chooseCityLauncher.launch(ChooseCityActivity.createIntent(v.context))
         }
     }
 
     private fun displayCity(cityCode: String?) {
-        titleBarChooseCity.text = cityCode?.to2LevelName() ?: "选择地区"
+        binding.titleBarChooseCity.text = cityCode?.to2LevelName() ?: "选择地区"
     }
 
     /**
@@ -166,7 +166,7 @@ class CityRecordsFragment : Fragment() {
             return CityRecordsSubFragment.newInstance(sort)
         }
     }
-    
+
     companion object {
         private const val TAG = "CityRecordsFragment"
     }

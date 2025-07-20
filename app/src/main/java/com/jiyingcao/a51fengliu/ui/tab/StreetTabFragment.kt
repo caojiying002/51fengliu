@@ -5,17 +5,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
-import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.jiyingcao.a51fengliu.App
-import com.jiyingcao.a51fengliu.R
+import com.jiyingcao.a51fengliu.databinding.FragmentCityTabPagerBinding
 import com.jiyingcao.a51fengliu.ui.ChooseCityActivity
 import com.jiyingcao.a51fengliu.util.AppLogger
 import com.jiyingcao.a51fengliu.util.dataStore
@@ -25,9 +23,8 @@ import com.jiyingcao.a51fengliu.viewmodel.CitySelectionViewModel
 import kotlinx.coroutines.launch
 
 class StreetTabFragment : Fragment() {
-    private lateinit var viewPager: ViewPager2
-    private lateinit var tabLayout: TabLayout
-    private lateinit var titleBarChooseCity: TextView
+    private var _binding: FragmentCityTabPagerBinding? = null
+    private val binding get() = _binding!!
     private val tabTitles = listOf("最新发布", "一周热门", "本月热门", "上月热门")
 
     /**
@@ -39,18 +36,16 @@ class StreetTabFragment : Fragment() {
         CitySelectionViewModel.Factory(App.INSTANCE.dataStore)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_street_tab, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = FragmentCityTabPagerBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewPager = view.findViewById(R.id.viewPager)
-        tabLayout = view.findViewById(R.id.tabLayout)
-
         setupViewPager()
         setupTabLayout()
-        setupClickListeners(view)
+        setupClickListeners()
 
         viewLifecycleOwner.lifecycleScope.launch {
             citySelectionViewModel.selectedCity.collect { cityCode ->
@@ -67,34 +62,39 @@ class StreetTabFragment : Fragment() {
         super.onPause()
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
     private fun setupViewPager() {
         val adapter = StreetTabAdapter(this)
-        viewPager.adapter = adapter
-        viewPager.offscreenPageLimit = 3
-
-        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                super.onPageSelected(position)
-                // 不再需要手动更新生命周期
-            }
-        })
+        with (binding.viewPager) {
+            this.adapter = adapter
+            offscreenPageLimit = 3
+            registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+                override fun onPageSelected(position: Int) {
+                    super.onPageSelected(position)
+                    // 不再需要手动更新生命周期
+                }
+            })
+        }
     }
 
     private fun setupTabLayout() {
-        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = tabTitles[position]
         }.attach()
     }
 
-    private fun setupClickListeners(view: View) {
-        titleBarChooseCity = view.findViewById(R.id.title_bar_choose_city)
-        titleBarChooseCity.setOnClickListener { v ->
+    private fun setupClickListeners() {
+        binding.titleBarChooseCity.setOnClickListener { v ->
             chooseCityLauncher.launch(ChooseCityActivity.createIntent(v.context))
         }
     }
 
     private fun displayCity(cityCode: String?) {
-        titleBarChooseCity.text = cityCode?.to2LevelName() ?: "选择地区"
+        binding.titleBarChooseCity.text = cityCode?.to2LevelName() ?: "选择地区"
     }
 
     private val chooseCityLauncher = registerForActivityResult(
@@ -124,7 +124,7 @@ class StreetTabFragment : Fragment() {
             return StreetListFragment.newInstance(sort, position)
         }
     }
-    
+
     companion object {
         private const val TAG = "StreetTabFragment"
     }

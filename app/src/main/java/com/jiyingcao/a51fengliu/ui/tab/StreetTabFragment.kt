@@ -21,7 +21,7 @@ import com.jiyingcao.a51fengliu.util.AppLogger
 import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.to2LevelName
-import com.jiyingcao.a51fengliu.viewmodel.CityRecordsViewModel
+import com.jiyingcao.a51fengliu.viewmodel.CitySelectionViewModel
 import kotlinx.coroutines.launch
 
 class StreetTabFragment : Fragment() {
@@ -35,8 +35,8 @@ class StreetTabFragment : Fragment() {
      *
      * 由所有 [StreetListFragment] 共享。
      */
-    private val viewModel: CityRecordsViewModel by activityViewModels {
-        CityRecordsViewModel.Factory(App.INSTANCE.dataStore)
+    private val citySelectionViewModel: CitySelectionViewModel by activityViewModels {
+        CitySelectionViewModel.Factory(App.INSTANCE.dataStore)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -53,7 +53,7 @@ class StreetTabFragment : Fragment() {
         setupClickListeners(view)
 
         viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.selectedCity.collect { cityCode ->
+            citySelectionViewModel.selectedCity.collect { cityCode ->
                 displayCity(cityCode)
             }
         }
@@ -105,7 +105,7 @@ class StreetTabFragment : Fragment() {
             AppLogger.d("registerForActivityResult", "City code selected: $cityCode")
             cityCode?.let {
                 App.INSTANCE.showToast("City code selected: $cityCode")
-                viewModel.setCity(it)
+                citySelectionViewModel.setCity(it)
             }
         }
     }

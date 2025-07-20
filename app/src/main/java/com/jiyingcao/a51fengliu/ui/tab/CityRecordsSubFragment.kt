@@ -25,7 +25,7 @@ import com.jiyingcao.a51fengliu.util.AppLogger
 import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.CityIntent
-import com.jiyingcao.a51fengliu.viewmodel.CityRecordsViewModel
+import com.jiyingcao.a51fengliu.viewmodel.CitySelectionViewModel
 import com.jiyingcao.a51fengliu.viewmodel.CityState
 import com.jiyingcao.a51fengliu.viewmodel.CityViewModel
 import com.jiyingcao.a51fengliu.viewmodel.CityViewModelFactory
@@ -62,8 +62,8 @@ class CityRecordsSubFragment : Fragment() {
      *
      * 保存选中的城市，与其他 [CityRecordsSubFragment] 实例共享。
      */
-    private val selectedCityViewModel: CityRecordsViewModel by activityViewModels {
-        CityRecordsViewModel.Factory(App.INSTANCE.dataStore)
+    private val citySelectionViewModel: CitySelectionViewModel by activityViewModels {
+        CitySelectionViewModel.Factory(App.INSTANCE.dataStore)
     }
 
     private lateinit var recordAdapter: RecordAdapter
@@ -117,7 +117,7 @@ class CityRecordsSubFragment : Fragment() {
     private fun setupFlowCollectors() {
         // 监听选择的城市
         viewLifecycleOwner.lifecycleScope.launch {
-            selectedCityViewModel.selectedCity.collect { cityCode ->
+            citySelectionViewModel.selectedCity.collect { cityCode ->
                 AppLogger.d(TAG, "$TAG@${this@CityRecordsSubFragment.hashCode()}: city code selected: $cityCode")
                 cityCode?.let {
                     // StateFlow保证值不会重复发射，所以每次收到新的城市代码时都需要重置滚动

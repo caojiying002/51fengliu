@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class CityRecordsViewModel(private val dataStore: DataStore<Preferences>) : ViewModel() {
+class CitySelectionViewModel(private val dataStore: DataStore<Preferences>) : ViewModel() {
 
     val selectedCity: StateFlow<String?> = dataStore.data
         .map { preferences ->
@@ -36,9 +36,9 @@ class CityRecordsViewModel(private val dataStore: DataStore<Preferences>) : View
 
     class Factory(private val dataStore: DataStore<Preferences>) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(CityRecordsViewModel::class.java)) {
+            if (modelClass.isAssignableFrom(CitySelectionViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return CityRecordsViewModel(dataStore) as T
+                return CitySelectionViewModel(dataStore) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

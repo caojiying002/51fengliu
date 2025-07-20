@@ -9,6 +9,7 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
@@ -23,7 +24,7 @@ import com.jiyingcao.a51fengliu.util.AppLogger
 import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.to2LevelName
-import com.jiyingcao.a51fengliu.viewmodel.CityRecordsViewModel
+import com.jiyingcao.a51fengliu.viewmodel.CitySelectionViewModel
 import kotlinx.coroutines.launch
 
 class CityRecordsFragment : Fragment() {
@@ -37,8 +38,8 @@ class CityRecordsFragment : Fragment() {
      *
      * 由所有 [CityRecordsSubFragment] 共享。
      */
-    private val viewModel: CityRecordsViewModel by activityViewModels {
-        CityRecordsViewModel.Factory(App.INSTANCE.dataStore)
+    private val citySelectionViewModel: CitySelectionViewModel by activityViewModels {
+        CitySelectionViewModel.Factory(App.INSTANCE.dataStore)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -57,7 +58,7 @@ class CityRecordsFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             //viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.selectedCity.collect { cityCode ->
+                citySelectionViewModel.selectedCity.collect { cityCode ->
                     displayCity(cityCode)
                 }
             //}
@@ -146,7 +147,7 @@ class CityRecordsFragment : Fragment() {
             AppLogger.d("registerForActivityResult", "City code selected: $cityCode")
             cityCode?.let {
                 App.INSTANCE.showToast("City code selected: $cityCode")
-                viewModel.setCity(it)
+                citySelectionViewModel.setCity(it)
             }
         }
     }

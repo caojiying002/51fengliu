@@ -1,6 +1,7 @@
 package com.jiyingcao.a51fengliu.ui.common
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -15,6 +16,10 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import androidx.core.view.isVisible
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.activity.ComponentActivity
+import androidx.fragment.app.Fragment
 import com.jiyingcao.a51fengliu.databinding.ActivityWebViewBinding
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.util.AppLogger
@@ -27,13 +32,14 @@ class WebViewActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityWebViewBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         setupClickListeners()
-        if (initializeWebView()) {
-            setupWebView()
-            intent.getUrl()?.let {
-                webView?.loadUrl(it)
-            }
+        if (!initializeWebView())
+            return
+
+        setupWebView()
+        // 先尝试恢复状态，失败则加载初始URL
+        if (!restoreWebViewState(savedInstanceState)) {
+            loadInitialUrl()
         }
     }
 
@@ -52,6 +58,7 @@ class WebViewActivity : BaseActivity() {
             )
             webView?.layoutParams = layoutParams
             binding.webViewContainer.addView(webView)
+            lifecycle.addObserver(WebViewLifecycleObserver(webView!!))
             hideWebViewError()
             true
         } catch (e: Exception) {
@@ -289,8 +296,64 @@ class WebViewActivity : BaseActivity() {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        webView?.let { webView ->
+            val webViewState = Bundle()
+            webView.saveState(webViewState)
+            outState.putBundle(WEBVIEW_STATE_KEY, webViewState)
+        }
+    }
+
+    /**
+     * 从Bundle恢复WebView状态，返回布尔值表示是否成功恢复
+     */
+    private fun restoreWebViewState(savedInstanceState: Bundle?): Boolean {
+        val webViewState = savedInstanceState?.getBundle(WEBVIEW_STATE_KEY)
+        return if (webViewState != null) {
+            webView?.restoreState(webViewState)
+            true
+        } else {
+            false
+        }
+    }
+
+    private fun loadInitialUrl() {
+        intent.getUrl()?.let {
+            webView?.loadUrl(it)
+        }
+    }
+
+    private class WebViewLifecycleObserver(private val webView: WebView) : DefaultLifecycleObserver {
+        override fun onResume(owner: LifecycleOwner) {
+            webView.onResume()
+        }
+
+        override fun onPause(owner: LifecycleOwner) {
+            webView.onPause()
+        }
+
+        override fun onDestroy(owner: LifecycleOwner) {
+            val isFinishing = when (owner) {
+                is Activity -> owner.isFinishing
+                is Fragment -> owner.activity?.isFinishing ?: true
+                is android.app.Fragment -> owner.activity?.isFinishing ?: true
+                else -> true
+            }
+
+            if (isFinishing) {
+                webView.clearHistory()
+                webView.clearCache(true)
+                webView.loadUrl("about:blank")
+                webView.clearView()
+            }
+            webView.destroy()
+        }
+    }
+
     companion object {
         private const val TAG = "WebViewActivity"
+        private const val WEBVIEW_STATE_KEY = "webview_state"
 
         @JvmStatic
         fun createIntent(context: Context, url: String? = null) =

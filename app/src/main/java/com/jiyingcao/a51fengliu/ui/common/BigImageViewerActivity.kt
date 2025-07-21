@@ -72,7 +72,7 @@ class BigImageViewerActivity : BaseActivity() {
         clickedImageIndex = intent.getIntExtra("CLICKED_IMAGE_INDEX", 0)
         currentImageIndex = intent.getIntExtra("INDEX", 0)
         
-        setupBackPressHandler()
+        setupBackPressedCallback()
         setupViewPager2()
         displayImagesFromIntent(intent)
         
@@ -88,7 +88,7 @@ class BigImageViewerActivity : BaseActivity() {
     /**
      * 设置返回按键处理器，使用新的OnBackPressedDispatcher API
      */
-    private fun setupBackPressHandler() {
+    private fun setupBackPressedCallback() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 finishWithSharedElementTransition()

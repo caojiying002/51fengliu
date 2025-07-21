@@ -18,7 +18,7 @@ import android.widget.FrameLayout
 import androidx.core.view.isVisible
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
-import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import com.jiyingcao.a51fengliu.databinding.ActivityWebViewBinding
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
@@ -28,10 +28,22 @@ class WebViewActivity : BaseActivity() {
     private lateinit var binding: ActivityWebViewBinding
     private var webView: WebView? = null
 
+    private val webViewGoBackCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            if (webView?.canGoBack() == true) {
+                webView?.goBack()
+            } else {
+                isEnabled = false
+                onBackPressedDispatcher.onBackPressed()
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityWebViewBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        setupBackPressedCallback()
         setupClickListeners()
         if (!initializeWebView())
             return
@@ -43,8 +55,14 @@ class WebViewActivity : BaseActivity() {
         }
     }
 
+    private fun setupBackPressedCallback() {
+        onBackPressedDispatcher.addCallback(this, webViewGoBackCallback)
+    }
+
     private fun setupClickListeners() {
         binding.titleBar.titleBarBack.setOnClickListener {
+            // 禁用WebView返回, 执行常规返回(Activity关闭)
+            webViewGoBackCallback.isEnabled = false
             onBackPressedDispatcher.onBackPressed()
         }
     }

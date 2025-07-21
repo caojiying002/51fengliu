@@ -59,12 +59,12 @@ class VideoPlayerActivity : BaseActivity() {
         CacheFactory.setCacheManager(ExoPlayerCacheManager::class.java)
 
         // 处理返回手势
-        setupBackHandling()
+        setupBackPressedCallback()
         
         setupVideoPlayer()
     }
 
-    private fun setupBackHandling() {
+    private fun setupBackPressedCallback() {
         // 创建一个回调来处理返回手势和返回按钮
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {

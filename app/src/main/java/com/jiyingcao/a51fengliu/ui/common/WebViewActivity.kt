@@ -13,31 +13,69 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.FrameLayout
+import androidx.core.view.isVisible
 import com.jiyingcao.a51fengliu.databinding.ActivityWebViewBinding
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
+import com.jiyingcao.a51fengliu.util.AppLogger
 
 class WebViewActivity : BaseActivity() {
     private lateinit var binding: ActivityWebViewBinding
+    private var webView: WebView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityWebViewBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setupWebView()
-
-        intent.getUrl()?.let {
-            binding.webView.loadUrl(it)
+        setupClickListeners()
+        if (initializeWebView()) {
+            setupWebView()
+            intent.getUrl()?.let {
+                webView?.loadUrl(it)
+            }
         }
+    }
+
+    private fun setupClickListeners() {
+        binding.titleBar.titleBarBack.setOnClickListener {
+            onBackPressedDispatcher.onBackPressed()
+        }
+    }
+
+    private fun initializeWebView(): Boolean {
+        return try {
+            webView = WebView(this)
+            val layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+            webView?.layoutParams = layoutParams
+            binding.webViewContainer.addView(webView)
+            hideWebViewError()
+            true
+        } catch (e: Exception) {
+            AppLogger.w(TAG, "Failed to initialize WebView", e)
+            showWebViewError()
+            false
+        }
+    }
+
+    private fun hideWebViewError() {
+        binding.errorTextView.isVisible = false
+    }
+
+    private fun showWebViewError() {
+        binding.errorTextView.isVisible = true
     }
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun setupWebView() {
-        binding.webView.settings.apply {
+        webView?.settings?.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
         }
-        binding.webView.webViewClient = object : WebViewClient() {
+        webView?.webViewClient = object : WebViewClient() {
             @Deprecated("Deprecated in Java")
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
                 url?.let {
@@ -115,7 +153,7 @@ class WebViewActivity : BaseActivity() {
                 binding.progressBar.visibility = View.INVISIBLE
             }
         }
-        binding.webView.webChromeClient = object : android.webkit.WebChromeClient() {
+        webView?.webChromeClient = object : android.webkit.WebChromeClient() {
             override fun onProgressChanged(view: WebView?, newProgress: Int) {
                 super.onProgressChanged(view, newProgress)
                 binding.progressBar.progress = newProgress
@@ -247,7 +285,7 @@ class WebViewActivity : BaseActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         intent.getUrl()?.let {
-            binding.webView.loadUrl(it)
+            webView?.loadUrl(it)
         }
     }
 
@@ -255,11 +293,14 @@ class WebViewActivity : BaseActivity() {
         private const val TAG = "WebViewActivity"
 
         @JvmStatic
-        fun start(context: Context, url: String) {
-            val intent = Intent(context, WebViewActivity::class.java).apply {
+        fun createIntent(context: Context, url: String? = null) =
+            Intent(context, WebViewActivity::class.java).apply {
                 putExtra("KEY_URL", url)
             }
-            context.startActivity(intent)
+
+        @JvmStatic
+        fun start(context: Context, url: String? = null) {
+            context.startActivity(createIntent(context, url))
         }
 
         private fun Intent.getUrl(): String? = getStringExtra("KEY_URL")

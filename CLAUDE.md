@@ -19,6 +19,46 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ./gradlew clean build
 ```
 
+## Modern API Requirements
+
+⚠️ **CRITICAL: Always use modern Android APIs. Deprecated patterns are strictly forbidden.**
+
+### Mandatory Modern API Usage
+
+**Activity Results**: Use `ActivityResultContracts` for all activity results and permission requests. Never use `onActivityResult()`, `startActivityForResult()`, or `onRequestPermissionsResult()`.
+
+**Back Navigation**: Use `OnBackPressedDispatcher.addCallback()` for custom back handling. Never override `onBackPressed()`.
+
+**Lifecycle Management**: Use `LifecycleObserver` and `@OnLifecycleEvent` annotations instead of overriding lifecycle methods (`onStart`, `onResume`, `onPause`, `onStop`). This prevents logic scattering and mixing of different concerns across lifecycle methods.
+
+**View Binding**: Mandatory for all Activities and Fragments. Never use `findViewById()`.
+
+**Async Operations**: Use Kotlin Coroutines with `viewModelScope` or `lifecycleScope`. Never use `AsyncTask`, `Thread`, or `Handler.post()`.
+
+**RecyclerView**: Use `ListAdapter` with `DiffUtil.ItemCallback`. Never extend `RecyclerView.Adapter` directly.
+
+**Fragment Navigation**: Use Navigation Component with SafeArgs. Never use `FragmentManager.beginTransaction()` for navigation.
+
+**ViewModel Creation**: Use `by viewModels()` delegate or `ViewModelProvider.Factory`. Follow dependency injection patterns.
+
+### Jetpack Compose Requirements
+
+**New Screens**: All new UI screens should use Jetpack Compose with Material 3 theming.
+
+**State Management**: Use `collectAsState()` for ViewModel states, `remember`/`rememberSaveable` for local state.
+
+**Navigation**: Use Compose Navigation or `ActivityResultContracts` for inter-screen navigation.
+
+### Strictly Forbidden APIs
+
+🚫 **Never use these deprecated patterns:**
+- `onActivityResult()`, `startActivityForResult()`, `onRequestPermissionsResult()`
+- `onBackPressed()`
+- Lifecycle method overrides: `onStart()`, `onResume()`, `onPause()`, `onStop()`, `onDestroy()` (use LifecycleObserver instead)
+- `findViewById()`, `AsyncTask`, `Thread`, `Runnable`, `Handler.post()`
+- Direct `RecyclerView.Adapter` inheritance
+- `FragmentManager.beginTransaction()` for navigation
+
 ## Architecture Overview
 
 This Android app follows **MVVM + MVI** architecture with reactive programming using Kotlin Flow.
@@ -119,3 +159,4 @@ _uiState.update { currentState ->
 - Ensure proper error handling and logging
 - Write clean, readable, and well-documented code
 - Follow SOLID principles and clean architecture guidelines
+- **Always use modern Android APIs - deprecated APIs are strictly forbidden**

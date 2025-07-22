@@ -81,6 +81,8 @@ class MerchantListFragment : Fragment() {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
             adapter = merchantAdapter
+            // 禁用动画
+            itemAnimator = null
         }
     }
 

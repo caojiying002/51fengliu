@@ -11,7 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
-import com.jiyingcao.a51fengliu.ui.theme.AppTheme
+import com.jiyingcao.a51fengliu.ui.compose.theme.AppTheme
 
 /**
  * 统一的 Compose 容器 Activity

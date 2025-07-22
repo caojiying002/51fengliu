@@ -1,4 +1,4 @@
-package com.jiyingcao.a51fengliu.ui.components
+package com.jiyingcao.a51fengliu.ui.compose.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,11 +14,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jiyingcao.a51fengliu.R
-import com.jiyingcao.a51fengliu.ui.theme.AppTheme
-import com.jiyingcao.a51fengliu.ui.theme.Primary
-import com.jiyingcao.a51fengliu.ui.theme.TitleBarBackTextSize
-import com.jiyingcao.a51fengliu.ui.theme.ToolbarHeight
-import com.jiyingcao.a51fengliu.ui.theme.spacingLarge
+import com.jiyingcao.a51fengliu.ui.compose.theme.AppTheme
+import com.jiyingcao.a51fengliu.ui.compose.theme.Primary
+import com.jiyingcao.a51fengliu.ui.compose.theme.TitleBarBackTextSize
+import com.jiyingcao.a51fengliu.ui.compose.theme.ToolbarHeight
+import com.jiyingcao.a51fengliu.ui.compose.theme.spacingLarge
 
 @Composable
 fun TitleBarBack(

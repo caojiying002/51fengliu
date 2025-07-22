@@ -1,4 +1,4 @@
-package com.jiyingcao.a51fengliu.ui.components
+package com.jiyingcao.a51fengliu.ui.compose.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -26,9 +26,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import coil3.compose.AsyncImage
 import com.jiyingcao.a51fengliu.R
-import com.jiyingcao.a51fengliu.ui.theme.TextContent
-import com.jiyingcao.a51fengliu.ui.theme.TextItemTitle
-import com.jiyingcao.a51fengliu.ui.theme.Primary
+import com.jiyingcao.a51fengliu.ui.compose.theme.TextContent
+import com.jiyingcao.a51fengliu.ui.compose.theme.TextItemTitle
+import com.jiyingcao.a51fengliu.ui.compose.theme.Primary
 
 @Composable
 fun RecordListItem(

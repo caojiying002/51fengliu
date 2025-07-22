@@ -34,7 +34,7 @@ import com.jiyingcao.a51fengliu.api.response.Merchant
 import com.jiyingcao.a51fengliu.repository.MerchantRepository
 import com.jiyingcao.a51fengliu.ui.auth.AuthActivity
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
-import com.jiyingcao.a51fengliu.ui.theme.*
+import com.jiyingcao.a51fengliu.ui.compose.theme.*
 import com.jiyingcao.a51fengliu.util.to2LevelName
 import com.jiyingcao.a51fengliu.viewmodel.*
 import com.jiyingcao.a51fengliu.config.AppConfig

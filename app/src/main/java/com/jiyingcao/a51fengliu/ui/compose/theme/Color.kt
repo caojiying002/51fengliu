@@ -1,4 +1,4 @@
-package com.jiyingcao.a51fengliu.ui.theme
+package com.jiyingcao.a51fengliu.ui.compose.theme
 
 import androidx.compose.ui.graphics.Color
 

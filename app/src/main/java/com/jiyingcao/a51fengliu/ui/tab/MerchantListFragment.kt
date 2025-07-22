@@ -16,8 +16,8 @@ import com.jiyingcao.a51fengliu.databinding.FragmentMerchantBinding
 import com.jiyingcao.a51fengliu.databinding.StatefulRefreshRecyclerViewBinding
 import com.jiyingcao.a51fengliu.repository.MerchantRepository
 import com.jiyingcao.a51fengliu.ui.MerchantDetailActivity
-import com.jiyingcao.a51fengliu.ui.MerchantDetailComposeActivity
 import com.jiyingcao.a51fengliu.ui.adapter.MerchantAdapter
+import com.jiyingcao.a51fengliu.ui.compose.ComposeContainerActivity
 import com.jiyingcao.a51fengliu.ui.showContentView
 import com.jiyingcao.a51fengliu.ui.showEmptyContent
 import com.jiyingcao.a51fengliu.ui.showErrorView
@@ -73,7 +73,7 @@ class MerchantListFragment : Fragment() {
     private fun setupRecyclerView() {
         merchantAdapter = MerchantAdapter().apply {
             setOnItemClickListener { merchant, position ->
-                startActivity(MerchantDetailComposeActivity.createIntent(requireContext(), merchant.id))
+                startActivity(ComposeContainerActivity.createMerchantDetailIntent(requireContext(), merchant.id))
             }
         }
         

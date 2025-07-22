@@ -55,10 +55,6 @@
             android:exported="${activityExported}"
             android:screenOrientation="${screenOrientation}" />
         <activity
-            android:name=".ui.MerchantDetailComposeActivity"
-            android:exported="${activityExported}"
-            android:screenOrientation="${screenOrientation}" />
-        <activity
             android:name=".ui.auth.AuthActivity"
             android:windowSoftInputMode="adjustResize|stateHidden"
             android:exported="${activityExported}"
@@ -73,7 +69,8 @@
         <activity
             android:name=".ui.compose.ComposeContainerActivity"
             android:exported="${activityExported}"
-            android:screenOrientation="${screenOrientation}" />
+            android:screenOrientation="${screenOrientation}"
+            android:windowSoftInputMode="adjustResize" />
 
         <!-- 全屏查看大图 -->
         <activity

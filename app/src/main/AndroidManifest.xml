@@ -69,6 +69,12 @@
             android:screenOrientation="${screenOrientation}"
             android:windowSoftInputMode="adjustResize|stateHidden" />
 
+        <!-- 管理所有Compose页面 -->
+        <activity
+            android:name=".ui.compose.ComposeContainerActivity"
+            android:exported="${activityExported}"
+            android:screenOrientation="${screenOrientation}" />
+
         <!-- 全屏查看大图 -->
         <activity
             android:name=".ui.common.BigImageViewerActivity"

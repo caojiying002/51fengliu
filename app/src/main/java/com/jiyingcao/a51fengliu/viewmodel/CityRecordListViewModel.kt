@@ -15,6 +15,7 @@ import com.jiyingcao.a51fengliu.util.AppLogger
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -81,15 +82,17 @@ class CityRecordListViewModel(
         val currentState = _uiState.value
         if (currentState.currentCityCode == cityCode) return
         
+        // 清除当前记录，避免显示旧数据
+        clearRecordsBlocking()
         // 更新城市代码并标记需要重置滚动
         _uiState.update { currentState ->
             currentState.copy(
+                records = emptyList(),
                 currentCityCode = cityCode,
                 shouldResetScroll = true
             )
         }
         
-        clearCurrentRecords()
         fetchData(cityCode = cityCode, page = 1, loadingType = LoadingType.FULL_SCREEN)
     }
 
@@ -116,14 +119,10 @@ class CityRecordListViewModel(
         }
     }
 
-    private fun clearCurrentRecords() {
-        viewModelScope.launch {
+    private fun clearRecordsBlocking() {
+        runBlocking {
             dataLock.withLock {
                 currentRecords.clear()
-            }
-            // 同步清理UI状态中的records，避免显示旧数据
-            _uiState.update { currentState ->
-                currentState.copy(records = emptyList(), hasLoaded = false)
             }
         }
     }

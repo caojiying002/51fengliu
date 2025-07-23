@@ -31,6 +31,7 @@ data class SearchUiState(
     val isRefreshing: Boolean = false,
     val isLoadingMore: Boolean = false,
     val keywords: String? = null, // 当前搜索关键词
+    val cityCode: String = "", // 当前城市代码
     val hasSearched: Boolean = false // 是否已经进行过搜索
 ) {
     // 派生状态 - 通过计算得出，避免状态冗余
@@ -71,7 +72,6 @@ class SearchViewModel(
     @GuardedBy("dataLock")
     private var currentRecords: MutableList<RecordInfo> = mutableListOf()
     private var currentPage = 0
-    private var currentCityCode: String? = null
 
     fun processIntent(intent: SearchIntent) {
         when (intent) {
@@ -104,7 +104,7 @@ class SearchViewModel(
 
         search(
             keywords = keywords,
-            cityCode = currentCityCode.orEmpty(),
+            cityCode = currentState.cityCode,
             page = 1,
             loadingType = LoadingType.FULL_SCREEN
         )
@@ -112,21 +112,20 @@ class SearchViewModel(
 
     private fun updateCityWithKeywords(cityCode: String, keywords: String) {
         val currentState = _uiState.value
-        val cityChanged = currentCityCode != cityCode
+        val cityChanged = currentState.cityCode != cityCode
         val keywordsChanged = currentState.keywords != keywords
 
         // 无事发生
         if (!cityChanged && !keywordsChanged) return
 
-        currentCityCode = cityCode
-        
         // 清除当前记录，避免显示旧数据
         clearRecordsBlocking()
         // 更新城市和关键词并清空记录显示
         _uiState.update { currentState ->
             currentState.copy(
                 records = emptyList(),
-                keywords = keywords
+                keywords = keywords,
+                cityCode = cityCode
             )
         }
 
@@ -142,7 +141,7 @@ class SearchViewModel(
         val currentState = _uiState.value
         search(
             keywords = currentState.keywords.orEmpty(),
-            cityCode = currentCityCode.orEmpty(),
+            cityCode = currentState.cityCode,
             page = 1,
             loadingType = LoadingType.PULL_TO_REFRESH
         )
@@ -152,7 +151,7 @@ class SearchViewModel(
         val currentState = _uiState.value
         search(
             keywords = currentState.keywords.orEmpty(),
-            cityCode = currentCityCode.orEmpty(),
+            cityCode = currentState.cityCode,
             page = currentPage + 1,
             loadingType = LoadingType.LOAD_MORE
         )
@@ -162,7 +161,7 @@ class SearchViewModel(
         val currentState = _uiState.value
         search(
             keywords = currentState.keywords.orEmpty(),
-            cityCode = currentCityCode.orEmpty(),
+            cityCode = currentState.cityCode,
             page = 1,
             loadingType = LoadingType.FULL_SCREEN
         )
@@ -187,7 +186,7 @@ class SearchViewModel(
         searchJob?.cancel()
         searchJob = viewModelScope.launch(remoteLoginCoroutineContext) {
             // 更新加载状态
-            updateUiStateToLoading(loadingType, keywords, hasSearched = true)
+            updateUiStateToLoading(loadingType, keywords, cityCode, hasSearched = true)
 
             val request = RecordsRequest.forSearch(keywords, cityCode, page)
             repository.getRecords(request)
@@ -238,11 +237,13 @@ class SearchViewModel(
      * 更新UI状态到加载中
      * @param loadingType 加载类型，决定显示哪种加载状态
      * @param keywords 当前搜索关键词
+     * @param cityCode 当前城市代码
      * @param hasSearched 是否已经进行过搜索
      */
     private fun updateUiStateToLoading(
         loadingType: LoadingType,
         keywords: String,
+        cityCode: String,
         hasSearched: Boolean = false
     ) {
         _uiState.update { currentState ->
@@ -253,6 +254,7 @@ class SearchViewModel(
                 loadingType = loadingType,
                 isError = false, // 清除之前的错误状态
                 keywords = keywords,
+                cityCode = cityCode,
                 hasSearched = hasSearched || currentState.hasSearched
             )
         }

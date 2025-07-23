@@ -6,7 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.jiyingcao.a51fengliu.api.RetrofitClient
@@ -64,7 +66,7 @@ class HomeRecordListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
         setupSmartRefreshLayout()
-        setupFlowCollectors()
+        observeUiState()
     }
     
     private fun setupRecyclerView() {
@@ -94,57 +96,51 @@ class HomeRecordListFragment : Fragment() {
         }
     }
 
-    private fun setupFlowCollectors() {
+    private fun observeUiState() {
         // 监听单一UI状态
         viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.uiState.collect { uiState ->
-                // 更新记录数据
-                recordAdapter.submitList(uiState.records)
-                
-                // 处理加载状态
-                when {
-                    uiState.showFullScreenLoading -> binding.showLoadingView()
-                    uiState.showFullScreenError -> {
-                        binding.showErrorView(uiState.errorMessage) {
-                            viewModel.processIntent(HomeRecordListIntent.Retry)
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                viewModel.uiState.collect { uiState ->
+                    // 更新记录数据
+                    recordAdapter.submitList(uiState.records)
+
+                    // 处理加载状态
+                    when {
+                        uiState.showFullScreenLoading -> binding.showLoadingView()
+                        uiState.showFullScreenError -> {
+                            binding.showErrorView(uiState.errorMessage) {
+                                viewModel.processIntent(HomeRecordListIntent.Retry)
+                            }
                         }
+
+                        uiState.showEmpty -> binding.showEmptyContent()
+                        uiState.showContent -> binding.showRealContent()
                     }
-                    uiState.showEmpty -> binding.showEmptyContent()
-                    uiState.showContent -> {
-                        binding.showContentView()
-                        binding.showRealContent()
+
+                    // 处理刷新状态
+                    if (uiState.isRefreshing) {
+                        // 下拉刷新中 - SmartRefreshLayout 自动处理
+                    } else {
+                        refreshLayout.finishRefresh(!uiState.isError || uiState.errorType != LoadingType.PULL_TO_REFRESH)
                     }
-                }
-                
-                // 处理刷新状态
-                if (uiState.isRefreshing) {
-                    // 下拉刷新中 - SmartRefreshLayout 自动处理
-                } else {
-                    refreshLayout.finishRefresh(!uiState.isError || uiState.errorType != LoadingType.PULL_TO_REFRESH)
-                }
-                
-                // 处理加载更多状态
-                if (uiState.isLoadingMore) {
-                    // 加载更多中 - SmartRefreshLayout 自动处理
-                } else {
-                    refreshLayout.finishLoadMore(!uiState.isError || uiState.errorType != LoadingType.LOAD_MORE)
-                }
-                
-                // 设置是否还有更多数据
-                refreshLayout.setNoMoreData(uiState.noMoreData)
-                
-                // 处理错误消息（非全屏错误）
-                if (uiState.isError && !uiState.showFullScreenError) {
-                    requireContext().showToast(uiState.errorMessage)
+
+                    // 处理加载更多状态
+                    if (uiState.isLoadingMore) {
+                        // 加载更多中 - SmartRefreshLayout 自动处理
+                    } else {
+                        refreshLayout.finishLoadMore(!uiState.isError || uiState.errorType != LoadingType.LOAD_MORE)
+                    }
+
+                    // 设置是否还有更多数据
+                    refreshLayout.setNoMoreData(uiState.noMoreData)
+
+                    // 处理错误消息（非全屏错误）
+                    if (uiState.isError && !uiState.showFullScreenError) {
+                        requireContext().showToast(uiState.errorMessage)
+                    }
                 }
             }
         }
-    }
-    
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 
     override fun onResume() {
@@ -166,6 +162,11 @@ class HomeRecordListFragment : Fragment() {
     private fun onFragmentInvisible() {
         // Fragment 变为不可见时的逻辑
         AppLogger.d(TAG, "${arguments?.getString(ARG_SORT)} is now invisible")
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     companion object {

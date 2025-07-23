@@ -84,7 +84,7 @@ class CityRecordListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
         setupSmartRefreshLayout()
-        setupFlowCollectors()
+        observeUiState()
     }
 
     private fun setupRecyclerView() {
@@ -113,8 +113,9 @@ class CityRecordListFragment : Fragment() {
         }
     }
 
-    private fun setupFlowCollectors() {
-        // 监听选择的城市
+    private fun observeUiState() {
+        // 监听共享的城市选择状态
+        // 注：这是对严格MVI的实用性妥协，因为城市选择需要跨Fragment共享
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 citySelectionViewModel.selectedCity.collect { cityCode ->
@@ -129,7 +130,7 @@ class CityRecordListFragment : Fragment() {
             }
         }
         
-        // 监听单一UI状态
+        // 监听单一UI状态 - 符合MVI单一数据源
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 viewModel.uiState.collect { uiState ->
@@ -145,10 +146,7 @@ class CityRecordListFragment : Fragment() {
                             }
                         }
                         uiState.showEmpty -> binding.showEmptyContent()
-                        uiState.showContent -> {
-                            binding.showContentView()
-                            binding.showRealContent()
-                        }
+                        uiState.showContent -> binding.showRealContent()
                     }
 
                     // 处理刷新状态

@@ -96,19 +96,6 @@ class HomeRecordListViewModel(
         fetchData(page = currentPage + 1, loadingType = LoadingType.LOAD_MORE)
     }
 
-
-    private fun clearCurrentRecords() {
-        viewModelScope.launch {
-            dataLock.withLock {
-                currentRecords.clear()
-            }
-            // 同步清理UI状态中的records，避免显示旧数据
-            _uiState.update { currentState ->
-                currentState.copy(records = emptyList())
-            }
-        }
-    }
-
     private fun fetchData(page: Int, loadingType: LoadingType) {
         if (shouldPreventRequest(loadingType)) return
 

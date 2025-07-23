@@ -34,7 +34,7 @@ data class CityRecordListUiState(
     val isRefreshing: Boolean = false,
     val isLoadingMore: Boolean = false,
     val hasLoaded: Boolean = false, // 是否已经加载过数据
-    val currentCityCode: String = "", // 当前城市代码
+    val cityCode: String = "", // 当前城市代码
 ) {
     // 派生状态 - 通过计算得出，避免状态冗余
     val showContent: Boolean get() = !isLoading && !isError && records.isNotEmpty()
@@ -77,7 +77,7 @@ class CityRecordListViewModel(
 
     private fun updateCity(cityCode: String) {
         val currentState = _uiState.value
-        if (currentState.currentCityCode == cityCode) return
+        if (currentState.cityCode == cityCode) return
         
         // 清除当前记录，避免显示旧数据
         clearRecordsBlocking()
@@ -85,7 +85,7 @@ class CityRecordListViewModel(
         _uiState.update { currentState ->
             currentState.copy(
                 records = emptyList(),
-                currentCityCode = cityCode
+                cityCode = cityCode
             )
         }
         
@@ -94,19 +94,17 @@ class CityRecordListViewModel(
 
     private fun retry() {
         val currentState = _uiState.value
-        fetchData(cityCode = currentState.currentCityCode, page = 1, loadingType = LoadingType.FULL_SCREEN)
+        fetchData(cityCode = currentState.cityCode, page = 1, loadingType = LoadingType.FULL_SCREEN)
     }
 
     private fun refresh() {
         val currentState = _uiState.value
-        if (currentState.currentCityCode.isEmpty()) return
-        fetchData(cityCode = currentState.currentCityCode, page = 1, loadingType = LoadingType.PULL_TO_REFRESH)
+        fetchData(cityCode = currentState.cityCode, page = 1, loadingType = LoadingType.PULL_TO_REFRESH)
     }
 
     private fun loadMore() {
         val currentState = _uiState.value
-        if (currentState.isLoadingMore || currentState.noMoreData || currentState.currentCityCode.isEmpty()) return
-        fetchData(cityCode = currentState.currentCityCode, page = currentPage + 1, loadingType = LoadingType.LOAD_MORE)
+        fetchData(cityCode = currentState.cityCode, page = currentPage + 1, loadingType = LoadingType.LOAD_MORE)
     }
 
     private fun clearRecordsBlocking() {

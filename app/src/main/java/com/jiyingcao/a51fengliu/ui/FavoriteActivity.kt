@@ -16,8 +16,10 @@ import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.FavoriteIntent
+import com.jiyingcao.a51fengliu.viewmodel.FavoriteUiState
 import com.jiyingcao.a51fengliu.viewmodel.FavoriteViewModel
 import com.jiyingcao.a51fengliu.viewmodel.FavoriteViewModelFactory
+import com.jiyingcao.a51fengliu.viewmodel.LoadingType
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
@@ -109,15 +111,11 @@ class FavoriteActivity : BaseActivity() {
                         }
                     }
 
-                    // 处理刷新状态
-                    if (!uiState.isRefreshing) {
-                        refreshLayout.finishRefresh(!uiState.isError)
-                    }
-
-                    // 处理加载更多状态
-                    if (!uiState.isLoadingMore) {
-                        refreshLayout.finishLoadMore(!uiState.isError)
-                    }
+                    // 精确处理刷新状态 - 只处理下拉刷新相关的状态变化
+                    handleRefreshState(uiState)
+                    
+                    // 精确处理加载更多状态 - 只处理上拉加载相关的状态变化
+                    handleLoadMoreState(uiState)
 
                     // 处理无更多数据状态
                     refreshLayout.setNoMoreData(uiState.noMoreData)
@@ -128,6 +126,32 @@ class FavoriteActivity : BaseActivity() {
                     }
                 }
             }
+        }
+    }
+
+    private fun handleRefreshState(uiState: FavoriteUiState) {
+        when {
+            uiState.isRefreshing -> {
+                // 下拉刷新进行中，SmartRefreshLayout 自动处理
+            }
+            !uiState.isRefreshing && uiState.loadingType == LoadingType.PULL_TO_REFRESH -> {
+                // 下拉刷新结束（无论成功失败）
+                refreshLayout.finishRefresh(!uiState.isError)
+            }
+            // 其他情况不处理 refreshLayout
+        }
+    }
+
+    private fun handleLoadMoreState(uiState: FavoriteUiState) {
+        when {
+            uiState.isLoadingMore -> {
+                // 上拉加载进行中，SmartRefreshLayout 自动处理
+            }
+            !uiState.isLoadingMore && uiState.loadingType == LoadingType.LOAD_MORE -> {
+                // 上拉加载结束（无论成功失败）
+                refreshLayout.finishLoadMore(!uiState.isError)
+            }
+            // 其他情况不处理 refreshLayout
         }
     }
 

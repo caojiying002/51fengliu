@@ -29,7 +29,6 @@ data class CityRecordListUiState(
     val records: List<RecordInfo> = emptyList(),
     val isError: Boolean = false,
     val errorMessage: String = "",
-    val errorType: LoadingType = LoadingType.FULL_SCREEN,
     val noMoreData: Boolean = false,
     val isRefreshing: Boolean = false,
     val isLoadingMore: Boolean = false,
@@ -40,7 +39,7 @@ data class CityRecordListUiState(
     val showContent: Boolean get() = !isLoading && !isError && records.isNotEmpty()
     val showEmpty: Boolean get() = !isLoading && !isError && records.isEmpty() && hasLoaded
     val showFullScreenLoading: Boolean get() = isLoading && loadingType == LoadingType.FULL_SCREEN
-    val showFullScreenError: Boolean get() = isError && errorType == LoadingType.FULL_SCREEN
+    val showFullScreenError: Boolean get() = isError && loadingType == LoadingType.FULL_SCREEN
 }
 
 sealed class CityRecordListIntent {
@@ -142,7 +141,7 @@ class CityRecordListViewModel(
             .onSuccess { pageData ->
                 currentPage = page
                 val newRecords = updateRecordsList(page, pageData.records)
-                updateUiStateToSuccess(newRecords, pageData.noMoreData())
+                updateUiStateToSuccess(newRecords, pageData.noMoreData(), loadingType)
             }
             .onFailure { e ->
                 if (!handleFailure(e)) {    // 通用错误处理(如远程登录), 如果处理过就不用再处理了
@@ -189,7 +188,11 @@ class CityRecordListViewModel(
      * @param records 记录列表
      * @param noMoreData 是否没有更多数据
      */
-    private fun updateUiStateToSuccess(records: List<RecordInfo>, noMoreData: Boolean = false) {
+    private fun updateUiStateToSuccess(
+        records: List<RecordInfo>,
+        noMoreData: Boolean = false,
+        loadingType: LoadingType
+    ) {
         _uiState.update { currentState ->
             currentState.copy(
                 isLoading = false,
@@ -198,7 +201,8 @@ class CityRecordListViewModel(
                 isError = false,
                 records = records,
                 noMoreData = noMoreData,
-                hasLoaded = true // 标记已经加载过数据
+                hasLoaded = true, // 标记已经加载过数据
+                loadingType = loadingType // 保留加载类型，便于UI层正确处理
             )
         }
     }
@@ -208,7 +212,7 @@ class CityRecordListViewModel(
      * @param errorMessage 错误信息
      * @param errorType 错误类型，决定错误显示方式
      */
-    private fun updateUiStateToError(errorMessage: String, errorType: LoadingType) {
+    private fun updateUiStateToError(errorMessage: String, loadingType: LoadingType) {
         _uiState.update { currentState ->
             currentState.copy(
                 isLoading = false,
@@ -216,7 +220,7 @@ class CityRecordListViewModel(
                 isLoadingMore = false,
                 isError = true,
                 errorMessage = errorMessage,
-                errorType = errorType
+                loadingType = loadingType
             )
         }
     }

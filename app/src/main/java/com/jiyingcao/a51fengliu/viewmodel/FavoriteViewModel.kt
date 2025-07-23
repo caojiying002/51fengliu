@@ -27,7 +27,6 @@ data class FavoriteUiState(
     val records: List<RecordInfo> = emptyList(),
     val isError: Boolean = false,
     val errorMessage: String = "",
-    val errorType: LoadingType = LoadingType.FULL_SCREEN,
     val noMoreData: Boolean = false,
     val isRefreshing: Boolean = false,
     val isLoadingMore: Boolean = false
@@ -36,7 +35,7 @@ data class FavoriteUiState(
     val showContent: Boolean get() = !isLoading && !isError && records.isNotEmpty()
     val showEmpty: Boolean get() = !isLoading && !isError && records.isEmpty()
     val showFullScreenLoading: Boolean get() = isLoading && loadingType == LoadingType.FULL_SCREEN
-    val showFullScreenError: Boolean get() = isError && errorType == LoadingType.FULL_SCREEN
+    val showFullScreenError: Boolean get() = isError && loadingType == LoadingType.FULL_SCREEN
 }
 
 sealed class FavoriteIntent {
@@ -119,7 +118,7 @@ class FavoriteViewModel(
             .onSuccess { pageData ->
                 currentPage = page
                 val newRecords = updateRecordsList(page, pageData.records)
-                updateUiStateToSuccess(newRecords, pageData.noMoreData())
+                updateUiStateToSuccess(newRecords, pageData.noMoreData(), loadingType)
             }
             .onFailure { e ->
                 if (!handleFailure(e)) {    // 通用错误处理(如远程登录), 如果处理过就不用再处理了
@@ -165,8 +164,13 @@ class FavoriteViewModel(
      * 更新UI状态到成功状态
      * @param records 记录列表
      * @param noMoreData 是否没有更多数据
+     * @param loadingType 成功对应的加载类型，UI层可据此正确结束对应的加载状态
      */
-    private fun updateUiStateToSuccess(records: List<RecordInfo>, noMoreData: Boolean = false) {
+    private fun updateUiStateToSuccess(
+        records: List<RecordInfo>, 
+        noMoreData: Boolean = false,
+        loadingType: LoadingType
+    ) {
         _uiState.update { currentState ->
             currentState.copy(
                 isLoading = false,
@@ -174,7 +178,8 @@ class FavoriteViewModel(
                 isLoadingMore = false,
                 isError = false,
                 records = records,
-                noMoreData = noMoreData
+                noMoreData = noMoreData,
+                loadingType = loadingType
             )
         }
     }
@@ -182,9 +187,9 @@ class FavoriteViewModel(
     /**
      * 更新UI状态到错误状态
      * @param errorMessage 错误信息
-     * @param errorType 错误类型，决定错误显示方式
+     * @param loadingType 错误对应的加载类型，决定错误显示方式
      */
-    private fun updateUiStateToError(errorMessage: String, errorType: LoadingType) {
+    private fun updateUiStateToError(errorMessage: String, loadingType: LoadingType) {
         _uiState.update { currentState ->
             currentState.copy(
                 isLoading = false,
@@ -192,7 +197,7 @@ class FavoriteViewModel(
                 isLoadingMore = false,
                 isError = true,
                 errorMessage = errorMessage,
-                errorType = errorType
+                loadingType = loadingType
             )
         }
     }

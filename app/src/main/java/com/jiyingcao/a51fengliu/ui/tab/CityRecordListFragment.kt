@@ -27,6 +27,7 @@ import com.jiyingcao.a51fengliu.util.AppLogger
 import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.CityRecordListIntent
+import com.jiyingcao.a51fengliu.viewmodel.CityRecordListUiState
 import com.jiyingcao.a51fengliu.viewmodel.CityRecordListViewModel
 import com.jiyingcao.a51fengliu.viewmodel.CityRecordListViewModelFactory
 import com.jiyingcao.a51fengliu.viewmodel.CitySelectionViewModel
@@ -149,19 +150,11 @@ class CityRecordListFragment : Fragment() {
                         uiState.showContent -> binding.showRealContent()
                     }
 
-                    // 处理刷新状态
-                    if (uiState.isRefreshing) {
-                        // 下拉刷新中 - SmartRefreshLayout 自动处理
-                    } else {
-                        refreshLayout.finishRefresh(!uiState.isError || uiState.errorType != LoadingType.PULL_TO_REFRESH)
-                    }
-
-                    // 处理加载更多状态
-                    if (uiState.isLoadingMore) {
-                        // 加载更多中 - SmartRefreshLayout 自动处理
-                    } else {
-                        refreshLayout.finishLoadMore(!uiState.isError || uiState.errorType != LoadingType.LOAD_MORE)
-                    }
+                    // 处理下拉刷新状态
+                    handleRefreshState(uiState)
+                    
+                    // 处理上拉加载状态
+                    handleLoadMoreState(uiState)
 
                     // 设置是否还有更多数据
                     refreshLayout.setNoMoreData(uiState.noMoreData)
@@ -175,6 +168,31 @@ class CityRecordListFragment : Fragment() {
         }
     }
     
+    private fun handleRefreshState(uiState: CityRecordListUiState) {
+        when {
+            uiState.isRefreshing -> {
+                // 下拉刷新进行中，SmartRefreshLayout 自动处理
+            }
+            !uiState.isRefreshing && uiState.loadingType == LoadingType.PULL_TO_REFRESH -> {
+                // 下拉刷新结束（成功或失败）
+                refreshLayout.finishRefresh(!uiState.isError)
+            }
+            // 其他情况不处理 refreshLayout
+        }
+    }
+
+    private fun handleLoadMoreState(uiState: CityRecordListUiState) {
+        when {
+            uiState.isLoadingMore -> {
+                // 上拉加载进行中，SmartRefreshLayout 自动处理
+            }
+            !uiState.isLoadingMore && uiState.loadingType == LoadingType.LOAD_MORE -> {
+                // 上拉加载结束（成功或失败）
+                refreshLayout.finishLoadMore(!uiState.isError)
+            }
+            // 其他情况不处理 refreshLayout
+        }
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()

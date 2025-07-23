@@ -119,14 +119,12 @@ class CityRecordListFragment : Fragment() {
         // 注：这是对严格MVI的实用性妥协，因为城市选择需要跨Fragment共享
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                citySelectionViewModel.selectedCity.collect { cityCode ->
+                citySelectionViewModel.selectedCity.collect { it ->
                     AppLogger.d(
                         TAG,
-                        "$TAG@${this@CityRecordListFragment.hashCode()}: city code selected: $cityCode"
+                        "$TAG@${this@CityRecordListFragment.hashCode()}: city code selected: $it"
                     )
-                    cityCode?.let {
-                        viewModel.processIntent(CityRecordListIntent.UpdateCity(it))
-                    }
+                    viewModel.processIntent(CityRecordListIntent.UpdateCity(it.orEmpty()))
                 }
             }
         }

@@ -33,7 +33,7 @@ data class CityRecordListUiState(
     val isRefreshing: Boolean = false,
     val isLoadingMore: Boolean = false,
     val hasLoaded: Boolean = false, // 是否已经加载过数据
-    val cityCode: String = "", // 当前城市代码
+    val cityCode: String? = null, // 当前城市代码。注意null表示未初始化状态，空字符串表示未选择城市（即加载所有城市的数据）
 ) {
     // 派生状态 - 通过计算得出，避免状态冗余
     val showContent: Boolean get() = !isLoading && !isError && records.isNotEmpty()
@@ -93,17 +93,23 @@ class CityRecordListViewModel(
 
     private fun retry() {
         val currentState = _uiState.value
-        fetchData(cityCode = currentState.cityCode, page = 1, loadingType = LoadingType.FULL_SCREEN)
+        currentState.cityCode?.let {
+            fetchData(cityCode = it, page = 1, loadingType = LoadingType.FULL_SCREEN)
+        }
     }
 
     private fun refresh() {
         val currentState = _uiState.value
-        fetchData(cityCode = currentState.cityCode, page = 1, loadingType = LoadingType.PULL_TO_REFRESH)
+        currentState.cityCode?.let {
+            fetchData(cityCode = it, page = 1, loadingType = LoadingType.PULL_TO_REFRESH)
+        }
     }
 
     private fun loadMore() {
         val currentState = _uiState.value
-        fetchData(cityCode = currentState.cityCode, page = currentPage + 1, loadingType = LoadingType.LOAD_MORE)
+        currentState.cityCode?.let {
+            fetchData(cityCode = it, page = currentPage + 1, loadingType = LoadingType.LOAD_MORE)
+        }
     }
 
     private fun clearRecordsBlocking() {

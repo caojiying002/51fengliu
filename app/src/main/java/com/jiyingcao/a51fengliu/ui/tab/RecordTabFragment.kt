@@ -8,7 +8,9 @@ import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
@@ -50,11 +52,11 @@ class RecordTabFragment : Fragment() {
         //setupNestedScrolling() // 不需要，用嵌套布局解决滑动冲突了
 
         viewLifecycleOwner.lifecycleScope.launch {
-            //viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 citySelectionViewModel.selectedCity.collect { cityCode ->
                     displayCity(cityCode)
                 }
-            //}
+            }
         }
     }
 

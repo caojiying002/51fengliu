@@ -14,6 +14,7 @@ import com.jiyingcao.a51fengliu.util.AppLogger
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -65,7 +66,7 @@ class SearchViewModel(
     /**
      * 存放Records的列表，更改关键词或者城市时清空。
      *
-     * 【注意】应当使用[updateRecords]方法修改这个列表，确保[_records]流每次都能获得更新。
+     * 【注意】应当使用[updateRecordsList]方法修改这个列表，确保数据同步更新。
      */
     @GuardedBy("dataLock")
     private var currentRecords: MutableList<RecordInfo> = mutableListOf()
@@ -91,12 +92,21 @@ class SearchViewModel(
         val currentState = _uiState.value
         if (currentState.keywords == keywords) return
 
+        // 清除当前记录，避免显示旧数据
+        clearRecordsBlocking()
+        // 更新关键词并清空记录显示
+        _uiState.update { currentState ->
+            currentState.copy(
+                records = emptyList(),
+                keywords = keywords
+            )
+        }
+
         search(
             keywords = keywords,
             cityCode = currentCityCode.orEmpty(),
             page = 1,
-            loadingType = LoadingType.FULL_SCREEN,
-            clearRecords = true    // 关键词有变化，清空之前的搜索结果
+            loadingType = LoadingType.FULL_SCREEN
         )
     }
 
@@ -109,19 +119,27 @@ class SearchViewModel(
         if (!cityChanged && !keywordsChanged) return
 
         currentCityCode = cityCode
+        
+        // 清除当前记录，避免显示旧数据
+        clearRecordsBlocking()
+        // 更新城市和关键词并清空记录显示
+        _uiState.update { currentState ->
+            currentState.copy(
+                records = emptyList(),
+                keywords = keywords
+            )
+        }
+
         search(
             keywords = keywords,
             cityCode = cityCode,
             page = 1,
-            loadingType = LoadingType.FULL_SCREEN,
-            clearRecords = true   // 城市或关键字有变化，清空之前的搜索结果
+            loadingType = LoadingType.FULL_SCREEN
         )
     }
 
     private fun refresh() {
         val currentState = _uiState.value
-        if (!currentState.hasSearched) return
-
         search(
             keywords = currentState.keywords.orEmpty(),
             cityCode = currentCityCode.orEmpty(),
@@ -132,8 +150,6 @@ class SearchViewModel(
 
     private fun loadMore() {
         val currentState = _uiState.value
-        if (currentState.isLoadingMore || currentState.noMoreData || !currentState.hasSearched) return
-
         search(
             keywords = currentState.keywords.orEmpty(),
             cityCode = currentCityCode.orEmpty(),
@@ -144,32 +160,32 @@ class SearchViewModel(
 
     private fun retry() {
         val currentState = _uiState.value
-        if (!currentState.hasSearched) return
-
         search(
             keywords = currentState.keywords.orEmpty(),
             cityCode = currentCityCode.orEmpty(),
             page = 1,
-            loadingType = LoadingType.FULL_SCREEN,
-            clearRecords = true
+            loadingType = LoadingType.FULL_SCREEN
         )
+    }
+
+    private fun clearRecordsBlocking() {
+        runBlocking {
+            dataLock.withLock {
+                currentRecords.clear()
+            }
+        }
     }
 
     private fun search(
         keywords: String,
         cityCode: String,
         page: Int,
-        loadingType: LoadingType,
-        clearRecords: Boolean = false
+        loadingType: LoadingType
     ) {
         if (shouldPreventRequest(loadingType)) return
 
         searchJob?.cancel()
         searchJob = viewModelScope.launch(remoteLoginCoroutineContext) {
-            if (clearRecords) {
-                clearCurrentRecords()
-            }
-
             // 更新加载状态
             updateUiStateToLoading(loadingType, keywords, hasSearched = true)
 
@@ -213,16 +229,6 @@ class SearchViewModel(
                 currentRecords.addAll(newRecords)
             }
             currentRecords.toList() // 返回不可变副本
-        }
-    }
-
-    private suspend fun clearCurrentRecords() {
-        dataLock.withLock {
-            currentRecords.clear()
-        }
-        // 同步清理UI状态中的records，避免显示旧数据
-        _uiState.update { currentState ->
-            currentState.copy(records = emptyList())
         }
     }
 

@@ -35,7 +35,6 @@ data class CityRecordListUiState(
     val isLoadingMore: Boolean = false,
     val hasLoaded: Boolean = false, // 是否已经加载过数据
     val currentCityCode: String = "", // 当前城市代码
-    val shouldResetScroll: Boolean = false // 是否需要重置滚动位置
 ) {
     // 派生状态 - 通过计算得出，避免状态冗余
     val showContent: Boolean get() = !isLoading && !isError && records.isNotEmpty()
@@ -49,7 +48,6 @@ sealed class CityRecordListIntent {
     data object Retry : CityRecordListIntent()
     data object Refresh : CityRecordListIntent()
     data object LoadMore : CityRecordListIntent()
-    data object ScrollResetHandled : CityRecordListIntent() // 滚动重置已处理
 }
 
 class CityRecordListViewModel(
@@ -74,7 +72,6 @@ class CityRecordListViewModel(
             CityRecordListIntent.Retry -> retry()
             CityRecordListIntent.Refresh -> refresh()
             CityRecordListIntent.LoadMore -> loadMore()
-            CityRecordListIntent.ScrollResetHandled -> scrollResetHandled()
         }
     }
 
@@ -88,8 +85,7 @@ class CityRecordListViewModel(
         _uiState.update { currentState ->
             currentState.copy(
                 records = emptyList(),
-                currentCityCode = cityCode,
-                shouldResetScroll = true
+                currentCityCode = cityCode
             )
         }
         
@@ -111,12 +107,6 @@ class CityRecordListViewModel(
         val currentState = _uiState.value
         if (currentState.isLoadingMore || currentState.noMoreData || currentState.currentCityCode.isEmpty()) return
         fetchData(cityCode = currentState.currentCityCode, page = currentPage + 1, loadingType = LoadingType.LOAD_MORE)
-    }
-
-    private fun scrollResetHandled() {
-        _uiState.update { currentState ->
-            currentState.copy(shouldResetScroll = false)
-        }
     }
 
     private fun clearRecordsBlocking() {

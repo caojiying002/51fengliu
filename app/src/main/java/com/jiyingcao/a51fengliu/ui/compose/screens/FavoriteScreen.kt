@@ -43,12 +43,14 @@ fun FavoriteScreen(
 ) {
     val context = LocalContext.current
 
-    // ViewModel 实例化，使用工厂创建
-    val viewModel: FavoriteViewModel = viewModel(
-        factory = FavoriteViewModelFactory(
+    // 缓存 ViewModel 工厂，避免每次重组都创建
+    val factory = remember {
+        FavoriteViewModelFactory(
             repository = RecordRepository.getInstance(RetrofitClient.apiService)
         )
-    )
+    }
+    
+    val viewModel: FavoriteViewModel = viewModel(factory = factory)
 
     val uiState by viewModel.uiState.collectAsState()
 

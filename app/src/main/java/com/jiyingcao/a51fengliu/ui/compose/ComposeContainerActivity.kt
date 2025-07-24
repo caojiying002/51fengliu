@@ -12,6 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.compose.navigation.ComposeDestinations
 import com.jiyingcao.a51fengliu.ui.compose.screens.MerchantDetailScreen
+import com.jiyingcao.a51fengliu.ui.compose.screens.FavoriteScreen
 import com.jiyingcao.a51fengliu.ui.compose.theme.AppTheme
 
 /**
@@ -123,6 +124,16 @@ private fun ComposeNavigationHost(
         composable(ComposeDestinations.MERCHANT_DETAIL) {
             MerchantDetailScreen(
                 merchantId = merchantId,
+                onBackClick = onFinish,
+                onNavigate = { destination ->
+                    navController.navigate(destination)
+                }
+            )
+        }
+
+        // 收藏列表页路由
+        composable(ComposeDestinations.FAVORITE) {
+            FavoriteScreen(
                 onBackClick = onFinish,
                 onNavigate = { destination ->
                     navController.navigate(destination)

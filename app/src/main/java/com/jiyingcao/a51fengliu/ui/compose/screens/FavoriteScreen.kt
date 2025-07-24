@@ -181,3 +181,116 @@ private fun RecordCard(
         )
     }
 }
+
+/**
+ * Preview - 用于开发时预览
+ */
+@Preview(showBackground = true)
+@Composable
+private fun FavoriteScreenPreview() {
+    AppTheme {
+        FavoriteContent(
+            records = listOf(
+                RecordInfo(
+                    id = "1",
+                    userId = "123",
+                    status = "1",
+                    type = "1",
+                    title = "示例收藏记录标题",
+                    isRecommend = false,
+                    isMerchant = false,
+                    isExpired = false,
+                    source = "1",
+                    score = "5",
+                    viewCount = "1234",
+                    cityCode = "440300", // 深圳
+                    girlNum = null,
+                    girlAge = null,
+                    girlBeauty = null,
+                    environment = null,
+                    consumeLv = null,
+                    consumeAllNight = null,
+                    serveList = null,
+                    serveLv = null,
+                    desc = "这是一个示例的收藏记录描述信息，用于展示列表项的样式效果。",
+                    picture = null,
+                    coverPicture = "250716/f296f278-81a2-4c24-87bb-1f6e48338561_t.jpeg",
+                    anonymous = false,
+                    ip = null,
+                    publishedAt = "1690876800000", // 时间戳
+                    createdAt = "1690876800000",
+                    isFavorite = true,
+                    vipProfileStatus = 4,
+                    publisher = null,
+                    userName = "测试用户",
+                    userReputation = null,
+                    userStatus = null,
+                    style = null,
+                    vipView = null,
+                    userView = null,
+                    guestView = null,
+                    qq = null,
+                    wechat = null,
+                    telegram = null,
+                    yuni = null,
+                    phone = null,
+                    address = null
+                ),
+                RecordInfo(
+                    id = "2",
+                    userId = "456",
+                    status = "1",
+                    type = "1",
+                    title = "另一个收藏记录",
+                    isRecommend = true,
+                    isMerchant = false,
+                    isExpired = false,
+                    source = "1",
+                    score = "4",
+                    viewCount = "5678",
+                    cityCode = "110000", // 北京
+                    girlNum = null,
+                    girlAge = null,
+                    girlBeauty = null,
+                    environment = null,
+                    consumeLv = null,
+                    consumeAllNight = null,
+                    serveList = null,
+                    serveLv = null,
+                    desc = "这是另一个示例记录，展示多条记录的显示效果。",
+                    picture = null,
+                    coverPicture = "250721/5fc3d363-06a1-45ea-a0af-ba8cc35f250b_t.jpg",
+                    anonymous = false,
+                    ip = null,
+                    publishedAt = "1690790400000",
+                    createdAt = "1690790400000",
+                    isFavorite = true,
+                    vipProfileStatus = 3,
+                    publisher = null,
+                    userName = "测试用户2",
+                    userReputation = null,
+                    userStatus = null,
+                    style = null,
+                    vipView = null,
+                    userView = null,
+                    guestView = null,
+                    qq = null,
+                    wechat = null,
+                    telegram = null,
+                    yuni = null,
+                    phone = null,
+                    address = null
+                )
+            ),
+            onRecordClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun FavoriteEmptyContentPreview() {
+    AppTheme {
+        FavoriteEmptyContent()
+    }
+}

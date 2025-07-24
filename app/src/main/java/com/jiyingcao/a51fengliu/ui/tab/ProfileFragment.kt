@@ -24,6 +24,7 @@ import com.jiyingcao.a51fengliu.navigation.LoginInterceptor
 import com.jiyingcao.a51fengliu.ui.FavoriteActivity
 import com.jiyingcao.a51fengliu.ui.auth.AuthActivity
 import com.jiyingcao.a51fengliu.ui.PostInfoActivity
+import com.jiyingcao.a51fengliu.ui.compose.ComposeContainerActivity
 import com.jiyingcao.a51fengliu.ui.dialog.LoadingDialog
 import com.jiyingcao.a51fengliu.ui.dialog.ConfirmDialog
 import com.jiyingcao.a51fengliu.util.dataStore
@@ -172,7 +173,7 @@ class ProfileFragment : Fragment() {
         }
         binding.tvMyFavorite.setOnClickListener {
             loginInterceptor.execute {
-                startActivity(FavoriteActivity.createIntent(requireContext()))
+                startActivity(ComposeContainerActivity.createFavoriteIntent(requireContext()))
             }
         }
     }

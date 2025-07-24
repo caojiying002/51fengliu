@@ -3,12 +3,15 @@ package com.jiyingcao.a51fengliu.ui.compose.screens
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -91,8 +94,14 @@ fun FavoriteScreen(
                     FavoriteContent(
                         records = uiState.records,
                         isRefreshing = uiState.isRefreshing,
+                        isLoadingMore = uiState.isLoadingMore,
+                        hasLoadMoreError = uiState.isError && uiState.loadingType == LoadingType.LOAD_MORE,
+                        noMoreData = uiState.noMoreData,
                         onRefresh = {
                             viewModel.processIntent(FavoriteIntent.Refresh)
+                        },
+                        onLoadMore = {
+                            viewModel.processIntent(FavoriteIntent.LoadMore)
                         },
                         onRecordClick = { record ->
                             // 跳转到详情页，这里使用原有的 DetailActivity
@@ -128,11 +137,33 @@ private fun FavoriteEmptyContent(
 private fun FavoriteContent(
     records: List<RecordInfo>,
     isRefreshing: Boolean,
+    isLoadingMore: Boolean,
+    hasLoadMoreError: Boolean,
+    noMoreData: Boolean,
     onRefresh: () -> Unit,
+    onLoadMore: () -> Unit,
     onRecordClick: (RecordInfo) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
+    val listState = rememberLazyListState()
+    
+    // 监听滚动状态，触发加载更多
+    LaunchedEffect(listState) {
+        snapshotFlow {
+            val layoutInfo = listState.layoutInfo
+            val totalItemsNumber = layoutInfo.totalItemsCount
+            val lastVisibleItemIndex = (layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) + 1
+            
+            // 当滚动到倒数第3个item时触发加载更多
+            lastVisibleItemIndex > (totalItemsNumber - 3)
+        }
+        .collect { shouldLoadMore ->
+            if (shouldLoadMore && !isLoadingMore && !noMoreData && !hasLoadMoreError && records.isNotEmpty()) {
+                onLoadMore()
+            }
+        }
+    }
     
     PullToRefreshBox(
         state = pullToRefreshState,
@@ -141,6 +172,7 @@ private fun FavoriteContent(
         modifier = modifier
     ) {
         LazyColumn(
+            state = listState,
             /*contentPadding = PaddingValues(
                 horizontal = DefaultHorizontalSpace,
                 vertical = DividerHeight
@@ -155,6 +187,18 @@ private fun FavoriteContent(
                     record = record,
                     onClick = { onRecordClick(record) }
                 )
+            }
+
+            // 加载更多指示器
+            if (records.isNotEmpty()) {
+                item {
+                    LoadMoreIndicator(
+                        isLoading = isLoadingMore,
+                        hasError = hasLoadMoreError,
+                        noMoreData = noMoreData,
+                        onRetryClick = onLoadMore
+                    )
+                }
             }
 
             // 底部导航栏占位，适配EdgeToEdge效果
@@ -302,7 +346,11 @@ private fun FavoriteScreenPreview() {
                 )
             ),
             isRefreshing = false,
+            isLoadingMore = false,
+            hasLoadMoreError = false,
+            noMoreData = false,
             onRefresh = {},
+            onLoadMore = {},
             onRecordClick = {}
         )
     }

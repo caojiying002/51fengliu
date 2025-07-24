@@ -208,6 +208,71 @@ private fun AppLoadingLayoutPreview() {
     }
 }
 
+/**
+ * 加载更多指示器组件
+ * 用于显示列表底部的加载状态
+ */
+@Composable
+fun LoadMoreIndicator(
+    isLoading: Boolean,
+    hasError: Boolean,
+    noMoreData: Boolean,
+    errorMessage: String = "加载失败，点击重试",
+    noMoreDataMessage: String = "没有更多数据了",
+    onRetryClick: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = spacingMedium),
+        contentAlignment = Alignment.Center
+    ) {
+        when {
+            isLoading -> {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(spacingMedium),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "加载中...",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            
+            hasError -> {
+                TextButton(
+                    onClick = onRetryClick,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text(
+                        text = errorMessage,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+            
+            noMoreData -> {
+                Text(
+                    text = noMoreDataMessage,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 private fun AppErrorLayoutPreview() {
@@ -216,5 +281,38 @@ private fun AppErrorLayoutPreview() {
             errorMessage = "网络连接失败，请检查网络设置",
             onRetryClick = {}
         )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun LoadMoreIndicatorPreview() {
+    AppTheme {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(16.dp)
+        ) {
+            // 加载中状态
+            LoadMoreIndicator(
+                isLoading = true,
+                hasError = false,
+                noMoreData = false
+            )
+            
+            // 错误状态
+            LoadMoreIndicator(
+                isLoading = false,
+                hasError = true,
+                noMoreData = false,
+                onRetryClick = {}
+            )
+            
+            // 无更多数据状态
+            LoadMoreIndicator(
+                isLoading = false,
+                hasError = false,
+                noMoreData = true
+            )
+        }
     }
 }

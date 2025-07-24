@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.jiyingcao.a51fengliu.util.showToast
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.jiyingcao.a51fengliu.api.RetrofitClient
@@ -66,17 +67,44 @@ fun FavoriteScreen(
             onBackClick = onBackClick
         )
 
-        // 内容区域
+        // 内容区域 - 分离架构：数据层与状态层独立
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .weight(1f)
         ) {
+            // 数据层：只要有数据就始终渲染，不受错误状态影响
+            // 这样确保上拉加载失败时，用户仍能看到已加载的数据
+            if (uiState.records.isNotEmpty()) {
+                FavoriteContent(
+                    records = uiState.records,
+                    isRefreshing = uiState.isRefreshing,
+                    isLoadingMore = uiState.isLoadingMore,
+                    hasLoadMoreError = uiState.isError && uiState.loadingType == LoadingType.LOAD_MORE,
+                    noMoreData = uiState.noMoreData,
+                    onRefresh = {
+                        viewModel.processIntent(FavoriteIntent.Refresh)
+                    },
+                    onLoadMore = {
+                        viewModel.processIntent(FavoriteIntent.LoadMore)
+                    },
+                    onRecordClick = { record ->
+                        // 跳转到详情页，这里使用原有的 DetailActivity
+                        DetailActivity.start(context, record.id)
+                    },
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+            
+            // 状态覆盖层：独立控制全屏状态，不影响数据展示
+            // 只有在特定场景下才覆盖数据层（首次加载、全屏错误、空状态）
             when {
+                // 全屏加载状态：首次进入页面时显示
                 uiState.showFullScreenLoading -> {
                     AppLoadingLayout()
                 }
 
+                // 全屏错误状态：首次加载失败时显示，覆盖所有内容
                 uiState.showFullScreenError -> {
                     AppErrorLayout(
                         errorMessage = uiState.errorMessage.ifEmpty { "出错了，请稍后重试" },
@@ -86,30 +114,20 @@ fun FavoriteScreen(
                     )
                 }
 
-                uiState.showEmpty -> {
+                // 空状态：没有任何数据时显示
+                // 注意：这里只在真正无数据时显示，不受其他错误状态影响
+                uiState.records.isEmpty() && !uiState.showFullScreenLoading && !uiState.showFullScreenError -> {
                     FavoriteEmptyContent()
                 }
-
-                uiState.showContent -> {
-                    FavoriteContent(
-                        records = uiState.records,
-                        isRefreshing = uiState.isRefreshing,
-                        isLoadingMore = uiState.isLoadingMore,
-                        hasLoadMoreError = uiState.isError && uiState.loadingType == LoadingType.LOAD_MORE,
-                        noMoreData = uiState.noMoreData,
-                        onRefresh = {
-                            viewModel.processIntent(FavoriteIntent.Refresh)
-                        },
-                        onLoadMore = {
-                            viewModel.processIntent(FavoriteIntent.LoadMore)
-                        },
-                        onRecordClick = { record ->
-                            // 跳转到详情页，这里使用原有的 DetailActivity
-                            DetailActivity.start(context, record.id)
-                        },
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
+            }
+        }
+        
+        // 非侵入式错误提示：处理非全屏错误（如下拉刷新失败、上拉加载失败）
+        // 这些错误不应该隐藏已有数据，只通过Toast提示用户
+        if (uiState.isError && !uiState.showFullScreenError) {
+            LaunchedEffect(uiState.errorMessage, uiState.loadingType) {
+                // 显示错误Toast，让用户知道操作失败，但不影响数据查看
+                context.showToast(uiState.errorMessage.ifEmpty { "操作失败，请稍后重试" })
             }
         }
     }

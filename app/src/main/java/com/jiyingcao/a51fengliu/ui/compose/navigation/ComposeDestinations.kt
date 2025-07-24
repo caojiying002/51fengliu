@@ -16,6 +16,11 @@ object ComposeDestinations {
     const val MERCHANT_DETAIL = "merchant_detail"
 
     /**
+     * 收藏列表页
+     */
+    const val FAVORITE = "favorite"
+
+    /**
      * 个人资料页
      */
     const val PROFILE = "profile"

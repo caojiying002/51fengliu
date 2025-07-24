@@ -56,11 +56,16 @@ class ComposeContainerActivity : BaseActivity() {
          */
         @JvmStatic
         fun startMerchantDetail(context: Context, merchantId: String) {
-            val intent = Intent(context, ComposeContainerActivity::class.java).apply {
-                putExtra(KEY_INITIAL_ROUTE, ComposeDestinations.MERCHANT_DETAIL)
-                putExtra(KEY_MERCHANT_ID, merchantId)
-            }
-            context.startActivity(intent)
+            context.startActivity(createMerchantDetailIntent(context, merchantId))
+        }
+
+        /**
+         * 启动收藏列表页
+         * @param context 上下文
+         */
+        @JvmStatic
+        fun startFavorite(context: Context) {
+            context.startActivity(createFavoriteIntent(context))
         }
 
         /**
@@ -83,6 +88,16 @@ class ComposeContainerActivity : BaseActivity() {
             return Intent(context, ComposeContainerActivity::class.java).apply {
                 putExtra(KEY_INITIAL_ROUTE, ComposeDestinations.MERCHANT_DETAIL)
                 putExtra(KEY_MERCHANT_ID, merchantId)
+            }
+        }
+
+        /**
+         * 创建收藏列表页Intent - 用于需要自定义启动的场景
+         */
+        @JvmStatic
+        fun createFavoriteIntent(context: Context): Intent {
+            return Intent(context, ComposeContainerActivity::class.java).apply {
+                putExtra(KEY_INITIAL_ROUTE, ComposeDestinations.FAVORITE)
             }
         }
     }

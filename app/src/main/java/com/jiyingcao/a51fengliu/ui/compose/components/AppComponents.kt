@@ -2,10 +2,14 @@ package com.jiyingcao.a51fengliu.ui.compose.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -128,14 +132,11 @@ fun AppErrorLayout(
         )
 
         onRetryClick?.let { retryAction ->
-            Text(
+            Spacer(modifier = Modifier.height(16.dp))
+            AppButton(
                 text = "点击重试",
-                fontSize = 14.sp,
-                color = Primary,
-                modifier = Modifier
-                    .padding(8.dp)
-                    .clickable { retryAction() }
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                onClick = retryAction,
+                modifier = Modifier.width(120.dp)
             )
         }
     }
@@ -159,6 +160,53 @@ fun AppCard(
             .padding(8.dp)
     ) {
         content()
+    }
+}
+
+/**
+ * 通用按钮组件
+ * 对应View版本的@style/ButtonStyle样式
+ */
+@Composable
+fun AppButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    
+    val backgroundColor = when {
+        !enabled -> ButtonDisabled
+        isPressed -> ButtonPressed
+        else -> Primary
+    }
+    
+    Surface(
+        onClick = onClick,
+        modifier = modifier
+            .height(48.dp), // 与View版本按钮高度保持一致
+        enabled = enabled,
+        shape = RoundedCornerShape(4.dp),
+        color = backgroundColor,
+        shadowElevation = if (enabled) 2.dp else 0.dp,
+        interactionSource = interactionSource
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp, vertical = 10.dp) // 对应selector中的padding
+        ) {
+            Text(
+                text = text,
+                fontSize = ButtonTextDefaultSize.value.sp, // 15sp
+                color = White,
+                fontWeight = FontWeight.Normal,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
 

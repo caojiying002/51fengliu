@@ -177,7 +177,7 @@ fun MerchantContactCard(
 
 /**
  * 联系方式操作按钮组件
- * 统一样式的操作按钮
+ * 使用统一的按钮样式，对应View版本的@style/ButtonStyle
  */
 @Composable
 private fun ContactActionButton(
@@ -186,16 +186,12 @@ private fun ContactActionButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Text(
+    AppButton(
         text = text,
-        fontSize = 14.sp,
-        color = Primary,
-        fontWeight = FontWeight.Bold,
-        textAlign = TextAlign.Center,
+        onClick = onClick,
         modifier = modifier
+            .width(140.dp) // 指定固定宽度，类似wrap_content但有最小宽度
             .padding(vertical = 8.dp)
-            .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 8.dp)
     )
 }
 

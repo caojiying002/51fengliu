@@ -4,6 +4,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
@@ -87,6 +90,10 @@ fun FavoriteScreen(
                 uiState.showContent -> {
                     FavoriteContent(
                         records = uiState.records,
+                        isRefreshing = uiState.isRefreshing,
+                        onRefresh = {
+                            viewModel.processIntent(FavoriteIntent.Refresh)
+                        },
                         onRecordClick = { record ->
                             // 跳转到详情页，这里使用原有的 DetailActivity
                             DetailActivity.start(context, record.id)
@@ -116,41 +123,52 @@ private fun FavoriteEmptyContent(
 /**
  * 收藏列表内容
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FavoriteContent(
     records: List<RecordInfo>,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
     onRecordClick: (RecordInfo) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn(
-        modifier = modifier,
-        /*contentPadding = PaddingValues(
-            horizontal = DefaultHorizontalSpace,
-            vertical = DividerHeight
-        ),*/
-        verticalArrangement = Arrangement.spacedBy(DividerHeight)
+    val pullToRefreshState = rememberPullToRefreshState()
+    
+    PullToRefreshBox(
+        state = pullToRefreshState,
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh,
+        modifier = modifier
     ) {
-        items(
-            items = records,
-            key = { record -> record.id }
-        ) { record ->
-            RecordCard(
-                record = record,
-                onClick = { onRecordClick(record) }
-            )
-        }
+        LazyColumn(
+            /*contentPadding = PaddingValues(
+                horizontal = DefaultHorizontalSpace,
+                vertical = DividerHeight
+            ),*/
+            verticalArrangement = Arrangement.spacedBy(DividerHeight)
+        ) {
+            items(
+                items = records,
+                key = { record -> record.id }
+            ) { record ->
+                RecordCard(
+                    record = record,
+                    onClick = { onRecordClick(record) }
+                )
+            }
 
-        // 底部导航栏占位，适配EdgeToEdge效果
-        item {
-            Spacer(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(
-                        WindowInsets.navigationBars
-                            .asPaddingValues()
-                            .calculateBottomPadding()
-                    )
-            )
+            // 底部导航栏占位，适配EdgeToEdge效果
+            item {
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(
+                            WindowInsets.navigationBars
+                                .asPaddingValues()
+                                .calculateBottomPadding()
+                        )
+                )
+            }
         }
     }
 }
@@ -185,6 +203,7 @@ private fun RecordCard(
 /**
  * Preview - 用于开发时预览
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true)
 @Composable
 private fun FavoriteScreenPreview() {
@@ -282,6 +301,8 @@ private fun FavoriteScreenPreview() {
                     address = null
                 )
             ),
+            isRefreshing = false,
+            onRefresh = {},
             onRecordClick = {}
         )
     }

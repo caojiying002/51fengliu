@@ -110,7 +110,7 @@ fun FavoriteScreen(
                 uiState.showFullScreenError -> {
                     AppErrorLayout(
                         errorMessage = uiState.errorMessage.ifEmpty { "出错了，请稍后重试" },
-                        onRetryClick = {
+                        onButtonClick = {
                             viewModel.processIntent(FavoriteIntent.Retry)
                         }
                     )
@@ -144,7 +144,7 @@ private fun FavoriteEmptyContent(
 ) {
     AppErrorLayout(
         errorMessage = "暂无收藏内容",
-        onRetryClick = null, // 空状态不显示重试按钮
+        onButtonClick = null, // 空状态不显示重试按钮
         modifier = modifier
     )
 }

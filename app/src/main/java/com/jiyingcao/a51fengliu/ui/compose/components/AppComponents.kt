@@ -113,7 +113,8 @@ fun AppLoadingLayout(
 @Composable
 fun AppErrorLayout(
     errorMessage: String = "出错了，请稍后重试",
-    onRetryClick: (() -> Unit)? = null,
+    buttonText: String = "重试",
+    onButtonClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -131,11 +132,11 @@ fun AppErrorLayout(
             modifier = Modifier.padding(8.dp)
         )
 
-        onRetryClick?.let { retryAction ->
+        onButtonClick?.let { buttonAction ->
             Spacer(modifier = Modifier.height(16.dp))
             AppButton(
-                text = "点击重试",
-                onClick = retryAction,
+                text = buttonText,
+                onClick = buttonAction,
                 modifier = Modifier.width(120.dp)
             )
         }
@@ -327,7 +328,8 @@ private fun AppErrorLayoutPreview() {
     AppTheme {
         AppErrorLayout(
             errorMessage = "网络连接失败，请检查网络设置",
-            onRetryClick = {}
+            buttonText = "重试",
+            onButtonClick = {}
         )
     }
 }

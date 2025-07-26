@@ -81,7 +81,7 @@ fun MerchantDetailScreen(
                 uiState.showFullScreenError -> {
                     AppErrorLayout(
                         errorMessage = uiState.errorMessage.ifEmpty { "出错了，请稍后重试" },
-                        onRetryClick = {
+                        onButtonClick = {
                             viewModel.processIntent(MerchantDetailIntent.Retry)
                         }
                     )

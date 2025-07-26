@@ -124,7 +124,9 @@ class CityRecordListFragment : Fragment() {
                         TAG,
                         "$TAG@${this@CityRecordListFragment.hashCode()}: city code selected: $it"
                     )
-                    viewModel.processIntent(CityRecordListIntent.UpdateCity(it.orEmpty()))
+                    it?.let {
+                        viewModel.processIntent(CityRecordListIntent.UpdateCity(it))
+                    }
                 }
             }
         }

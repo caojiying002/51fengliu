@@ -1,5 +1,6 @@
 package com.jiyingcao.a51fengliu.ui.compose.screens
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -36,6 +37,25 @@ fun MerchantDetailScreen(
     onBackClick: () -> Unit,
     onNavigate: (String) -> Unit = {}
 ) {
+    if (merchantId.isEmpty()) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            AppTitleBar(
+                onBackClick = onBackClick
+            )
+            AppErrorLayout(
+                errorMessage = "商家信息不存在",
+                buttonText = "返回",
+                onButtonClick = onBackClick,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f)
+            )
+        }
+        return
+    }
+
     val context = LocalContext.current
 
     // 缓存 ViewModel 工厂，避免每次重组都创建
@@ -46,28 +66,22 @@ fun MerchantDetailScreen(
         )
     }
 
-    // ViewModel 实例化，使用缓存的工厂
     val viewModel: MerchantDetailViewModel = viewModel(factory = factory)
 
     val uiState by viewModel.uiState.collectAsState()
 
     // 初始化加载
     LaunchedEffect(merchantId) {
-        if (merchantId.isNotEmpty()) {
-            viewModel.processIntent(MerchantDetailIntent.InitialLoad)
-        }
+        viewModel.processIntent(MerchantDetailIntent.InitialLoad)
     }
 
-    // 页面布局
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        // 标题栏 - 按钮文字采用默认值"返回"
         AppTitleBar(
             onBackClick = onBackClick
         )
 
-        // 内容区域
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -164,7 +178,7 @@ private fun MerchantDetailContent(
  */
 private fun handleContactAction(
     actionType: ContactActionType,
-    context: android.content.Context,
+    context: Context,
     onNavigate: (String) -> Unit
 ) {
     when (actionType) {
@@ -175,7 +189,7 @@ private fun handleContactAction(
         }
         ContactActionType.UPGRADE_VIP -> {
             // 跳转到VIP升级页
-            onNavigate(ComposeDestinations.VIP_UPGRADE)
+            //onNavigate(ComposeDestinations.VIP_UPGRADE)
         }
         ContactActionType.NONE -> {
             // 无操作

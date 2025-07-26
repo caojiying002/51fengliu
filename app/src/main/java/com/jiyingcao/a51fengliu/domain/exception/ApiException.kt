@@ -23,7 +23,10 @@ open class ApiException(
         const val CODE_REMOTE_LOGIN = 1003
 
         /** 2001: 无效的记录Record ID，可能已被删除 */
-        const val CODE_INVALID_RECORD_ID = 2001
+        const val CODE_INVALID_RECORD_ID = 20012001
+
+        /** 4001: 商家信息不存在或已删除 */
+        const val CODE_INVALID_MERCHANT_ID = 4001
 
         /** 创建异常实例的便捷方法 */
         @JvmStatic
@@ -75,6 +78,7 @@ fun ApiException.toUserFriendlyMessage(): String {
     return when (code) {
         ApiException.CODE_REMOTE_LOGIN -> "您的账号已在其他设备登录"
         ApiException.CODE_INVALID_RECORD_ID -> "您查找的信息不存在或已删除"
+        ApiException.CODE_INVALID_MERCHANT_ID -> "商家信息不存在或已删除"
         else -> if (!message.isNullOrBlank()) "[$code] $message" else "API错误码$code：${messageTaggedByType()}"
     }
 }

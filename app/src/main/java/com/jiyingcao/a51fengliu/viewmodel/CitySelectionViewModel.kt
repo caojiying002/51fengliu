@@ -6,8 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.repository.UserSelectionRepository
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 
 class CitySelectionViewModel(
@@ -17,13 +15,12 @@ class CitySelectionViewModel(
     /**
      * 城市选择的共享流
      *
-     * 注意：这里使用 SharedFlow 而不是常规的 StateFlow
-     * 原因：避免重复的初始null值发射，保持语义清晰（null = 用户未选择城市）
+     * 直接暴露Repository的SharedFlow，避免不必要的二次包装
+     * Repository层已经配置了合适的sharing策略和replay缓存
      *
      * @see UserSelectionRepository.selectedCityFlow
      */
     val selectedCitySharedFlow: SharedFlow<String?> = userSelectionRepository.selectedCityFlow
-        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     fun setCity(cityCode: String) {
         viewModelScope.launch {

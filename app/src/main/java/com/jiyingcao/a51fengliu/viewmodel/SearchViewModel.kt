@@ -323,16 +323,16 @@ class SearchViewModel(
     companion object {
         const val TAG: String = "SearchViewModel"
     }
-}
 
-class SearchViewModelFactory(
-    private val repository: RecordRepository
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(SearchViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return SearchViewModel(repository) as T
+    class Factory(
+        private val repository: RecordRepository = RecordRepository.getInstance()
+    ) : ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(SearchViewModel::class.java)) {
+                @Suppress("UNCHECKED_CAST")
+                return SearchViewModel(repository) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }
-        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
 }

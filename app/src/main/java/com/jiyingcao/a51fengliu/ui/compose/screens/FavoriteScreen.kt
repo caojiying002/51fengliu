@@ -19,10 +19,8 @@ import androidx.compose.ui.unit.dp
 import com.jiyingcao.a51fengliu.util.showToast
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.config.AppConfig
-import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.DetailActivity
 import com.jiyingcao.a51fengliu.ui.compose.components.*
 import com.jiyingcao.a51fengliu.ui.compose.theme.*
@@ -45,9 +43,7 @@ fun FavoriteScreen(
 
     // 缓存 ViewModel 工厂，避免每次重组都创建
     val factory = remember {
-        FavoriteViewModelFactory(
-            repository = RecordRepository.getInstance(RetrofitClient.apiService)
-        )
+        FavoriteViewModel.Factory()
     }
     
     val viewModel: FavoriteViewModel = viewModel(factory = factory)

@@ -1,6 +1,7 @@
 package com.jiyingcao.a51fengliu.repository
 
 import com.jiyingcao.a51fengliu.api.ApiService
+import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.Merchant
 import com.jiyingcao.a51fengliu.api.response.PageData
 import kotlinx.coroutines.flow.Flow
@@ -32,7 +33,7 @@ class MerchantRepository(
         @Volatile
         private var instance: MerchantRepository? = null
 
-        fun getInstance(apiService: ApiService): MerchantRepository {
+        fun getInstance(apiService: ApiService = RetrofitClient.apiService): MerchantRepository {
             return instance ?: synchronized(this) {
                 instance ?: MerchantRepository(apiService).also { instance = it }
             }

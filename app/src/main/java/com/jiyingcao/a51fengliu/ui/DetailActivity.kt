@@ -10,15 +10,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.R
-import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.config.AppConfig
-import com.jiyingcao.a51fengliu.data.LoginStateManager
 import com.jiyingcao.a51fengliu.databinding.ActivityDetailBinding
 import com.jiyingcao.a51fengliu.databinding.ContentDetail0Binding
-import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.auth.AuthActivity
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.common.transition.SharedElementTransitionHelper
@@ -28,7 +24,6 @@ import com.jiyingcao.a51fengliu.ui.dialog.LoadingDialog
 import com.jiyingcao.a51fengliu.ui.dialog.ReportDialog
 import com.jiyingcao.a51fengliu.ui.dialog.VipPromptDialog
 import com.jiyingcao.a51fengliu.util.copyOnLongClick
-import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.timestampToDay
 import com.jiyingcao.a51fengliu.util.to2LevelName
@@ -37,7 +32,6 @@ import com.jiyingcao.a51fengliu.viewmodel.DetailEffect
 import com.jiyingcao.a51fengliu.viewmodel.DetailIntent
 import com.jiyingcao.a51fengliu.viewmodel.DetailUiState
 import com.jiyingcao.a51fengliu.viewmodel.DetailViewModel
-import com.jiyingcao.a51fengliu.viewmodel.DetailViewModelFactory
 import com.jiyingcao.a51fengliu.viewmodel.FavoriteProgress
 import kotlinx.coroutines.launch
 
@@ -91,11 +85,7 @@ class DetailActivity : BaseActivity() {
     private fun setupViewModel(recordId: String) {
         viewModel = ViewModelProvider(
             this,
-            DetailViewModelFactory(
-                recordId,
-                RecordRepository.getInstance(RetrofitClient.apiService),
-                LoginStateManager.getInstance()
-            )
+            DetailViewModel.Factory(recordId)
         )[DetailViewModel::class.java]
     }
 

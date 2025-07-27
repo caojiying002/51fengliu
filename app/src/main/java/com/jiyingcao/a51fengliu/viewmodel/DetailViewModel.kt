@@ -332,18 +332,18 @@ class DetailViewModel(
         detailLoadJob?.cancel()
         favoriteToggleJob?.cancel()
     }
-}
 
-class DetailViewModelFactory(
-    private val infoId: String,
-    private val repository: RecordRepository,
-    private val loginStateManager: LoginStateManager
-): ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(DetailViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return DetailViewModel(infoId, repository, loginStateManager) as T
+    class Factory(
+        private val infoId: String,
+        private val repository: RecordRepository = RecordRepository.getInstance(),
+        private val loginStateManager: LoginStateManager = LoginStateManager.getInstance()
+    ): ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(DetailViewModel::class.java)) {
+                @Suppress("UNCHECKED_CAST")
+                return DetailViewModel(infoId, repository, loginStateManager) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }
-        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
 }

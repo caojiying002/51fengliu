@@ -15,9 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.Merchant
-import com.jiyingcao.a51fengliu.repository.MerchantRepository
 import com.jiyingcao.a51fengliu.ui.auth.AuthActivity
 import com.jiyingcao.a51fengliu.ui.compose.components.*
 import com.jiyingcao.a51fengliu.ui.compose.navigation.ComposeDestinations
@@ -60,10 +58,7 @@ fun MerchantDetailScreen(
 
     // 缓存 ViewModel 工厂，避免每次重组都创建
     val factory = remember(merchantId) {
-        MerchantDetailViewModelFactory(
-            merchantId = merchantId,
-            repository = MerchantRepository.getInstance(RetrofitClient.apiService)
-        )
+        MerchantDetailViewModel.Factory(merchantId = merchantId)
     }
 
     val viewModel: MerchantDetailViewModel = viewModel(factory = factory)

@@ -10,16 +10,11 @@ import androidx.lifecycle.lifecycleScope
 import com.jiyingcao.a51fengliu.databinding.FragmentProfileBinding
 import kotlinx.coroutines.launch
 import androidx.lifecycle.ViewModelProvider
-import com.jiyingcao.a51fengliu.App
-import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.Profile
-import com.jiyingcao.a51fengliu.repository.UserRepository
 import com.jiyingcao.a51fengliu.viewmodel.ProfileIntent
 import com.jiyingcao.a51fengliu.viewmodel.ProfileState
 import com.jiyingcao.a51fengliu.viewmodel.ProfileViewModel
-import com.jiyingcao.a51fengliu.viewmodel.ProfileViewModelFactory
 import com.jiyingcao.a51fengliu.R
-import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.navigation.LoginInterceptor
 import com.jiyingcao.a51fengliu.ui.FavoriteActivity
 import com.jiyingcao.a51fengliu.ui.auth.AuthActivity
@@ -27,7 +22,6 @@ import com.jiyingcao.a51fengliu.ui.PostInfoActivity
 import com.jiyingcao.a51fengliu.ui.compose.ComposeContainerActivity
 import com.jiyingcao.a51fengliu.ui.dialog.LoadingDialog
 import com.jiyingcao.a51fengliu.ui.dialog.ConfirmDialog
-import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.LogoutEffect
 import kotlinx.coroutines.flow.collectLatest
@@ -84,10 +78,7 @@ class ProfileFragment : Fragment() {
     private fun setupViewModel() {
         viewModel = ViewModelProvider(
             this,
-            ProfileViewModelFactory(
-                UserRepository.getInstance(RetrofitClient.apiService),
-                TokenManager.getInstance(App.INSTANCE.dataStore)
-            )
+            ProfileViewModel.Factory()
         )[ProfileViewModel::class.java]
     }
 

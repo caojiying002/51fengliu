@@ -1,6 +1,7 @@
 package com.jiyingcao.a51fengliu.repository
 
 import com.jiyingcao.a51fengliu.api.ApiService
+import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.request.InfoIdRequest
 import com.jiyingcao.a51fengliu.api.request.RecordsRequest
 import com.jiyingcao.a51fengliu.api.request.ReportRequest
@@ -118,7 +119,7 @@ class RecordRepository(
         @Volatile
         private var instance: RecordRepository? = null
 
-        fun getInstance(apiService: ApiService): RecordRepository {
+        fun getInstance(apiService: ApiService = RetrofitClient.apiService): RecordRepository {
             return instance ?: synchronized(this) {
                 instance ?: RecordRepository(apiService).also { instance = it }
             }

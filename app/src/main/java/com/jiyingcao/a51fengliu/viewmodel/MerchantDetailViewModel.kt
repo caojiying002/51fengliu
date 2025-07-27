@@ -57,7 +57,7 @@ data class MerchantDetailUiState(
     
     // 联系信息显示的派生状态 - 避免空判断，始终与merchant和isLoggedIn保持一致
     val showContact: Boolean get() = !merchant?.contact.isNullOrBlank()
-    val contactText: String? get() = merchant?.contact?.takeIf { !it.isNullOrBlank() }
+    val contactText: String? get() = merchant?.contact?.takeIf { it.isNotBlank() }
     val contactPromptMessage: String get() = when {
         !merchant?.contact.isNullOrBlank() -> ""
         isLoggedIn -> "你需要VIP才能继续查看联系方式。"
@@ -277,25 +277,25 @@ class MerchantDetailViewModel(
         fetchJob?.cancel()
     }
 
+    /**
+     * 支持依赖注入的ViewModelFactory
+     * 便于测试时注入Mock对象
+     */
+    class Factory(
+        private val merchantId: String,
+        private val repository: MerchantRepository = MerchantRepository.getInstance(),
+        private val loginStateManager: LoginStateManager = LoginStateManager.getInstance()
+    ): ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(MerchantDetailViewModel::class.java)) {
+                @Suppress("UNCHECKED_CAST")
+                return MerchantDetailViewModel(merchantId, repository, loginStateManager) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
+        }
+    }
+
     companion object {
         private const val TAG: String = "MerchantDetailViewModel"
-    }
-}
-
-/**
- * 支持依赖注入的ViewModelFactory
- * 便于测试时注入Mock对象
- */
-class MerchantDetailViewModelFactory(
-    private val merchantId: String,
-    private val repository: MerchantRepository = MerchantRepository.getInstance(RetrofitClient.apiService),
-    private val loginStateManager: LoginStateManager = LoginStateManager.getInstance()
-): ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(MerchantDetailViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return MerchantDetailViewModel(merchantId, repository, loginStateManager) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
 }

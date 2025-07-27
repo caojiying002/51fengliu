@@ -11,10 +11,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.databinding.FragmentMerchantBinding
 import com.jiyingcao.a51fengliu.databinding.StatefulRefreshRecyclerViewBinding
-import com.jiyingcao.a51fengliu.repository.MerchantRepository
 import com.jiyingcao.a51fengliu.ui.MerchantDetailActivity
 import com.jiyingcao.a51fengliu.ui.adapter.MerchantAdapter
 import com.jiyingcao.a51fengliu.ui.compose.ComposeContainerActivity
@@ -28,7 +26,6 @@ import com.jiyingcao.a51fengliu.viewmodel.LoadingType
 import com.jiyingcao.a51fengliu.viewmodel.MerchantListIntent
 import com.jiyingcao.a51fengliu.viewmodel.MerchantListUiState
 import com.jiyingcao.a51fengliu.viewmodel.MerchantListViewModel
-import com.jiyingcao.a51fengliu.viewmodel.MerchantListViewModelFactory
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
@@ -47,9 +44,7 @@ class MerchantListFragment : Fragment() {
     private lateinit var merchantAdapter: MerchantAdapter
 
     private val viewModel: MerchantListViewModel by viewModels {
-        MerchantListViewModelFactory(
-            MerchantRepository.getInstance(RetrofitClient.apiService)
-        )
+        MerchantListViewModel.Factory()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

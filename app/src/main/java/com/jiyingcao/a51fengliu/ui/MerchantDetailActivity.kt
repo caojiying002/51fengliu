@@ -8,11 +8,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.Merchant
 import com.jiyingcao.a51fengliu.databinding.ActivityMerchantDetailBinding
 import com.jiyingcao.a51fengliu.databinding.MerchantContentDetailBinding
-import com.jiyingcao.a51fengliu.repository.MerchantRepository
 import com.jiyingcao.a51fengliu.ui.auth.AuthActivity
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.common.transition.SharedElementTransitionHelper
@@ -85,10 +83,7 @@ class MerchantDetailActivity : BaseActivity() {
     private fun setupViewModel(merchantId: String) {
         viewModel = ViewModelProvider(
             this,
-            MerchantDetailViewModelFactory(
-                merchantId,
-                MerchantRepository.getInstance(RetrofitClient.apiService)
-            )
+            MerchantDetailViewModel.Factory(merchantId = merchantId)
         )[MerchantDetailViewModel::class.java]
     }
 

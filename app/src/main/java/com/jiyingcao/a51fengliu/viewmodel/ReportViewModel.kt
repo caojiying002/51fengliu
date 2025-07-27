@@ -305,18 +305,18 @@ class ReportViewModel(
             return null
         }
     }
-}
 
-class ReportViewModelFactory(
-    private val repository: RecordRepository,
-    private val infoId: String
-) : ViewModelProvider.Factory {
-    
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(ReportViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return ReportViewModel(repository, infoId) as T
+    class Factory(
+        private val infoId: String,
+        private val repository: RecordRepository = RecordRepository.getInstance()
+    ) : ViewModelProvider.Factory {
+
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(ReportViewModel::class.java)) {
+                @Suppress("UNCHECKED_CAST")
+                return ReportViewModel(repository, infoId) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }
-        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
 }

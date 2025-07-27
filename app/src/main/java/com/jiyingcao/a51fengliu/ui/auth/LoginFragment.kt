@@ -17,10 +17,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.jiyingcao.a51fengliu.R
-import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.databinding.FragmentLoginBinding
-import com.jiyingcao.a51fengliu.repository.UserRepository
 import com.jiyingcao.a51fengliu.ui.base.BaseFragment
 import com.jiyingcao.a51fengliu.util.AppLogger
 import com.jiyingcao.a51fengliu.util.ImeUtil
@@ -31,18 +29,13 @@ import com.jiyingcao.a51fengliu.viewmodel.LoginErrorType
 import com.jiyingcao.a51fengliu.viewmodel.LoginIntent
 import com.jiyingcao.a51fengliu.viewmodel.LoginState
 import com.jiyingcao.a51fengliu.viewmodel.LoginViewModel
-import com.jiyingcao.a51fengliu.viewmodel.LoginViewModelFactory
 import kotlinx.coroutines.launch
 
 class LoginFragment : BaseFragment() {
     private var _binding: FragmentLoginBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: LoginViewModel by viewModels {
-        LoginViewModelFactory(
-            UserRepository.getInstance(RetrofitClient.apiService)
-        )
-    }
+    private val viewModel: LoginViewModel by viewModels { LoginViewModel.Factory() }
 
     override fun onCreateView(
         inflater: LayoutInflater,

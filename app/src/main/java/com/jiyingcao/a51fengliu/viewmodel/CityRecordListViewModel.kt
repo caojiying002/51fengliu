@@ -56,8 +56,8 @@ sealed class CityRecordListIntent {
 }
 
 class CityRecordListViewModel(
-    private val repository: RecordRepository,
-    private val sort: String
+    private val sort: String,
+    private val repository: RecordRepository
 ) : BaseViewModel() {
     private var fetchJob: Job? = null
     private val dataLock = Mutex()
@@ -259,6 +259,19 @@ class CityRecordListViewModel(
         fetchJob?.cancel()
     }
 
+    class Factory(
+        private val sort: String,
+        private val repository: RecordRepository = RecordRepository.getInstance(RetrofitClient.apiService)
+    ) : ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(CityRecordListViewModel::class.java)) {
+                @Suppress("UNCHECKED_CAST")
+                return CityRecordListViewModel(sort, repository) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
+        }
+    }
+
     companion object {
         private const val TAG: String = "CityRecordListViewModel"
         
@@ -267,18 +280,5 @@ class CityRecordListViewModel(
          */
         const val CITY_CODE_UNINITIALIZED = "UNINITIALIZED"  // 未初始化状态
         const val CITY_CODE_ALL_CITIES = ""                  // 加载所有城市数据
-    }
-}
-
-class CityRecordListViewModelFactory(
-    private val repository: RecordRepository = RecordRepository.getInstance(RetrofitClient.apiService),
-    private val sort: String
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(CityRecordListViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return CityRecordListViewModel(repository, sort) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
 }

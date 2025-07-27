@@ -1,6 +1,7 @@
 package com.jiyingcao.a51fengliu.repository
 
 import com.jiyingcao.a51fengliu.api.ApiService
+import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.request.LoginRequest
 import com.jiyingcao.a51fengliu.api.response.ApiResult
 import com.jiyingcao.a51fengliu.api.response.Profile
@@ -68,7 +69,7 @@ class UserRepository(
         @Volatile
         private var instance: UserRepository? = null
 
-        fun getInstance(apiService: ApiService): UserRepository {
+        fun getInstance(apiService: ApiService = RetrofitClient.apiService): UserRepository {
             return instance ?: synchronized(this) {
                 instance ?: UserRepository(apiService).also { instance = it }
             }

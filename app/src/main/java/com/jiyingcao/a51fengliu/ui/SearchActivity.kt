@@ -14,10 +14,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.jiyingcao.a51fengliu.R
-import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.databinding.ActivitySearchBinding
 import com.jiyingcao.a51fengliu.databinding.StatefulRefreshRecyclerViewBinding
-import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.util.AppLogger
@@ -28,7 +26,6 @@ import com.jiyingcao.a51fengliu.viewmodel.LoadingType
 import com.jiyingcao.a51fengliu.viewmodel.SearchIntent
 import com.jiyingcao.a51fengliu.viewmodel.SearchUiState
 import com.jiyingcao.a51fengliu.viewmodel.SearchViewModel
-import com.jiyingcao.a51fengliu.viewmodel.SearchViewModelFactory
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
@@ -46,9 +43,7 @@ class SearchActivity: BaseActivity() {
     private lateinit var recordAdapter: RecordAdapter
 
     private val viewModel by viewModels<SearchViewModel> {
-        SearchViewModelFactory(
-            RecordRepository.getInstance(RetrofitClient.apiService)
-        )
+        SearchViewModel.Factory()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

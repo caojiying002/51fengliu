@@ -139,17 +139,17 @@ class ProfileViewModel(
         super.onCleared()
         cancelLogout()
     }
-}
 
-class ProfileViewModelFactory(
-    private val repository: UserRepository,
-    private val tokenManager: TokenManager
-): ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(ProfileViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return ProfileViewModel(repository, tokenManager) as T
+    class Factory(
+        private val repository: UserRepository = UserRepository.getInstance(),
+        private val tokenManager: TokenManager = TokenManager.getInstance()
+    ): ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(ProfileViewModel::class.java)) {
+                @Suppress("UNCHECKED_CAST")
+                return ProfileViewModel(repository, tokenManager) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class")
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

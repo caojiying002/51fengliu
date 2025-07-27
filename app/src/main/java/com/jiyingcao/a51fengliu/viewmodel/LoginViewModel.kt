@@ -109,16 +109,16 @@ class LoginViewModel(
     private fun clearError() {
         _state.value = LoginState.Init
     }
-}
 
-class LoginViewModelFactory(
-    private val repository: UserRepository
-): ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return LoginViewModel(repository) as T
+    class Factory(
+        private val repository: UserRepository = UserRepository.getInstance()
+    ): ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
+                @Suppress("UNCHECKED_CAST")
+                return LoginViewModel(repository) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class")
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

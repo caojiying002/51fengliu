@@ -222,16 +222,16 @@ class MerchantListViewModel(
     companion object {
         private const val TAG: String = "MerchantListViewModel"
     }
-}
 
-class MerchantListViewModelFactory(
-    private val repository: MerchantRepository
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(MerchantListViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return MerchantListViewModel(repository) as T
+    class Factory(
+        private val repository: MerchantRepository = MerchantRepository.getInstance()
+    ) : ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(MerchantListViewModel::class.java)) {
+                @Suppress("UNCHECKED_CAST")
+                return MerchantListViewModel(repository) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class")
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

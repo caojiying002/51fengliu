@@ -11,9 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.databinding.StatefulViewpager2RecyclerViewBinding
-import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.DetailActivity
 import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.showContentView
@@ -26,7 +24,6 @@ import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.HomeRecordListIntent
 import com.jiyingcao.a51fengliu.viewmodel.HomeRecordListUiState
 import com.jiyingcao.a51fengliu.viewmodel.HomeRecordListViewModel
-import com.jiyingcao.a51fengliu.viewmodel.HomeRecordListViewModelFactory
 import com.jiyingcao.a51fengliu.viewmodel.LoadingType
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
@@ -45,10 +42,7 @@ class HomeRecordListFragment : Fragment() {
     private lateinit var sort: String
 
     private val viewModel: HomeRecordListViewModel by viewModels {
-        HomeRecordListViewModelFactory(
-            sort,
-            RecordRepository.getInstance(RetrofitClient.apiService)
-        )
+        HomeRecordListViewModel.Factory(sort = sort)
     }
 
     private lateinit var recordAdapter: RecordAdapter

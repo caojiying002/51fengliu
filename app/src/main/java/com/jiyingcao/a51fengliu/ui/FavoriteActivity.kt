@@ -18,7 +18,6 @@ import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.FavoriteIntent
 import com.jiyingcao.a51fengliu.viewmodel.FavoriteUiState
 import com.jiyingcao.a51fengliu.viewmodel.FavoriteViewModel
-import com.jiyingcao.a51fengliu.viewmodel.FavoriteViewModelFactory
 import com.jiyingcao.a51fengliu.viewmodel.LoadingType
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
@@ -37,7 +36,7 @@ class FavoriteActivity : BaseActivity() {
     private lateinit var recordAdapter: RecordAdapter
 
     private val viewModel by viewModels<FavoriteViewModel> {
-        FavoriteViewModelFactory()
+        FavoriteViewModel.Factory()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

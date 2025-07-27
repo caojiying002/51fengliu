@@ -221,16 +221,16 @@ class FavoriteViewModel(
     companion object {
         private const val TAG: String = "FavoriteViewModel"
     }
-}
 
-class FavoriteViewModelFactory(
-    private val repository: RecordRepository = RecordRepository.getInstance(RetrofitClient.apiService)
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(FavoriteViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return FavoriteViewModel(repository) as T
+    class Factory(
+        private val repository: RecordRepository = RecordRepository.getInstance()
+    ) : ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(FavoriteViewModel::class.java)) {
+                @Suppress("UNCHECKED_CAST")
+                return FavoriteViewModel(repository) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }
-        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
 }

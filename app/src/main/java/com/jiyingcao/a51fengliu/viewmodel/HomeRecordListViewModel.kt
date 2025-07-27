@@ -226,17 +226,17 @@ class HomeRecordListViewModel(
     companion object {
         private const val TAG: String = "HomeRecordListViewModel"
     }
-}
 
-class HomeRecordListViewModelFactory(
-    private val sort: String,
-    private val repository: RecordRepository = RecordRepository.getInstance(RetrofitClient.apiService)
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(HomeRecordListViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return HomeRecordListViewModel(sort, repository) as T
+    class Factory(
+        private val sort: String,
+        private val repository: RecordRepository = RecordRepository.getInstance(RetrofitClient.apiService)
+    ) : ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(HomeRecordListViewModel::class.java)) {
+                @Suppress("UNCHECKED_CAST")
+                return HomeRecordListViewModel(sort, repository) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }
-        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
 }

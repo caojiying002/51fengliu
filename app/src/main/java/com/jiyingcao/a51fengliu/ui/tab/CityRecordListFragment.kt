@@ -12,24 +12,18 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.jiyingcao.a51fengliu.App
-import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.databinding.StatefulViewpager2RecyclerViewBinding
-import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.ui.DetailActivity
 import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
-import com.jiyingcao.a51fengliu.ui.showContentView
 import com.jiyingcao.a51fengliu.ui.showEmptyContent
 import com.jiyingcao.a51fengliu.ui.showErrorView
 import com.jiyingcao.a51fengliu.ui.showLoadingView
 import com.jiyingcao.a51fengliu.ui.showRealContent
 import com.jiyingcao.a51fengliu.util.AppLogger
-import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.CityRecordListIntent
 import com.jiyingcao.a51fengliu.viewmodel.CityRecordListUiState
 import com.jiyingcao.a51fengliu.viewmodel.CityRecordListViewModel
-import com.jiyingcao.a51fengliu.viewmodel.CityRecordListViewModelFactory
 import com.jiyingcao.a51fengliu.viewmodel.CitySelectionViewModel
 import com.jiyingcao.a51fengliu.viewmodel.LoadingType
 import com.scwang.smart.refresh.footer.ClassicsFooter
@@ -55,10 +49,7 @@ class CityRecordListFragment : Fragment() {
      * 用于保存当前城市的Records列表数据。
      */
     private val viewModel: CityRecordListViewModel by viewModels {
-        CityRecordListViewModelFactory(
-            RecordRepository.getInstance(RetrofitClient.apiService),
-            sort
-        )
+        CityRecordListViewModel.Factory(sort = sort)
     }
 
     /**

@@ -15,14 +15,11 @@ import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.jiyingcao.a51fengliu.R
-import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.databinding.DialogReportBinding
-import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.ReportEffect
 import com.jiyingcao.a51fengliu.viewmodel.ReportIntent
 import com.jiyingcao.a51fengliu.viewmodel.ReportViewModel
-import com.jiyingcao.a51fengliu.viewmodel.ReportViewModelFactory
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import androidx.core.graphics.drawable.toDrawable
@@ -69,11 +66,10 @@ class ReportDialog : DialogFragment() {
         // Setup ViewModel
         this.recordTitle = arguments?.getString(ARG_RECORD_TITLE) ?: ""
         val infoId = arguments?.getString(ARG_RECORD_ID) ?: ""
-        val repository = RecordRepository.getInstance(RetrofitClient.apiService)
         
         viewModel = ViewModelProvider(
             this,
-            ReportViewModelFactory(repository, infoId)
+            ReportViewModel.Factory(infoId)
         )[ReportViewModel::class.java]
         
         // Set dialog width to match parent with margins

@@ -124,9 +124,9 @@ class CityRecordListFragment : Fragment() {
                         TAG,
                         "$TAG@${this@CityRecordListFragment.hashCode()}: city code selected: $cityCode"
                     )
-                    // 特殊逻辑：null表示用户未选择城市，转换为空字符串传递给ViewModel
-                    // ViewModel将解释空字符串为"加载所有城市的数据"
-                    val cityCodeForViewModel = cityCode ?: ""
+                    // 特殊逻辑：null表示用户未选择城市，转换为空字符串(CITY_CODE_ALL_CITIES)传递给ViewModel
+                    // ViewModel将解释空字符串(CITY_CODE_ALL_CITIES)为"加载所有城市的数据"
+                    val cityCodeForViewModel = cityCode ?: CityRecordListViewModel.CITY_CODE_ALL_CITIES // 空字符串("")
                     viewModel.processIntent(CityRecordListIntent.UpdateCity(cityCodeForViewModel))
                 }
             }

@@ -35,11 +35,11 @@ data class CityRecordListUiState(
     val hasLoaded: Boolean = false, // 是否已经加载过数据
     /**
      * 当前城市代码状态说明：
-     * - null: 未初始化状态，ViewModel刚创建还未接收到任何城市选择
-     * - 空字符串(""): 用户未选择城市，需要加载所有城市的数据
+     * - CITY_CODE_UNINITIALIZED("UNINITIALIZED"): 未初始化状态，ViewModel刚创建还未接收到任何城市选择
+     * - CITY_CODE_ALL_CITIES(""): 已经读取过DataStore，用户未选择城市，需要加载所有城市的数据
      * - 具体城市代码: 用户已选择特定城市，加载该城市的数据
      */
-    val cityCode: String? = null,
+    val cityCode: String = CityRecordListViewModel.CITY_CODE_UNINITIALIZED,
 ) {
     // 派生状态 - 通过计算得出，避免状态冗余
     val showContent: Boolean get() = !isLoading && !isError && records.isNotEmpty()
@@ -84,10 +84,10 @@ class CityRecordListViewModel(
      * 更新城市代码并重新加载数据
      * 
      * 城市代码参数说明：
-     * - 空字符串(""): 表示用户未选择城市，将加载所有城市的数据
+     * - CITY_CODE_ALL_CITIES(""): 表示用户未选择城市，将加载所有城市的数据
      * - 具体城市代码: 表示用户选择了特定城市，将加载该城市的数据
      * 
-     * 注意：此方法不会接收null值，null值已在UI层转换为空字符串
+     * 注意：此方法不会接收CITY_CODE_UNINITIALIZED，UI层会将null转换为CITY_CODE_ALL_CITIES("")
      */
     private fun updateCity(cityCode: String) {
         val currentState = _uiState.value
@@ -108,23 +108,17 @@ class CityRecordListViewModel(
 
     private fun retry() {
         val currentState = _uiState.value
-        currentState.cityCode?.let {
-            fetchData(cityCode = it, page = 1, loadingType = LoadingType.FULL_SCREEN)
-        }
+        fetchData(cityCode = currentState.cityCode, page = 1, loadingType = LoadingType.FULL_SCREEN)
     }
 
     private fun refresh() {
         val currentState = _uiState.value
-        currentState.cityCode?.let {
-            fetchData(cityCode = it, page = 1, loadingType = LoadingType.PULL_TO_REFRESH)
-        }
+        fetchData(cityCode = currentState.cityCode, page = 1, loadingType = LoadingType.PULL_TO_REFRESH)
     }
 
     private fun loadMore() {
         val currentState = _uiState.value
-        currentState.cityCode?.let {
-            fetchData(cityCode = it, page = currentPage + 1, loadingType = LoadingType.LOAD_MORE)
-        }
+        fetchData(cityCode = currentState.cityCode, page = currentPage + 1, loadingType = LoadingType.LOAD_MORE)
     }
 
     private fun clearRecordsBlocking() {
@@ -136,6 +130,9 @@ class CityRecordListViewModel(
     }
 
     private fun fetchData(cityCode: String, page: Int, loadingType: LoadingType) {
+        // 如果城市代码未初始化，则不执行请求
+        if (cityCode == CITY_CODE_UNINITIALIZED) return
+        
         if (shouldPreventRequest(loadingType)) return
 
         fetchJob?.cancel()
@@ -264,6 +261,12 @@ class CityRecordListViewModel(
 
     companion object {
         private const val TAG: String = "CityRecordListViewModel"
+        
+        /**
+         * 城市代码状态常量
+         */
+        const val CITY_CODE_UNINITIALIZED = "UNINITIALIZED"  // 未初始化状态
+        const val CITY_CODE_ALL_CITIES = ""                  // 加载所有城市数据
     }
 }
 

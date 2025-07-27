@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.datastore.userSelectionDataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -15,7 +16,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 
 class UserSelectionRepository private constructor(
-    private val dataStore: DataStore<Preferences>
+    private val dataStore: DataStore<Preferences> = App.INSTANCE.userSelectionDataStore
 ) {
     // 使用应用级别的CoroutineScope，确保数据流在应用生命周期内保持活跃
     private val repositoryScope = CoroutineScope(

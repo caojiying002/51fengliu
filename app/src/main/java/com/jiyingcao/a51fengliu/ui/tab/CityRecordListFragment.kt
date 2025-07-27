@@ -66,7 +66,7 @@ class CityRecordListFragment : Fragment() {
      * 保存选中的城市，与其他 [CityRecordListFragment] 实例共享。
      */
     private val citySelectionViewModel: CitySelectionViewModel by activityViewModels {
-        CitySelectionViewModel.Factory(App.INSTANCE.dataStore)
+        CitySelectionViewModel.Factory()
     }
 
     private lateinit var recordAdapter: RecordAdapter
@@ -119,7 +119,7 @@ class CityRecordListFragment : Fragment() {
         // 注：这是对严格MVI的实用性妥协，因为城市选择需要跨Fragment共享
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                citySelectionViewModel.selectedCity.collect { it ->
+                citySelectionViewModel.selectedCitySharedFlow.collect { it ->
                     AppLogger.d(
                         TAG,
                         "$TAG@${this@CityRecordListFragment.hashCode()}: city code selected: $it"

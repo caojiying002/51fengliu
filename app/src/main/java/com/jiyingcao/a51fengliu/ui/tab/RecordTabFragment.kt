@@ -36,7 +36,7 @@ class RecordTabFragment : Fragment() {
      * 由所有 [CityRecordListFragment] 共享。
      */
     private val citySelectionViewModel: CitySelectionViewModel by activityViewModels {
-        CitySelectionViewModel.Factory(App.INSTANCE.dataStore)
+        CitySelectionViewModel.Factory()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -53,7 +53,7 @@ class RecordTabFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                citySelectionViewModel.selectedCity.collect { cityCode ->
+                citySelectionViewModel.selectedCitySharedFlow.collect { cityCode ->
                     displayCity(cityCode)
                 }
             }

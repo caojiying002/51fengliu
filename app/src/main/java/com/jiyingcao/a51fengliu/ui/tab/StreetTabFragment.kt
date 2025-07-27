@@ -8,7 +8,9 @@ import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
@@ -20,6 +22,7 @@ import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.to2LevelName
 import com.jiyingcao.a51fengliu.viewmodel.CitySelectionViewModel
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 class StreetTabFragment : Fragment() {
@@ -46,12 +49,7 @@ class StreetTabFragment : Fragment() {
         setupViewPager()
         setupTabLayout()
         setupClickListeners()
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            citySelectionViewModel.selectedCitySharedFlow.collect { cityCode ->
-                displayCity(cityCode)
-            }
-        }
+        observeUiState()
     }
 
     override fun onResume() {
@@ -65,6 +63,18 @@ class StreetTabFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun observeUiState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                citySelectionViewModel.selectedCitySharedFlow
+                    .distinctUntilChanged()
+                    .collect { cityCode ->
+                        displayCity(cityCode)
+                    }
+            }
+        }
     }
 
     private fun setupViewPager() {

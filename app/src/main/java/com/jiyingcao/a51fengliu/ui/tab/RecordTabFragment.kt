@@ -23,6 +23,7 @@ import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.to2LevelName
 import com.jiyingcao.a51fengliu.viewmodel.CitySelectionViewModel
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 class RecordTabFragment : Fragment() {
@@ -50,14 +51,7 @@ class RecordTabFragment : Fragment() {
         setupTabLayout()
         setupClickListeners()
         //setupNestedScrolling() // 不需要，用嵌套布局解决滑动冲突了
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                citySelectionViewModel.selectedCitySharedFlow.collect { cityCode ->
-                    displayCity(cityCode)
-                }
-            }
-        }
+        observeUiState()
     }
 
     /**
@@ -85,6 +79,18 @@ class RecordTabFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun observeUiState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                citySelectionViewModel.selectedCitySharedFlow
+                    .distinctUntilChanged()
+                    .collect { cityCode ->
+                        displayCity(cityCode)
+                    }
+            }
+        }
     }
 
     private fun setupViewPager() {

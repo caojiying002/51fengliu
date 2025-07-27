@@ -35,6 +35,7 @@ import com.jiyingcao.a51fengliu.viewmodel.LoadingType
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 class CityRecordListFragment : Fragment() {
@@ -119,16 +120,19 @@ class CityRecordListFragment : Fragment() {
         // 注：这是对严格MVI的实用性妥协，因为城市选择需要跨Fragment共享
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                citySelectionViewModel.selectedCitySharedFlow.collect { cityCode ->
-                    AppLogger.d(
-                        TAG,
-                        "$TAG@${this@CityRecordListFragment.hashCode()}: city code selected: $cityCode"
-                    )
-                    // 特殊逻辑：null表示用户未选择城市，转换为空字符串(CITY_CODE_ALL_CITIES)传递给ViewModel
-                    // ViewModel将解释空字符串(CITY_CODE_ALL_CITIES)为"加载所有城市的数据"
-                    val cityCodeForViewModel = cityCode ?: CityRecordListViewModel.CITY_CODE_ALL_CITIES // 空字符串("")
-                    viewModel.processIntent(CityRecordListIntent.UpdateCity(cityCodeForViewModel))
-                }
+                citySelectionViewModel.selectedCitySharedFlow
+                    .distinctUntilChanged()
+                    .collect { cityCode ->
+                        AppLogger.d(
+                            TAG,
+                            "$TAG@${this@CityRecordListFragment.hashCode()}: city code selected: $cityCode"
+                        )
+                        // 特殊逻辑：null表示用户未选择城市，转换为空字符串(CITY_CODE_ALL_CITIES)传递给ViewModel
+                        // ViewModel将解释空字符串(CITY_CODE_ALL_CITIES)为"加载所有城市的数据"
+                        val cityCodeForViewModel =
+                            cityCode ?: CityRecordListViewModel.CITY_CODE_ALL_CITIES // 空字符串("")
+                        viewModel.processIntent(CityRecordListIntent.UpdateCity(cityCodeForViewModel))
+                    }
             }
         }
         

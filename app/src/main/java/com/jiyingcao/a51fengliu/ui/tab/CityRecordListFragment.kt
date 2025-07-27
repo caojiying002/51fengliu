@@ -119,14 +119,15 @@ class CityRecordListFragment : Fragment() {
         // 注：这是对严格MVI的实用性妥协，因为城市选择需要跨Fragment共享
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                citySelectionViewModel.selectedCitySharedFlow.collect { it ->
+                citySelectionViewModel.selectedCitySharedFlow.collect { cityCode ->
                     AppLogger.d(
                         TAG,
-                        "$TAG@${this@CityRecordListFragment.hashCode()}: city code selected: $it"
+                        "$TAG@${this@CityRecordListFragment.hashCode()}: city code selected: $cityCode"
                     )
-                    it?.let {
-                        viewModel.processIntent(CityRecordListIntent.UpdateCity(it))
-                    }
+                    // 特殊逻辑：null表示用户未选择城市，转换为空字符串传递给ViewModel
+                    // ViewModel将解释空字符串为"加载所有城市的数据"
+                    val cityCodeForViewModel = cityCode ?: ""
+                    viewModel.processIntent(CityRecordListIntent.UpdateCity(cityCodeForViewModel))
                 }
             }
         }

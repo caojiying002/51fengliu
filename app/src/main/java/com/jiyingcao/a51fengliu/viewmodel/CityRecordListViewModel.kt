@@ -33,7 +33,13 @@ data class CityRecordListUiState(
     val isRefreshing: Boolean = false,
     val isLoadingMore: Boolean = false,
     val hasLoaded: Boolean = false, // 是否已经加载过数据
-    val cityCode: String? = null, // 当前城市代码。注意null表示未初始化状态，空字符串表示未选择城市（即加载所有城市的数据）
+    /**
+     * 当前城市代码状态说明：
+     * - null: 未初始化状态，ViewModel刚创建还未接收到任何城市选择
+     * - 空字符串(""): 用户未选择城市，需要加载所有城市的数据
+     * - 具体城市代码: 用户已选择特定城市，加载该城市的数据
+     */
+    val cityCode: String? = null,
 ) {
     // 派生状态 - 通过计算得出，避免状态冗余
     val showContent: Boolean get() = !isLoading && !isError && records.isNotEmpty()
@@ -74,13 +80,22 @@ class CityRecordListViewModel(
         }
     }
 
+    /**
+     * 更新城市代码并重新加载数据
+     * 
+     * 城市代码参数说明：
+     * - 空字符串(""): 表示用户未选择城市，将加载所有城市的数据
+     * - 具体城市代码: 表示用户选择了特定城市，将加载该城市的数据
+     * 
+     * 注意：此方法不会接收null值，null值已在UI层转换为空字符串
+     */
     private fun updateCity(cityCode: String) {
         val currentState = _uiState.value
         if (currentState.cityCode == cityCode) return
         
         // 清除当前记录，避免显示旧数据
         clearRecordsBlocking()
-        // 更新城市代码并标记需要重置滚动
+        // 更新城市代码后加载数据
         _uiState.update { currentState ->
             currentState.copy(
                 records = emptyList(),

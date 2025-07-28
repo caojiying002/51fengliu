@@ -22,7 +22,9 @@ import com.jiyingcao.a51fengliu.R
 
 /**
  * 记录列表项组件
- * 固定高度布局，左侧内容区域，右侧图片区域
+ * 响应式高度布局，左侧内容区域自适应，右侧图片区域固定尺寸
+ * 默认字体字号下可以认为是固定高度174dp（160dp内容 + 7dp上下padding）
+ * 支持大字体模式下的响应式布局，内容溢出时自动上下撑开
  */
 @Composable
 fun RecordListItem(
@@ -37,15 +39,14 @@ fun RecordListItem(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(174.dp) // 固定总高度 160 + 7*2
-            .padding(7.dp), // 统一边距
+            .defaultMinSize(minHeight = 174.dp) // 最小总高度 160 + 7*2 = 174dp
+            .padding(7.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // 左侧内容区域
+        // 左侧内容区域 - 自适应高度
         Column(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxHeight()
                 .padding(end = 8.dp)
         ) {
             Text(
@@ -108,10 +109,10 @@ fun RecordListItem(
             }
         }
 
-        // 右侧图片区域 - 固定高度160dp，4:3比例
+        // 右侧图片区域 - 固定高度160dp，4:3比例，纵向居中
         AsyncImage(
             model = imageUrl,
-            contentDescription = "记录配图",
+            contentDescription = "封面配图",
             modifier = Modifier
                 .height(160.dp)
                 .width(120.dp) // 160 * 3/4 = 120dp，保持4:3比例
@@ -121,7 +122,7 @@ fun RecordListItem(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "Normal Content")
 @Composable
 private fun RecordListItemPreview() {
     RecordListItem(
@@ -129,6 +130,32 @@ private fun RecordListItemPreview() {
         createTime = "2024-07-18",
         browseCount = "8900",
         process = "Process content may be long long long and might need multiple lines to display properly",
+        dz = "广东-深圳市",
+        imageUrl = ""
+    )
+}
+
+@Preview(showBackground = true, name = "Long Content", fontScale = 1.5f)
+@Composable
+private fun RecordListItemLongContentPreview() {
+    RecordListItem(
+        title = "Very Very Very Long Title That Might Be Truncated",
+        createTime = "2024-07-18 15:30:25",
+        browseCount = "8900",
+        process = "This is a very long process description that will definitely take up multiple lines and might even need more space when the system font size is increased by users in accessibility settings",
+        dz = "广东省-深圳市南山区",
+        imageUrl = ""
+    )
+}
+
+@Preview(showBackground = true, name = "Large Font", fontScale = 2.0f)
+@Composable
+private fun RecordListItemLargeFontPreview() {
+    RecordListItem(
+        title = "Large Font Test",
+        createTime = "2024-07-18",
+        browseCount = "8900",
+        process = "测试大字体情况下的显示效果，看看响应式高度是否能够正确处理内容溢出的问题",
         dz = "广东-深圳市",
         imageUrl = ""
     )

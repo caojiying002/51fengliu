@@ -149,6 +149,7 @@ fun AppErrorLayout(
 @Composable
 fun AppCard(
     modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(DefaultHorizontalSpace),
     content: @Composable () -> Unit
 ) {
     Box(
@@ -158,7 +159,7 @@ fun AppCard(
                 color = Surface,
                 shape = RoundedCornerShape(4.dp)
             )
-            .padding(8.dp)
+            .padding(contentPadding)
     ) {
         content()
     }

@@ -40,7 +40,7 @@ fun RecordListItem(
         modifier = modifier
             .fillMaxWidth()
             .defaultMinSize(minHeight = 174.dp) // 最小总高度 160 + 7*2 = 174dp
-            .padding(7.dp),
+            .padding(start = 8.dp, top = 7.dp, end = 7.dp, bottom = 7.dp), // 左8dp，右上下7dp
         verticalAlignment = Alignment.CenterVertically
     ) {
         // 左侧内容区域 - 自适应高度

@@ -189,10 +189,10 @@ private fun FavoriteContent(
     ) {
         LazyColumn(
             state = listState,
-            /*contentPadding = PaddingValues(
+            contentPadding = PaddingValues(
                 horizontal = DefaultHorizontalSpace,
                 vertical = DividerHeight
-            ),*/
+            ),
             verticalArrangement = Arrangement.spacedBy(DividerHeight)
         ) {
             items(
@@ -243,6 +243,7 @@ private fun RecordCard(
     modifier: Modifier = Modifier
 ) {
     AppCard(
+        contentPadding = PaddingValues(0.dp), // 移除AppCard的默认8dp padding
         modifier = modifier.clickable { onClick() }
     ) {
         RecordListItem(

@@ -1,11 +1,15 @@
 package com.jiyingcao.a51fengliu.ui
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View.GONE
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.TextView
+import androidx.core.animation.doOnEnd
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -230,7 +234,16 @@ class DetailActivity : BaseActivity() {
 
             // （不是正式功能，方便截图用的）长按隐藏警告信息
             contactWarning.setOnLongClickListener { v ->
-                v.isVisible = false
+                val originalHeight = v.height
+                ValueAnimator.ofInt(originalHeight, 0)
+                    .apply {
+                        interpolator = AccelerateDecelerateInterpolator()
+                        addUpdateListener { animator ->
+                            v.updateLayoutParams { height = animator.animatedValue as Int }
+                        }
+                        doOnEnd { v.isVisible = false }
+                    }
+                    .start()
                 true
             }
         }

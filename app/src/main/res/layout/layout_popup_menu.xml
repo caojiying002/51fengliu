@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- 正三角指示器（弹窗在下方时显示） -->
+    <ImageView
+        android:id="@+id/triangleIndicatorTop"
+        android:layout_width="12dp"
+        android:layout_height="6dp"
+        android:layout_gravity="center_horizontal"
+        android:rotation="180"
+        android:src="@drawable/shape_popup_triangle"
+        android:visibility="gone" />
+
+    <!-- 弹窗主体 -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_popup_menu"
+        android:elevation="8dp"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="12dp">
+
+        <!-- 复制选项 -->
+        <LinearLayout
+            android:id="@+id/copyOption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="8dp">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginEnd="8dp"
+                android:src="@drawable/ic_copy" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="复制"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- 倒三角指示器（弹窗在上方时显示） -->
+    <ImageView
+        android:id="@+id/triangleIndicatorBottom"
+        android:layout_width="12dp"
+        android:layout_height="6dp"
+        android:layout_gravity="center_horizontal"
+        android:src="@drawable/shape_popup_triangle"
+        android:visibility="gone" />
+
+</LinearLayout>

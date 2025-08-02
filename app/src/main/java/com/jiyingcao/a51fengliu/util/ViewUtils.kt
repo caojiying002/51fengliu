@@ -52,6 +52,29 @@ fun TextView.copyOnLongClick(
     }
 }
 
+fun TextView.copyOnLongClickWithMenu(
+    copySuccess: () -> Unit = { Toast.makeText(context, "已复制", Toast.LENGTH_SHORT).show() }
+) {
+    setOnLongClickListener { view ->
+        // 创建弹窗
+        val popup = com.jiyingcao.a51fengliu.ui.popup.LongClickPopupWindow.createCopyPopup(context) {
+            // 复制逻辑
+            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clip = ClipData.newPlainText("text", text)
+            clipboard.setPrimaryClip(clip)
+            copySuccess()
+        }
+        
+        // 显示弹窗
+        popup.showAroundView(view)
+        
+        // 震动反馈
+        vibrate(context)
+        
+        true
+    }
+}
+
 fun RecyclerView.scrollToTopIfEmpty(c: Collection<*>) {
     if (c.isEmpty()) scrollToPosition(0)
 }

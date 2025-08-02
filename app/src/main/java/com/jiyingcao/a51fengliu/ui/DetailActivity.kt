@@ -28,6 +28,7 @@ import com.jiyingcao.a51fengliu.ui.dialog.LoadingDialog
 import com.jiyingcao.a51fengliu.ui.dialog.ReportDialog
 import com.jiyingcao.a51fengliu.ui.dialog.VipPromptDialog
 import com.jiyingcao.a51fengliu.util.copyOnLongClick
+import com.jiyingcao.a51fengliu.util.copyOnLongClickWithMenu
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.timestampToDay
 import com.jiyingcao.a51fengliu.util.to2LevelName
@@ -254,8 +255,8 @@ class DetailActivity : BaseActivity() {
         displayImages(record)
 
         with(contentBinding) {
-            title.copyOnLongClick()
-            dz.copyOnLongClick()
+            title.copyOnLongClickWithMenu()
+            dz.copyOnLongClickWithMenu()
 
             title.text = record.title
             age.text = record.girlAge
@@ -324,12 +325,12 @@ class DetailActivity : BaseActivity() {
                 contactWarning.isVisible = true // 显示警告信息，避免诈骗
 
                 contactInfoVip.apply {
-                    qq.copyOnLongClick()
-                    wechat.copyOnLongClick()
-                    telegram.copyOnLongClick()
-                    yuni.copyOnLongClick()
-                    phone.copyOnLongClick()
-                    address.copyOnLongClick()
+                    qq.copyOnLongClickWithMenu()
+                    wechat.copyOnLongClickWithMenu()
+                    telegram.copyOnLongClickWithMenu()
+                    yuni.copyOnLongClickWithMenu()
+                    phone.copyOnLongClickWithMenu()
+                    address.copyOnLongClickWithMenu()
 
                     qq.isVisible = !record.qq.isNullOrBlank()
                     qq.text = getString(R.string.qq_format, record.qq)

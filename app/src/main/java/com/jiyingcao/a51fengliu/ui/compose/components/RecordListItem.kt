@@ -46,13 +46,11 @@ fun RecordListItem(
             .fillMaxWidth()
             .defaultMinSize(minHeight = 174.dp) // 最小总高度 160 + 7*2 = 174dp
             .padding(start = 8.dp, top = 7.dp, end = 7.dp, bottom = 7.dp), // 左8dp，右上下7dp
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically  // 纵向居中
     ) {
         // 左侧内容区域 - 自适应高度
         Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(end = 8.dp)
+            modifier = Modifier.weight(1f)
         ) {
             Text(
                 text = title,
@@ -111,16 +109,21 @@ fun RecordListItem(
             }
         }
 
-        // 右侧图片区域 - 固定高度160dp，4:3比例，纵向居中
-        AsyncImage(
-            model = imageUrl,
-            contentDescription = "封面配图",
-            modifier = Modifier
-                .height(160.dp)
-                .width(120.dp) // 160 * 3/4 = 120dp，保持4:3比例
-                .clip(RoundedCornerShape(4.dp)),
-            contentScale = ContentScale.Crop
-        )
+        // 右侧图片区域 - 只有当imageUrl不为空时才显示
+        if (imageUrl.isNotBlank()) {
+            Spacer(modifier = Modifier.width(8.dp))
+            
+            // 固定高度160dp，4:3比例
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = "封面配图",
+                modifier = Modifier
+                    .height(160.dp)
+                    .width(120.dp) // 160 * 3/4 = 120dp，保持4:3比例
+                    .clip(RoundedCornerShape(4.dp)),
+                contentScale = ContentScale.Crop
+            )
+        }
     }
 }
 
@@ -133,7 +136,20 @@ private fun RecordListItemPreview() {
         browseCount = "8900",
         process = "Process content may be long long long and might need multiple lines to display properly",
         dz = "广东-深圳市",
-        imageUrl = ""
+        imageUrl = "https://example.com/image.jpg"
+    )
+}
+
+@Preview(showBackground = true, name = "No Image")
+@Composable
+private fun RecordListItemNoImagePreview() {
+    RecordListItem(
+        title = "Sample Title Without Image",
+        createTime = "2024-07-18",
+        browseCount = "8900",
+        process = "Process content may be long long long and might need multiple lines to display properly",
+        dz = "广东-深圳市",
+        imageUrl = "" // 空字符串，图片将被隐藏
     )
 }
 
@@ -146,7 +162,7 @@ private fun RecordListItemLongContentPreview() {
         browseCount = "8900",
         process = "This is a very long process description that will definitely take up multiple lines and might even need more space when the system font size is increased by users in accessibility settings",
         dz = "广东省-深圳市南山区",
-        imageUrl = ""
+        imageUrl = "https://example.com/image.jpg"
     )
 }
 
@@ -159,6 +175,6 @@ private fun RecordListItemLargeFontPreview() {
         browseCount = "8900",
         process = "测试大字体情况下的显示效果，看看响应式高度是否能够正确处理内容溢出的问题",
         dz = "广东-深圳市",
-        imageUrl = ""
+        imageUrl = "https://example.com/image.jpg"
     )
 }

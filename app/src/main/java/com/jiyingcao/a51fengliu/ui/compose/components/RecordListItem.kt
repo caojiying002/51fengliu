@@ -1,6 +1,5 @@
 package com.jiyingcao.a51fengliu.ui.compose.components
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -10,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -24,6 +24,7 @@ import com.jiyingcao.a51fengliu.ui.compose.theme.Primary
 import com.jiyingcao.a51fengliu.ui.compose.theme.TextContent
 import com.jiyingcao.a51fengliu.ui.compose.theme.TextLight
 import com.jiyingcao.a51fengliu.ui.compose.theme.TextTitle
+import androidx.compose.material3.Icon
 
 /**
  * 记录列表项组件
@@ -89,9 +90,10 @@ fun RecordListItem(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
+                Icon(
                     painter = painterResource(id = R.drawable.icon_dz),
                     contentDescription = "地址图标",
+                    tint = Primary,
                     modifier = Modifier.size(16.dp)
                 )
 

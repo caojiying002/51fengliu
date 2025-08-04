@@ -12,6 +12,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -19,6 +20,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.jiyingcao.a51fengliu.R
+import com.jiyingcao.a51fengliu.ui.compose.theme.Primary
+import com.jiyingcao.a51fengliu.ui.compose.theme.TextContent
+import com.jiyingcao.a51fengliu.ui.compose.theme.TextLight
+import com.jiyingcao.a51fengliu.ui.compose.theme.TextTitle
 
 /**
  * 记录列表项组件
@@ -51,36 +56,33 @@ fun RecordListItem(
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    color = Color(0xFF222222), // @color/text_item_title
-                    fontWeight = FontWeight.Bold
-                ),
+                color = TextTitle,
+                fontSize = 16.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(5.dp))
 
             Text(
                 text = createTime,
-                style = MaterialTheme.typography.bodySmall.copy(
-                    color = Color(0xFFA3A3A3), // @color/text_light
-                    fontSize = 12.sp
-                ),
+                color = TextLight,
+                fontSize = 9.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = process,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    color = Color(0xFF525252), // @color/text_content
-                    fontSize = 14.sp
-                ),
                 maxLines = 2,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                style = TextStyle(
+                    color = TextContent,
+                    fontSize = 14.sp,
+                    lineHeight = (14 + 4).sp    // 增加4sp行高
+                )
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -99,12 +101,12 @@ fun RecordListItem(
 
                 Text(
                     text = dz,
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        color = Color(0xFFEC4899),
-                        fontSize = 14.sp
-                    ),
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    style = TextStyle(
+                        color = Primary,
+                        fontSize = 14.sp
+                    )
                 )
             }
         }

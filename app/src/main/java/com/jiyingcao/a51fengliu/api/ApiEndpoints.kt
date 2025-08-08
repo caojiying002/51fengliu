@@ -20,6 +20,7 @@ object ApiEndpoints {
         const val PROFILE = "/api/mobile/authUser/detail.json"
         const val FAVORITES = "/api/mobile/authUser/favoritePage.json"
         const val FAVORITE_STREETS = "/api/mobile/authUser/favoriteStreetPage.json"
+        const val INFO_PAGE = "/api/mobile/authUser/infoPage.json"
     }
     
     /** 信息内容相关接口 */

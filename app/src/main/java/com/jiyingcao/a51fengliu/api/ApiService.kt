@@ -161,6 +161,23 @@ interface ApiService {
         @Query("perPage") perPage: Int = 30
     ): ApiResponse<PageData<Street>>
 
+    /**
+     * 获取我发布的信息列表
+     * 需要用户登录状态
+     * 
+     * @param page 页码，默认从1开始
+     * @param perPage 每页数量，默认30
+     * @param status 信息状态，可选值：0(等待审核)、1(已拒绝)、2(已发布)，不传表示全部状态
+     * @return 分页的用户发布信息列表
+     */
+    @TokenPolicy(Policy.REQUIRED)
+    @GET(ApiEndpoints.User.INFO_PAGE)
+    suspend fun getUserInfoPage(
+        @Query("page") page: Int = 1,
+        @Query("perPage") perPage: Int = 30,
+        @Query("status") status: Int? = null
+    ): ApiResponse<PageData<RecordInfo>>
+
     // ========== 商家相关接口 ==========
 
     /**

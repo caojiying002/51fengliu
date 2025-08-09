@@ -162,9 +162,19 @@ class ProfileFragment : Fragment() {
                 startActivity(PostInfoActivity.createIntent(requireContext()))
             }
         }
+        binding.tvPublishStreet.setOnClickListener {
+            loginInterceptor.execute {
+                // TODO 打开发布暗巷页面
+            }
+        }
         binding.tvMyInfo.setOnClickListener {
             loginInterceptor.execute {
                 // TODO 打开我发布的信息列表
+            }
+        }
+        binding.tvMyStreets.setOnClickListener {
+            loginInterceptor.execute {
+                // TODO 打开我的攻略页面
             }
         }
         binding.tvMyFavorite.setOnClickListener {

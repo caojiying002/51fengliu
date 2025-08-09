@@ -100,13 +100,21 @@
         app:columnCount="4"
         app:useDefaultMargins="false">
 
-        <!-- 信息发布 -->
+        <!-- 发布信息 -->
         <TextView
             android:id="@+id/tv_post_info"
             style="@style/ProfileGridItem"
             app:layout_columnWeight="1"
             android:drawableTop="@drawable/ic_post_info"
-            android:text="信息发布" />
+            android:text="发布信息" />
+
+        <!-- 发布暗巷 -->
+        <TextView
+            android:id="@+id/tv_publish_street"
+            style="@style/ProfileGridItem"
+            app:layout_columnWeight="1"
+            android:drawableTop="@drawable/ic_publish_street"
+            android:text="发布暗巷" />
 
         <!-- 我的信息 -->
         <TextView
@@ -115,6 +123,14 @@
             app:layout_columnWeight="1"
             android:drawableTop="@drawable/ic_my_info"
             android:text="我的信息" />
+
+        <!-- 我的攻略 -->
+        <TextView
+            android:id="@+id/tv_my_streets"
+            style="@style/ProfileGridItem"
+            app:layout_columnWeight="1"
+            android:drawableTop="@drawable/ic_my_streets"
+            android:text="我的攻略" />
 
         <!-- 我的收藏 -->
         <TextView

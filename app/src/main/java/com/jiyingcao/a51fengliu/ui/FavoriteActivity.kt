@@ -3,41 +3,20 @@ package com.jiyingcao.a51fengliu.ui
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import androidx.fragment.app.Fragment
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.databinding.ActivityFavoriteBinding
-import com.jiyingcao.a51fengliu.databinding.StatefulRefreshRecyclerViewBinding
-import com.jiyingcao.a51fengliu.ui.adapter.RecordAdapter
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
-import com.jiyingcao.a51fengliu.util.showToast
-import com.jiyingcao.a51fengliu.viewmodel.FavoriteIntent
-import com.jiyingcao.a51fengliu.viewmodel.FavoriteUiState
-import com.jiyingcao.a51fengliu.viewmodel.FavoriteViewModel
-import com.jiyingcao.a51fengliu.viewmodel.LoadingType
-import com.scwang.smart.refresh.footer.ClassicsFooter
-import com.scwang.smart.refresh.header.ClassicsHeader
-import com.scwang.smart.refresh.layout.SmartRefreshLayout
-import kotlinx.coroutines.launch
+import com.jiyingcao.a51fengliu.ui.tab.FavoriteRecordsFragment
+import com.jiyingcao.a51fengliu.ui.tab.FavoriteStreetsFragment
 
 class FavoriteActivity : BaseActivity() {
     private lateinit var binding: ActivityFavoriteBinding
-
-    private val statefulContent: StatefulRefreshRecyclerViewBinding
-        get() = binding.statefulContent
-
-    private val refreshLayout: SmartRefreshLayout get() = statefulContent.refreshLayout
-    private val recyclerView: RecyclerView get() = statefulContent.recyclerView
-
-    private lateinit var recordAdapter: RecordAdapter
-
-    private val viewModel by viewModels<FavoriteViewModel> {
-        FavoriteViewModel.Factory()
-    }
+    private val tabTitles = listOf("信息收藏", "攻略手册")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,11 +24,8 @@ class FavoriteActivity : BaseActivity() {
         setContentView(binding.root)
         
         setupTitleBar()
-        setupRecyclerView()
-        setupSmartRefreshLayout()
-        observeUiState()
-
-        viewModel.processIntent(FavoriteIntent.InitialLoad)
+        setupViewPager()
+        setupTabLayout()
     }
 
     private fun setupTitleBar() {
@@ -57,108 +33,35 @@ class FavoriteActivity : BaseActivity() {
         binding.titleBar.titleBarBack.setOnClickListener { finish() }
     }
 
-    private fun setupRecyclerView() {
-        recordAdapter = RecordAdapter().apply {
-            setOnItemClickListener { record, position ->
-                DetailActivity.start(this@FavoriteActivity, record.id)
-            }
-        }
-        
-        recyclerView.apply {
-            setHasFixedSize(true)
-            layoutManager = LinearLayoutManager(context)
-            adapter = recordAdapter
-        }
-    }
-
-    private fun setupSmartRefreshLayout() {
-        refreshLayout.apply {
-            setRefreshHeader(ClassicsHeader(context))
-            setRefreshFooter(ClassicsFooter(context))
-            setOnRefreshListener { viewModel.processIntent(FavoriteIntent.Refresh) }
-            setOnLoadMoreListener { viewModel.processIntent(FavoriteIntent.LoadMore) }
-        }
-    }
-
-    /**
-     * 单一状态流观察 - 企业级MVI最佳实践
-     * 所有UI状态变化都在一个地方处理，便于维护和调试
-     */
-    private fun observeUiState() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect { uiState ->
-                    // 处理数据展示, 最好优化一下避免每次都提交列表数据
-                    recordAdapter.submitList(uiState.records)
-
-                    // 处理各种UI状态 - 使用when表达式确保所有状态都被处理
-                    when {
-                        uiState.showFullScreenLoading -> {
-                            showLoadingView()
-                        }
-
-                        uiState.showFullScreenError -> {
-                            showErrorView(uiState.errorMessage)
-                        }
-
-                        uiState.showEmpty -> {
-                            statefulContent.showEmptyContent()
-                        }
-
-                        uiState.showContent -> {
-                            statefulContent.showRealContent()
-                        }
-                    }
-
-                    // 精确处理刷新状态 - 只处理下拉刷新相关的状态变化
-                    handleRefreshState(uiState)
-                    
-                    // 精确处理加载更多状态 - 只处理上拉加载相关的状态变化
-                    handleLoadMoreState(uiState)
-
-                    // 处理无更多数据状态
-                    refreshLayout.setNoMoreData(uiState.noMoreData)
-
-                    // 处理错误提示 - 只对非全屏错误显示Toast
-                    if (uiState.isError && !uiState.showFullScreenError) {
-                        showToast(uiState.errorMessage)
-                    }
+    private fun setupViewPager() {
+        val adapter = FavoriteTabAdapter(this)
+        with(binding.viewPager) {
+            this.adapter = adapter
+            offscreenPageLimit = 1
+            registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+                override fun onPageSelected(position: Int) {
+                    super.onPageSelected(position)
+                    // ViewPager2 自动管理 Fragment 生命周期，无需手动处理
                 }
-            }
+            })
         }
     }
 
-    private fun handleRefreshState(uiState: FavoriteUiState) {
-        when {
-            uiState.isRefreshing -> {
-                // 下拉刷新进行中，SmartRefreshLayout 自动处理
-            }
-            !uiState.isRefreshing && uiState.loadingType == LoadingType.PULL_TO_REFRESH -> {
-                // 下拉刷新结束（无论成功失败）
-                refreshLayout.finishRefresh(!uiState.isError)
-            }
-            // 其他情况不处理 refreshLayout
-        }
+    private fun setupTabLayout() {
+        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
+            tab.text = tabTitles[position]
+        }.attach()
     }
 
-    private fun handleLoadMoreState(uiState: FavoriteUiState) {
-        when {
-            uiState.isLoadingMore -> {
-                // 上拉加载进行中，SmartRefreshLayout 自动处理
-            }
-            !uiState.isLoadingMore && uiState.loadingType == LoadingType.LOAD_MORE -> {
-                // 上拉加载结束（无论成功失败）
-                refreshLayout.finishLoadMore(!uiState.isError)
-            }
-            // 其他情况不处理 refreshLayout
-        }
-    }
+    inner class FavoriteTabAdapter(activity: FavoriteActivity) : FragmentStateAdapter(activity) {
+        override fun getItemCount(): Int = tabTitles.size
 
-    private fun showLoadingView() { statefulContent.showLoadingView() }
-    private fun showContentView() { statefulContent.showContentView() }
-    private fun showErrorView(message: String) {
-        statefulContent.showErrorView(message) {
-            viewModel.processIntent(FavoriteIntent.Retry)
+        override fun createFragment(position: Int): Fragment {
+            return when (position) {
+                0 -> FavoriteRecordsFragment()  // 信息收藏
+                1 -> FavoriteStreetsFragment()  // 攻略手册（暗巷收藏）
+                else -> throw IllegalArgumentException("Unknown fragment position: $position")
+            }
         }
     }
 

@@ -162,9 +162,15 @@ class ProfileFragment : Fragment() {
                 startActivity(PostInfoActivity.createIntent(requireContext()))
             }
         }
+        binding.tvMyInfo.setOnClickListener {
+            loginInterceptor.execute {
+                // TODO 打开我发布的信息列表
+            }
+        }
         binding.tvMyFavorite.setOnClickListener {
             loginInterceptor.execute {
-                startActivity(ComposeContainerActivity.createFavoriteIntent(requireContext()))
+                //startActivity(ComposeContainerActivity.createFavoriteIntent(requireContext()))
+                startActivity(FavoriteActivity.createIntent(requireContext()))
             }
         }
     }

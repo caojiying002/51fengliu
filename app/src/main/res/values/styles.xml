@@ -34,6 +34,19 @@
         <item name="android:paddingBottom">16dp</item>
         <item name="android:clickable">true</item>
     </style>
+
+    <!-- TabLayout styles for category/content tabs -->
+    <style name="Widget.App.CategoryTabLayout" parent="Widget.Material3.TabLayout">
+        <item name="android:background">@color/surface</item>
+        <item name="tabTextColor">@color/category_tab_unselected</item>
+        <item name="tabSelectedTextColor">@color/category_tab_selected</item>
+        <item name="tabMode">scrollable</item>
+        <item name="tabGravity">start</item>
+        <item name="tabPaddingStart">16dp</item>
+        <item name="tabPaddingEnd">16dp</item>
+        <item name="tabIndicatorHeight">2dp</item>
+        <item name="tabIndicatorFullWidth">true</item>
+    </style>
     
     <!-- TextInputLayout styles -->
     <style name="Widget.App.TextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">

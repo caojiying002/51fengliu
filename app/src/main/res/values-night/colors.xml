@@ -22,6 +22,10 @@
     <color name="text_tab">@color/text_light</color><!-- 用于首页Tab文字 -->
     <color name="text_price">@color/white</color><!-- 价格使用纯白色，突出显示 -->
 
+    <!-- 分类Tab颜色 -->
+    <color name="category_tab_selected">@color/text_content</color><!-- 分类Tab选中状态文字颜色 -->
+    <color name="category_tab_unselected">#999999</color><!-- 分类Tab未选中状态文字颜色，夜间模式稍亮 -->
+
     <!-- 分隔线 -->
     <color name="divider">#383838</color>
     <color name="item_pressed">@color/divider</color>

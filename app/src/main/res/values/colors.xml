@@ -30,6 +30,10 @@
     <color name="text_price">@color/black</color><!-- 价格使用纯黑色 -->
     <color name="text_warning_yellow">#de983f</color>
 
+    <!-- 分类Tab颜色 -->
+    <color name="category_tab_selected">@color/text_content</color><!-- 分类Tab选中状态文字颜色 -->
+    <color name="category_tab_unselected">#868686</color><!-- 分类Tab未选中状态文字颜色 -->
+
     <!-- 按钮颜色 -->
     <color name="button_default">@color/primary</color>
     <color name="button_pressed">#f495c4</color>

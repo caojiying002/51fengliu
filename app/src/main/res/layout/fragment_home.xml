@@ -26,10 +26,10 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_gravity="center"
+            android:background="@android:color/transparent"
             app:tabGravity="center"
             app:tabTextColor="@color/primary"
-            app:tabIndicatorColor="@color/surface"
-            android:background="@android:color/transparent" />
+            app:tabIndicatorColor="@color/surface" />
 
         <ImageView
             android:id="@+id/title_bar_search"

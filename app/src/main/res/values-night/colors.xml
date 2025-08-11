@@ -6,6 +6,9 @@
     <color name="outline">#909090</color>
     <color name="error">#ff5252</color>
 
+    <!-- 阴影渐变颜色 -->
+    <color name="shadow_bottom_navbar_start">#1a1a1a</color>
+
     <!-- 夜间模式文字颜色 -->
     <color name="on_primary">#000000</color>
     <color name="on_background">#e1e1e1</color>

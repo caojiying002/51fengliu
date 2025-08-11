@@ -9,6 +9,9 @@
     <color name="outline">#666666</color>
     <color name="error">#d32f2f</color>
 
+    <!-- 阴影渐变颜色 -->
+    <color name="shadow_bottom_navbar_start">#ececec</color>
+
     <!-- 文字颜色 -->
     <color name="on_primary">#ffffff</color>
     <color name="on_background">#1c1b1f</color>

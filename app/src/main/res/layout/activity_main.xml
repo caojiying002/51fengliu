@@ -19,6 +19,12 @@
         android:layout_height="0dp"
         android:layout_weight="1" />
 
+    <!-- 渐变阴影分割线 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:background="@drawable/shadow_bottom_navbar" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

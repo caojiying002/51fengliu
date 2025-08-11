@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:paddingBottom="16dp">
+    android:paddingBottom="@dimen/divider_height_half">
 
     <!-- 标题栏 -->
     <LinearLayout
@@ -33,160 +33,173 @@
             android:text="@string/app_name"/>
     </LinearLayout>
 
-    <!-- 未登录态 -->
-    <include
-        android:id="@+id/profile_not_login"
+    <!-- 内容区域 -->
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/default_horizontal_space"
-        android:layout_marginVertical="@dimen/divider_height_half"
-        android:background="@drawable/cornered_surface_padding"
-        android:visibility="gone"
-        layout="@layout/include_profile_not_login" />
+        android:layout_height="0dp"
+        android:layout_weight="1" >
 
-    <!-- 登录态：显示用户ID、是否VIP、积分、发帖数量等 -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/profile_info_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/default_horizontal_space"
-        android:layout_marginVertical="@dimen/divider_height_half"
-        android:background="@drawable/cornered_surface_padding"
-        android:visibility="visible" >
-
-        <!-- 布局说明：控制loading和error和`profile_info`一样宽高。 -->
-        <!-- 因此隐藏`profile_info`时不能用gone要用invisible。 -->
-
-        <include
-            android:id="@+id/profile_info"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:visibility="visible"
-            layout="@layout/include_profile_info"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:orientation="vertical" >
 
-        <include
-            android:id="@+id/profile_loading"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:visibility="gone"
-            layout="@layout/include_profile_loading"
-            app:layout_constraintTop_toTopOf="@id/profile_info"
-            app:layout_constraintBottom_toBottomOf="@id/profile_info"
-            app:layout_constraintStart_toStartOf="@id/profile_info"
-            app:layout_constraintEnd_toEndOf="@id/profile_info" />
+            <!-- 未登录态 -->
+            <include
+                android:id="@+id/profile_not_login"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/default_horizontal_space"
+                android:layout_marginVertical="@dimen/divider_height_half"
+                android:background="@drawable/cornered_surface_padding"
+                android:visibility="gone"
+                layout="@layout/include_profile_not_login" />
 
-        <include
-            android:id="@+id/profile_error"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:visibility="gone"
-            layout="@layout/default_error"
-            app:layout_constraintTop_toTopOf="@id/profile_info"
-            app:layout_constraintBottom_toBottomOf="@id/profile_info"
-            app:layout_constraintStart_toStartOf="@id/profile_info"
-            app:layout_constraintEnd_toEndOf="@id/profile_info" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            <!-- 登录态：显示用户ID、是否VIP、积分、发帖数量等 -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/profile_info_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/default_horizontal_space"
+                android:layout_marginVertical="@dimen/divider_height_half"
+                android:background="@drawable/cornered_surface_padding"
+                android:visibility="visible" >
 
-    <!-- 固定的按钮区域，采用4列的网格布局 -->
-    <androidx.gridlayout.widget.GridLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/default_horizontal_space"
-        android:layout_marginVertical="@dimen/divider_height_half"
-        android:background="@drawable/cornered_surface_no_padding"
-        android:paddingHorizontal="8dp"
-        android:paddingVertical="16dp"
-        app:columnCount="4"
-        app:useDefaultMargins="false">
+                <!-- 布局说明：控制loading和error和`profile_info`一样宽高。 -->
+                <!-- 因此隐藏`profile_info`时不能用gone要用invisible。 -->
 
-        <!-- 发布信息 -->
-        <TextView
-            android:id="@+id/tv_post_info"
-            style="@style/ProfileGridItem"
-            app:layout_columnWeight="1"
-            android:drawableTop="@drawable/ic_post_info"
-            android:text="发布信息" />
+                <include
+                    android:id="@+id/profile_info"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="visible"
+                    layout="@layout/include_profile_info"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- 发布暗巷 -->
-        <TextView
-            android:id="@+id/tv_publish_street"
-            style="@style/ProfileGridItem"
-            app:layout_columnWeight="1"
-            android:drawableTop="@drawable/ic_publish_street"
-            android:text="发布暗巷" />
+                <include
+                    android:id="@+id/profile_loading"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="gone"
+                    layout="@layout/include_profile_loading"
+                    app:layout_constraintTop_toTopOf="@id/profile_info"
+                    app:layout_constraintBottom_toBottomOf="@id/profile_info"
+                    app:layout_constraintStart_toStartOf="@id/profile_info"
+                    app:layout_constraintEnd_toEndOf="@id/profile_info" />
 
-        <!-- 我的信息 -->
-        <TextView
-            android:id="@+id/tv_my_info"
-            style="@style/ProfileGridItem"
-            app:layout_columnWeight="1"
-            android:drawableTop="@drawable/ic_my_info"
-            android:text="我的信息" />
+                <include
+                    android:id="@+id/profile_error"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="gone"
+                    layout="@layout/default_error"
+                    app:layout_constraintTop_toTopOf="@id/profile_info"
+                    app:layout_constraintBottom_toBottomOf="@id/profile_info"
+                    app:layout_constraintStart_toStartOf="@id/profile_info"
+                    app:layout_constraintEnd_toEndOf="@id/profile_info" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <!-- 我的攻略 -->
-        <TextView
-            android:id="@+id/tv_my_streets"
-            style="@style/ProfileGridItem"
-            app:layout_columnWeight="1"
-            android:drawableTop="@drawable/ic_my_streets"
-            android:text="我的攻略" />
+            <!-- 固定的按钮区域，采用4列的网格布局 -->
+            <androidx.gridlayout.widget.GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/default_horizontal_space"
+                android:layout_marginVertical="@dimen/divider_height_half"
+                android:background="@drawable/cornered_surface_no_padding"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="16dp"
+                app:columnCount="4"
+                app:useDefaultMargins="false">
 
-        <!-- 我的收藏 -->
-        <TextView
-            android:id="@+id/tv_my_favorite"
-            style="@style/ProfileGridItem"
-            app:layout_columnWeight="1"
-            android:drawableTop="@drawable/ic_my_favorite"
-            android:text="@string/my_favorite" />
+                <!-- 发布信息 -->
+                <TextView
+                    android:id="@+id/tv_post_info"
+                    style="@style/ProfileGridItem"
+                    app:layout_columnWeight="1"
+                    android:drawableTop="@drawable/ic_post_info"
+                    android:text="发布信息" />
 
-        <!-- VIP升级 -->
-        <TextView
-            android:id="@+id/tv_vip_upgrade"
-            style="@style/ProfileGridItem"
-            app:layout_columnWeight="1"
-            android:drawableTop="@drawable/ic_vip_upgrade"
-            android:text="VIP升级" />
+                <!-- 发布暗巷 -->
+                <TextView
+                    android:id="@+id/tv_publish_street"
+                    style="@style/ProfileGridItem"
+                    app:layout_columnWeight="1"
+                    android:drawableTop="@drawable/ic_publish_street"
+                    android:text="发布暗巷" />
 
-        <!-- 修改资料 -->
-        <TextView
-            android:id="@+id/tv_edit_profile"
-            style="@style/ProfileGridItem"
-            app:layout_columnWeight="1"
-            android:drawableTop="@drawable/ic_edit_profile"
-            android:text="修改资料" />
+                <!-- 我的信息 -->
+                <TextView
+                    android:id="@+id/tv_my_info"
+                    style="@style/ProfileGridItem"
+                    app:layout_columnWeight="1"
+                    android:drawableTop="@drawable/ic_my_info"
+                    android:text="我的信息" />
 
-        <!-- 积分规则 -->
-        <TextView
-            android:id="@+id/tv_points_rule"
-            style="@style/ProfileGridItem"
-            app:layout_columnWeight="1"
-            android:drawableTop="@drawable/ic_points_rule"
-            android:text="积分规则" />
+                <!-- 我的攻略 -->
+                <TextView
+                    android:id="@+id/tv_my_streets"
+                    style="@style/ProfileGridItem"
+                    app:layout_columnWeight="1"
+                    android:drawableTop="@drawable/ic_my_streets"
+                    android:text="我的攻略" />
 
-        <!-- 鉴别指南 -->
-        <TextView
-            android:id="@+id/tv_guide"
-            style="@style/ProfileGridItem"
-            app:layout_columnWeight="1"
-            android:drawableTop="@drawable/ic_guide"
-            android:text="鉴别指南" />
+                <!-- 我的收藏 -->
+                <TextView
+                    android:id="@+id/tv_my_favorite"
+                    style="@style/ProfileGridItem"
+                    app:layout_columnWeight="1"
+                    android:drawableTop="@drawable/ic_my_favorite"
+                    android:text="@string/my_favorite" />
 
-        <!-- 联系我们 -->
-        <TextView
-            android:id="@+id/tv_contact"
-            style="@style/ProfileGridItem"
-            app:layout_columnWeight="1"
-            android:drawableTop="@drawable/ic_contact"
-            android:text="联系我们" />
+                <!-- VIP升级 -->
+                <TextView
+                    android:id="@+id/tv_vip_upgrade"
+                    style="@style/ProfileGridItem"
+                    app:layout_columnWeight="1"
+                    android:drawableTop="@drawable/ic_vip_upgrade"
+                    android:text="VIP升级" />
 
-        <!-- 退出登录 -->
-        <TextView
-            android:id="@+id/tv_logout"
-            style="@style/ProfileGridItem"
-            app:layout_columnWeight="1"
-            android:drawableTop="@drawable/ic_logout"
-            android:text="退出登录"
-            android:visibility="gone" />
-    </androidx.gridlayout.widget.GridLayout>
+                <!-- 修改资料 -->
+                <TextView
+                    android:id="@+id/tv_edit_profile"
+                    style="@style/ProfileGridItem"
+                    app:layout_columnWeight="1"
+                    android:drawableTop="@drawable/ic_edit_profile"
+                    android:text="修改资料" />
+
+                <!-- 积分规则 -->
+                <TextView
+                    android:id="@+id/tv_points_rule"
+                    style="@style/ProfileGridItem"
+                    app:layout_columnWeight="1"
+                    android:drawableTop="@drawable/ic_points_rule"
+                    android:text="积分规则" />
+
+                <!-- 鉴别指南 -->
+                <TextView
+                    android:id="@+id/tv_guide"
+                    style="@style/ProfileGridItem"
+                    app:layout_columnWeight="1"
+                    android:drawableTop="@drawable/ic_guide"
+                    android:text="鉴别指南" />
+
+                <!-- 联系我们 -->
+                <TextView
+                    android:id="@+id/tv_contact"
+                    style="@style/ProfileGridItem"
+                    app:layout_columnWeight="1"
+                    android:drawableTop="@drawable/ic_contact"
+                    android:text="联系我们" />
+
+                <!-- 退出登录 -->
+                <TextView
+                    android:id="@+id/tv_logout"
+                    style="@style/ProfileGridItem"
+                    app:layout_columnWeight="1"
+                    android:drawableTop="@drawable/ic_logout"
+                    android:text="退出登录"
+                    android:visibility="gone" />
+            </androidx.gridlayout.widget.GridLayout>
+        </LinearLayout>
+    </ScrollView>
 </LinearLayout>

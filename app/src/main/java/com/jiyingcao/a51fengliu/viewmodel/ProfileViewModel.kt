@@ -1,18 +1,19 @@
 package com.jiyingcao.a51fengliu.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.api.response.Profile
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
 import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 sealed class ProfileState {
     object Init : ProfileState()
@@ -33,7 +34,8 @@ sealed class LogoutEffect {
     data class ShowToast(val message: String) : LogoutEffect()
 }
 
-class ProfileViewModel(
+@HiltViewModel
+class ProfileViewModel @Inject constructor(
     private val repository: UserRepository,
     private val tokenManager: TokenManager
 ) : ViewModel() {
@@ -138,18 +140,5 @@ class ProfileViewModel(
     override fun onCleared() {
         super.onCleared()
         cancelLogout()
-    }
-
-    class Factory(
-        private val repository: UserRepository = UserRepository.getInstance(),
-        private val tokenManager: TokenManager = TokenManager.getInstance()
-    ): ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(ProfileViewModel::class.java)) {
-                @Suppress("UNCHECKED_CAST")
-                return ProfileViewModel(repository, tokenManager) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class")
-        }
     }
 }

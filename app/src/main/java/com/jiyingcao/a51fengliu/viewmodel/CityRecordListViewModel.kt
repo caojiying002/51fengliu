@@ -1,10 +1,7 @@
 package com.jiyingcao.a51fengliu.viewmodel
 
 import androidx.annotation.GuardedBy
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.request.RecordsRequest
 import com.jiyingcao.a51fengliu.api.response.PageData
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
@@ -12,6 +9,10 @@ import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineCont
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.util.AppLogger
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -55,8 +56,9 @@ sealed class CityRecordListIntent {
     data object LoadMore : CityRecordListIntent()
 }
 
-class CityRecordListViewModel(
-    private val sort: String,
+@HiltViewModel(assistedFactory = CityRecordListViewModel.Factory::class)
+class CityRecordListViewModel @AssistedInject constructor(
+    @Assisted private val sort: String,
     private val repository: RecordRepository
 ) : BaseViewModel() {
     private var fetchJob: Job? = null
@@ -259,17 +261,9 @@ class CityRecordListViewModel(
         fetchJob?.cancel()
     }
 
-    class Factory(
-        private val sort: String,
-        private val repository: RecordRepository = RecordRepository.getInstance(RetrofitClient.apiService)
-    ) : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(CityRecordListViewModel::class.java)) {
-                @Suppress("UNCHECKED_CAST")
-                return CityRecordListViewModel(sort, repository) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
-        }
+    @AssistedFactory
+    interface Factory {
+        fun create(sort: String): CityRecordListViewModel
     }
 
     companion object {

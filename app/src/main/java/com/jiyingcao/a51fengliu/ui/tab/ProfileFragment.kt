@@ -6,10 +6,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.jiyingcao.a51fengliu.databinding.FragmentProfileBinding
 import kotlinx.coroutines.launch
-import androidx.lifecycle.ViewModelProvider
 import com.jiyingcao.a51fengliu.api.response.Profile
 import com.jiyingcao.a51fengliu.viewmodel.ProfileIntent
 import com.jiyingcao.a51fengliu.viewmodel.ProfileState
@@ -24,8 +24,10 @@ import com.jiyingcao.a51fengliu.ui.dialog.LoadingDialog
 import com.jiyingcao.a51fengliu.ui.dialog.ConfirmDialog
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.LogoutEffect
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 
+@AndroidEntryPoint
 class ProfileFragment : Fragment() {
     private var _binding: FragmentProfileBinding? = null
     // This property is only valid between onCreateView and onDestroyView.
@@ -38,7 +40,7 @@ class ProfileFragment : Fragment() {
     /** 等价于binding.profileLoading.root */
     private lateinit var profileLoading: View
 
-    private lateinit var viewModel: ProfileViewModel
+    private val viewModel: ProfileViewModel by viewModels()
 
     private var loadingDialog: LoadingDialog? = null
 
@@ -46,7 +48,6 @@ class ProfileFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setupViewModel()
         // 初始化登录拦截器
         loginInterceptor = LoginInterceptor().apply {
             register(this@ProfileFragment)
@@ -73,13 +74,6 @@ class ProfileFragment : Fragment() {
     override fun onStop() {
         super.onStop()
         viewModel.setUIVisibility(false)
-    }
-
-    private fun setupViewModel() {
-        viewModel = ViewModelProvider(
-            this,
-            ProfileViewModel.Factory()
-        )[ProfileViewModel::class.java]
     }
 
     private fun setupFlowCollectors() {

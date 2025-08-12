@@ -11,12 +11,14 @@ import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineCont
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.util.AppLogger
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import javax.inject.Inject
 
 /**
  * 单一UI状态 - 搜索页所有状态信息
@@ -50,7 +52,8 @@ sealed class SearchIntent {
     data object Retry : SearchIntent()
 }
 
-class SearchViewModel(
+@HiltViewModel
+class SearchViewModel @Inject constructor(
     private val repository: RecordRepository
 ) : BaseViewModel() {
     private var searchJob: Job? = null
@@ -322,17 +325,5 @@ class SearchViewModel(
 
     companion object {
         const val TAG: String = "SearchViewModel"
-    }
-
-    class Factory(
-        private val repository: RecordRepository = RecordRepository.getInstance()
-    ) : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(SearchViewModel::class.java)) {
-                @Suppress("UNCHECKED_CAST")
-                return SearchViewModel(repository) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
-        }
     }
 }

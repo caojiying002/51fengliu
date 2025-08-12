@@ -12,7 +12,6 @@ import android.view.WindowManager
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.DialogFragment
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.databinding.DialogReportBinding
@@ -23,23 +22,44 @@ import com.jiyingcao.a51fengliu.viewmodel.ReportViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import androidx.core.graphics.drawable.toDrawable
+import androidx.fragment.app.viewModels
 import com.jiyingcao.a51fengliu.viewmodel.ImageUploadState
 import com.jiyingcao.a51fengliu.viewmodel.SubmitState
 import com.jiyingcao.a51fengliu.util.ImageLoader
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.lifecycle.withCreationCallback
 
+@AndroidEntryPoint
 class ReportDialog : DialogFragment() {
     private var _binding: DialogReportBinding? = null
     private val binding get() = _binding!!
+
+    private lateinit var recordId: String
+    private lateinit var recordTitle: String
+
     
     private var selectedImageUri: Uri? = null
-    private var recordTitle: String = ""
-    private lateinit var viewModel: ReportViewModel
+
+    private val viewModel: ReportViewModel by viewModels(
+        extrasProducer = {
+            defaultViewModelCreationExtras.withCreationCallback<ReportViewModel.Factory> { factory ->
+                factory.create(recordId)
+            }
+        }
+    )
     
     private val pickMedia = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
             selectedImageUri = uri
             viewModel.processIntent(ReportIntent.UploadImage(uri))
         }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // Setup ViewModel
+        recordTitle = arguments?.getString(ARG_RECORD_TITLE) ?: ""
+        recordId = arguments?.getString(ARG_RECORD_ID) ?: ""
     }
     
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -63,15 +83,6 @@ class ReportDialog : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
-        // Setup ViewModel
-        this.recordTitle = arguments?.getString(ARG_RECORD_TITLE) ?: ""
-        val infoId = arguments?.getString(ARG_RECORD_ID) ?: ""
-        
-        viewModel = ViewModelProvider(
-            this,
-            ReportViewModel.Factory(infoId)
-        )[ReportViewModel::class.java]
-        
         // Set dialog width to match parent with margins
         dialog?.window?.apply {
             setLayout(
@@ -82,7 +93,7 @@ class ReportDialog : DialogFragment() {
         
         setupUI()
         setupClickListeners()
-        observeViewModel()
+        observeUiState()
     }
     
     private fun setupUI() {
@@ -117,7 +128,7 @@ class ReportDialog : DialogFragment() {
         }
     }
     
-    private fun observeViewModel() {
+    private fun observeUiState() {
         // Observe new state changes
         lifecycleScope.launch {
             viewModel.state2.collect { state ->

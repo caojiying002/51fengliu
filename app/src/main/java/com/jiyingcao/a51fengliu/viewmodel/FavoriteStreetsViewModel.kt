@@ -1,8 +1,6 @@
 package com.jiyingcao.a51fengliu.viewmodel
 
 import androidx.annotation.GuardedBy
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.api.response.PageData
 import com.jiyingcao.a51fengliu.api.response.Street
@@ -10,11 +8,13 @@ import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineCont
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.StreetRepository
 import com.jiyingcao.a51fengliu.util.AppLogger
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import javax.inject.Inject
 
 /**
  * 收藏暗巷列表UI状态
@@ -45,7 +45,8 @@ sealed class FavoriteStreetsIntent {
     data object LoadMore : FavoriteStreetsIntent()
 }
 
-class FavoriteStreetsViewModel(
+@HiltViewModel
+class FavoriteStreetsViewModel @Inject constructor(
     private val repository: StreetRepository
 ) : BaseViewModel() {
     private var fetchJob: Job? = null
@@ -218,17 +219,5 @@ class FavoriteStreetsViewModel(
 
     companion object {
         private const val TAG: String = "FavoriteStreetsViewModel"
-    }
-
-    class Factory(
-        private val repository: StreetRepository = StreetRepository.getInstance()
-    ) : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(FavoriteStreetsViewModel::class.java)) {
-                @Suppress("UNCHECKED_CAST")
-                return FavoriteStreetsViewModel(repository) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
-        }
     }
 }

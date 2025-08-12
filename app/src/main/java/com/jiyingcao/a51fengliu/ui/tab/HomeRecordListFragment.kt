@@ -28,8 +28,11 @@ import com.jiyingcao.a51fengliu.viewmodel.LoadingType
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.lifecycle.withCreationCallback
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class HomeRecordListFragment : Fragment() {
 
     private var _binding: StatefulViewpager2RecyclerViewBinding? = null
@@ -41,9 +44,13 @@ class HomeRecordListFragment : Fragment() {
     /** daily热门，publish最新 */
     private lateinit var sort: String
 
-    private val viewModel: HomeRecordListViewModel by viewModels {
-        HomeRecordListViewModel.Factory(sort = sort)
-    }
+    private val viewModel: HomeRecordListViewModel by viewModels(
+        extrasProducer = {
+            defaultViewModelCreationExtras.withCreationCallback<HomeRecordListViewModel.Factory> { factory ->
+                factory.create(sort = sort)
+            }
+        }
+    )
 
     private lateinit var recordAdapter: RecordAdapter
 

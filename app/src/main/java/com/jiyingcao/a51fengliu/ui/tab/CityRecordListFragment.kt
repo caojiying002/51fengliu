@@ -29,9 +29,12 @@ import com.jiyingcao.a51fengliu.viewmodel.LoadingType
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.lifecycle.withCreationCallback
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class CityRecordListFragment : Fragment() {
 
     private var _binding: StatefulViewpager2RecyclerViewBinding? = null
@@ -48,9 +51,13 @@ class CityRecordListFragment : Fragment() {
      *
      * 用于保存当前城市的Records列表数据。
      */
-    private val viewModel: CityRecordListViewModel by viewModels {
-        CityRecordListViewModel.Factory(sort = sort)
-    }
+    private val viewModel: CityRecordListViewModel by viewModels(
+        extrasProducer = {
+            defaultViewModelCreationExtras.withCreationCallback<CityRecordListViewModel.Factory> { factory ->
+                factory.create(sort = sort)
+            }
+        }
+    )
 
     /**
      * Saving selected city, shared with other [CityRecordListFragment] instances.

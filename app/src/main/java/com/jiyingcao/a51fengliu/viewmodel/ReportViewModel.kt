@@ -11,6 +11,10 @@ import com.jiyingcao.a51fengliu.domain.exception.ReportException
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.util.AppLogger
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -92,9 +96,10 @@ sealed class ReportEffect {
     //object ScrollToError : ReportEffect()
 }
 
-class ReportViewModel(
-    private val repository: RecordRepository,
-    private val infoId: String
+@HiltViewModel(assistedFactory = ReportViewModel.Factory::class)
+class ReportViewModel @AssistedInject constructor(
+    @Assisted private val infoId: String,
+    private val repository: RecordRepository
 ) : BaseViewModel() {
 
     private val _state2 = MutableStateFlow(ReportState2())
@@ -306,17 +311,8 @@ class ReportViewModel(
         }
     }
 
-    class Factory(
-        private val infoId: String,
-        private val repository: RecordRepository = RecordRepository.getInstance()
-    ) : ViewModelProvider.Factory {
-
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(ReportViewModel::class.java)) {
-                @Suppress("UNCHECKED_CAST")
-                return ReportViewModel(repository, infoId) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
-        }
+    @AssistedFactory
+    interface Factory {
+        fun create(infoId: String): ReportViewModel
     }
 }

@@ -1,13 +1,15 @@
 package com.jiyingcao.a51fengliu.repository
 
 import com.jiyingcao.a51fengliu.api.ApiService
-import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.request.StreetIdRequest
 import com.jiyingcao.a51fengliu.api.response.PageData
 import com.jiyingcao.a51fengliu.api.response.Street
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class StreetRepository(
+@Singleton
+class StreetRepository @Inject constructor(
     private val apiService: ApiService
 ) : BaseRepository() {
 
@@ -63,17 +65,5 @@ class StreetRepository(
      */
     fun getFavoriteStreets(page: Int = 1, perPage: Int = 30): Flow<Result<PageData<Street>?>> = apiCall {
         apiService.getFavoriteStreets(page, perPage)
-    }
-
-    companion object {
-        // 用于单例模式实现
-        @Volatile
-        private var instance: StreetRepository? = null
-
-        fun getInstance(apiService: ApiService = RetrofitClient.apiService): StreetRepository {
-            return instance ?: synchronized(this) {
-                instance ?: StreetRepository(apiService).also { instance = it }
-            }
-        }
     }
 }

@@ -5,10 +5,12 @@ import android.content.Intent
 import android.os.Bundle
 import com.jiyingcao.a51fengliu.databinding.ActivityAuthBinding
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
+import dagger.hilt.android.AndroidEntryPoint
 
 /**
  * 登录、注册、忘记密码流程，具体逻辑由各自Fragment控制。
  */
+@AndroidEntryPoint
 class AuthActivity: BaseActivity() {
     private lateinit var binding: ActivityAuthBinding
 

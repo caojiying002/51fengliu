@@ -29,8 +29,10 @@ import com.jiyingcao.a51fengliu.viewmodel.MerchantListViewModel
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class MerchantListFragment : Fragment() {
     private var _binding: FragmentMerchantBinding? = null
     private val binding get() = _binding!!
@@ -43,9 +45,7 @@ class MerchantListFragment : Fragment() {
 
     private lateinit var merchantAdapter: MerchantAdapter
 
-    private val viewModel: MerchantListViewModel by viewModels {
-        MerchantListViewModel.Factory()
-    }
+    private val viewModel: MerchantListViewModel by viewModels()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         _binding = FragmentMerchantBinding.inflate(inflater, container, false)
@@ -69,7 +69,8 @@ class MerchantListFragment : Fragment() {
     private fun setupRecyclerView() {
         merchantAdapter = MerchantAdapter().apply {
             setOnItemClickListener { merchant, position ->
-                startActivity(ComposeContainerActivity.createMerchantDetailIntent(requireContext(), merchant.id))
+                //startActivity(ComposeContainerActivity.createMerchantDetailIntent(requireContext(), merchant.id))
+                startActivity(MerchantDetailActivity.createIntent(requireContext(), merchant.id))
             }
         }
         

@@ -1,7 +1,6 @@
 package com.jiyingcao.a51fengliu.repository
 
 import com.jiyingcao.a51fengliu.api.ApiService
-import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.request.InfoIdRequest
 import com.jiyingcao.a51fengliu.api.request.RecordsRequest
 import com.jiyingcao.a51fengliu.api.request.ReportRequest
@@ -9,7 +8,6 @@ import com.jiyingcao.a51fengliu.api.response.ApiResult
 import com.jiyingcao.a51fengliu.api.response.PageData
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.domain.exception.ReportException
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -18,10 +16,12 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class RecordRepository(
-    private val apiService: ApiService,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO    // TODO 是否移除
+@Singleton
+class RecordRepository @Inject constructor(
+    private val apiService: ApiService
 ) : BaseRepository() {
 
     /**
@@ -111,18 +111,5 @@ class RecordRepository(
         } catch (e: Exception) {
             emit(Result.failure(e))
         }
-    }.flowOn(dispatcher)
-
-
-    companion object {
-        // 用于单例模式实现
-        @Volatile
-        private var instance: RecordRepository? = null
-
-        fun getInstance(apiService: ApiService = RetrofitClient.apiService): RecordRepository {
-            return instance ?: synchronized(this) {
-                instance ?: RecordRepository(apiService).also { instance = it }
-            }
-        }
-    }
+    }.flowOn(Dispatchers.IO)
 }

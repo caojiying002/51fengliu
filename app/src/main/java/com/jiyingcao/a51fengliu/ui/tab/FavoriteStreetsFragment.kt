@@ -26,6 +26,7 @@ import com.jiyingcao.a51fengliu.viewmodel.LoadingType
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 /**
@@ -37,6 +38,7 @@ import kotlinx.coroutines.launch
  * - Streets 复数形式已经暗示列表性质
  * - 避免过度冗长的命名 (FavoriteStreetListFragment)
  */
+@AndroidEntryPoint
 class FavoriteStreetsFragment : Fragment() {
 
     private var _binding: StatefulViewpager2RecyclerViewBinding? = null
@@ -47,9 +49,7 @@ class FavoriteStreetsFragment : Fragment() {
 
     private lateinit var streetAdapter: StreetAdapter
 
-    private val viewModel by viewModels<FavoriteStreetsViewModel> {
-        FavoriteStreetsViewModel.Factory()
-    }
+    private val viewModel by viewModels<FavoriteStreetsViewModel>()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = StatefulViewpager2RecyclerViewBinding.inflate(inflater, container, false)

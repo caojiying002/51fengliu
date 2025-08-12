@@ -1,20 +1,20 @@
 package com.jiyingcao.a51fengliu.repository
 
 import com.jiyingcao.a51fengliu.api.ApiService
-import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.request.LoginRequest
 import com.jiyingcao.a51fengliu.api.response.ApiResult
 import com.jiyingcao.a51fengliu.api.response.Profile
 import com.jiyingcao.a51fengliu.domain.exception.LoginException
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class UserRepository(
-    private val apiService: ApiService,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO    // TODO 是否移除
+@Singleton
+class UserRepository @Inject constructor(
+    private val apiService: ApiService
 ) : BaseRepository() {
 
     /**
@@ -46,7 +46,7 @@ class UserRepository(
         } catch (e: Exception) {
             emit(Result.failure(e))
         }
-    }.flowOn(dispatcher)
+    }.flowOn(Dispatchers.IO)
 
     /**
      * 获取个人中心用户信息
@@ -62,17 +62,5 @@ class UserRepository(
      */
     fun logout(): Flow<Result<*>> = apiCall {
         apiService.postLogout()
-    }
-
-    companion object {
-        // 用于单例模式实现
-        @Volatile
-        private var instance: UserRepository? = null
-
-        fun getInstance(apiService: ApiService = RetrofitClient.apiService): UserRepository {
-            return instance ?: synchronized(this) {
-                instance ?: UserRepository(apiService).also { instance = it }
-            }
-        }
     }
 }

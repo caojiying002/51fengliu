@@ -1,19 +1,20 @@
 package com.jiyingcao.a51fengliu.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.api.response.LoginErrorData
 import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.domain.exception.LoginException
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 // UI 错误类型
 sealed class LoginErrorType {
@@ -49,8 +50,10 @@ sealed class LoginEffect {
     object RequestNotificationPermission : LoginEffect()
 }
 
-class LoginViewModel(
-    private val repository: UserRepository
+@HiltViewModel
+class LoginViewModel @Inject constructor(
+    private val repository: UserRepository,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<LoginState>(LoginState.Init)
@@ -72,7 +75,7 @@ class LoginViewModel(
             repository.login(username, password)
                 .collect { result ->
                     result.onSuccess { token ->
-                        TokenManager.getInstance().saveToken(token)
+                        tokenManager.saveToken(token)
                         _state.value = LoginState.Success(token)
                         _effect.send(LoginEffect.RequestNotificationPermission)
                         _effect.send(LoginEffect.NavigateToMain)
@@ -108,17 +111,5 @@ class LoginViewModel(
 
     private fun clearError() {
         _state.value = LoginState.Init
-    }
-
-    class Factory(
-        private val repository: UserRepository = UserRepository.getInstance()
-    ): ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
-                @Suppress("UNCHECKED_CAST")
-                return LoginViewModel(repository) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class")
-        }
     }
 }

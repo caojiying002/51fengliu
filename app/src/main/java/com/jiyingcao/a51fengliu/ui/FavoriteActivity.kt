@@ -6,14 +6,15 @@ import android.os.Bundle
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
-import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.databinding.ActivityFavoriteBinding
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.tab.FavoriteRecordsFragment
 import com.jiyingcao.a51fengliu.ui.tab.FavoriteStreetsFragment
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class FavoriteActivity : BaseActivity() {
     private lateinit var binding: ActivityFavoriteBinding
     private val tabTitles = listOf("信息收藏", "攻略手册")

@@ -1,12 +1,14 @@
 package com.jiyingcao.a51fengliu.repository
 
 import com.jiyingcao.a51fengliu.api.ApiService
-import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.Merchant
 import com.jiyingcao.a51fengliu.api.response.PageData
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class MerchantRepository(
+@Singleton
+class MerchantRepository @Inject constructor(
     private val apiService: ApiService
 ) : BaseRepository() {
 
@@ -26,17 +28,5 @@ class MerchantRepository(
      */
     fun getMerchantDetail(id: String): Flow<Result<Merchant?>> = apiCall {
         apiService.getMerchantDetail(id)
-    }
-
-    companion object {
-        // 用于单例模式实现
-        @Volatile
-        private var instance: MerchantRepository? = null
-
-        fun getInstance(apiService: ApiService = RetrofitClient.apiService): MerchantRepository {
-            return instance ?: synchronized(this) {
-                instance ?: MerchantRepository(apiService).also { instance = it }
-            }
-        }
     }
 }

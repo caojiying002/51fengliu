@@ -29,8 +29,10 @@ import com.jiyingcao.a51fengliu.viewmodel.SearchViewModel
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class SearchActivity: BaseActivity() {
     private lateinit var binding: ActivitySearchBinding
 
@@ -42,9 +44,7 @@ class SearchActivity: BaseActivity() {
 
     private lateinit var recordAdapter: RecordAdapter
 
-    private val viewModel by viewModels<SearchViewModel> {
-        SearchViewModel.Factory()
-    }
+    private val viewModel: SearchViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

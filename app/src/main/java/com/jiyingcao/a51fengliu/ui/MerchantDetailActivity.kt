@@ -3,9 +3,9 @@ package com.jiyingcao.a51fengliu.ui
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.jiyingcao.a51fengliu.api.response.Merchant
@@ -20,6 +20,8 @@ import com.jiyingcao.a51fengliu.util.copyOnLongClick
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.to2LevelName
 import com.jiyingcao.a51fengliu.viewmodel.*
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.lifecycle.withCreationCallback
 import kotlinx.coroutines.launch
 
 /**
@@ -30,10 +32,20 @@ import kotlinx.coroutines.launch
  * - 代码逻辑简洁明了，专注于业务逻辑
  * - 图片加载和转场动画逻辑完全透明化
  */
+@AndroidEntryPoint
 class MerchantDetailActivity : BaseActivity() {
     private lateinit var binding: ActivityMerchantDetailBinding
     private val contentBinding: MerchantContentDetailBinding get() = binding.contentDetail
-    private lateinit var viewModel: MerchantDetailViewModel
+
+    private lateinit var merchantId: String
+
+    private val viewModel by viewModels<MerchantDetailViewModel>(
+        extrasProducer = {
+            defaultViewModelCreationExtras.withCreationCallback<MerchantDetailViewModel.Factory> { factory ->
+                factory.create(merchantId)
+            }
+        }
+    )
 
     // 🚀 复用相同的转场Helper - 零额外配置！
     private val transitionHelper: SharedElementTransitionHelper by lazy { 
@@ -45,16 +57,17 @@ class MerchantDetailActivity : BaseActivity() {
         binding = ActivityMerchantDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val merchantId = intent.getMerchantId()
-        if (merchantId == null) {
+        val intentMerchantId = intent.getMerchantId()
+        if (intentMerchantId == null) {
             showToast("缺少参数: merchantId")
             finish()
             return
+        } else {
+            merchantId = intentMerchantId
         }
 
         setupClickListeners()
         setupSmartRefreshLayout()
-        setupViewModel(merchantId)
         observeUiState()
 
         viewModel.processIntent(MerchantDetailIntent.InitialLoad)
@@ -78,13 +91,6 @@ class MerchantDetailActivity : BaseActivity() {
         binding.refreshLayout.setOnRefreshListener {
             viewModel.processIntent(MerchantDetailIntent.PullToRefresh)
         }
-    }
-
-    private fun setupViewModel(merchantId: String) {
-        viewModel = ViewModelProvider(
-            this,
-            MerchantDetailViewModel.Factory(merchantId = merchantId)
-        )[MerchantDetailViewModel::class.java]
     }
 
     private fun observeUiState() {

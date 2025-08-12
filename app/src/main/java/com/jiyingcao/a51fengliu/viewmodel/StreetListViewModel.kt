@@ -10,6 +10,10 @@ import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineCont
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.StreetRepository
 import com.jiyingcao.a51fengliu.util.AppLogger
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -53,8 +57,9 @@ sealed class StreetListIntent {
     data object LoadMore : StreetListIntent()
 }
 
-class StreetListViewModel(
-    private val sort: String,
+@HiltViewModel(assistedFactory = StreetListViewModel.Factory::class)
+class StreetListViewModel @AssistedInject constructor(
+    @Assisted private val sort: String,
     private val repository: StreetRepository
 ) : BaseViewModel() {
     private var fetchJob: Job? = null
@@ -256,6 +261,11 @@ class StreetListViewModel(
         fetchJob?.cancel()
     }
 
+    @AssistedFactory
+    interface Factory {
+        fun create(sort: String) : StreetListViewModel
+    }
+
     companion object {
         private const val TAG: String = "StreetListViewModel"
         
@@ -264,18 +274,5 @@ class StreetListViewModel(
          */
         const val CITY_CODE_UNINITIALIZED = "UNINITIALIZED"  // 未初始化状态
         const val CITY_CODE_ALL_CITIES = ""                  // 加载所有城市数据
-    }
-
-    class Factory(
-        private val sort: String,
-        private val repository: StreetRepository = StreetRepository.getInstance()
-    ) : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(StreetListViewModel::class.java)) {
-                @Suppress("UNCHECKED_CAST")
-                return StreetListViewModel(sort, repository) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
-        }
     }
 }

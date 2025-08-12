@@ -1,8 +1,6 @@
 package com.jiyingcao.a51fengliu.viewmodel
 
 import androidx.annotation.GuardedBy
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.api.response.Merchant
 import com.jiyingcao.a51fengliu.api.response.PageData
@@ -10,11 +8,13 @@ import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineCont
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.MerchantRepository
 import com.jiyingcao.a51fengliu.util.AppLogger
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import javax.inject.Inject
 
 /**
  * 单一UI状态
@@ -45,7 +45,8 @@ sealed class MerchantListIntent {
     data object LoadMore : MerchantListIntent()
 }
 
-class MerchantListViewModel(
+@HiltViewModel
+class MerchantListViewModel @Inject constructor(
     private val repository: MerchantRepository
 ) : BaseViewModel() {
     private var fetchJob: Job? = null
@@ -221,17 +222,5 @@ class MerchantListViewModel(
 
     companion object {
         private const val TAG: String = "MerchantListViewModel"
-    }
-
-    class Factory(
-        private val repository: MerchantRepository = MerchantRepository.getInstance()
-    ) : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(MerchantListViewModel::class.java)) {
-                @Suppress("UNCHECKED_CAST")
-                return MerchantListViewModel(repository) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class")
-        }
     }
 }

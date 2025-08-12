@@ -12,7 +12,9 @@ import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.tab.*
 import com.jiyingcao.a51fengliu.util.AppLogger
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : BaseActivity() {
 
     private lateinit var tabHome: View

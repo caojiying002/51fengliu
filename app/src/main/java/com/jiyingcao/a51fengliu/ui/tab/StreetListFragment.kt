@@ -28,9 +28,12 @@ import com.jiyingcao.a51fengliu.viewmodel.StreetListViewModel
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.lifecycle.withCreationCallback
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class StreetListFragment : Fragment() {
 
     private var _binding: StatefulViewpager2RecyclerViewBinding? = null
@@ -47,9 +50,13 @@ class StreetListFragment : Fragment() {
      *
      * 用于保存当前城市的暗巷列表数据。
      */
-    private val viewModel: StreetListViewModel by viewModels {
-        StreetListViewModel.Factory(sort = sort)
-    }
+    private val viewModel: StreetListViewModel by viewModels(
+        extrasProducer = {
+            defaultViewModelCreationExtras.withCreationCallback<StreetListViewModel.Factory> { factory ->
+                factory.create(sort = sort)
+            }
+        }
+    )
 
     /**
      * Saving selected city, shared with other [StreetListFragment] instances.

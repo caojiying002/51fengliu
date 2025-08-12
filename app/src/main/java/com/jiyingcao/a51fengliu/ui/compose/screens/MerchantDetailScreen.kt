@@ -13,8 +13,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.CreationExtras
+import dagger.hilt.android.lifecycle.withCreationCallback
 import com.jiyingcao.a51fengliu.api.response.Merchant
 import com.jiyingcao.a51fengliu.ui.auth.AuthActivity
 import com.jiyingcao.a51fengliu.ui.compose.components.*
@@ -56,12 +57,12 @@ fun MerchantDetailScreen(
 
     val context = LocalContext.current
 
-    // 缓存 ViewModel 工厂，避免每次重组都创建
-    val factory = remember(merchantId) {
-        MerchantDetailViewModel.Factory(merchantId = merchantId)
-    }
-
-    val viewModel: MerchantDetailViewModel = viewModel(factory = factory)
+    // 使用 AssistedInject 的 ViewModel，提供运行时参数
+    val viewModel: MerchantDetailViewModel = viewModel(
+        extras = CreationExtras.Empty.withCreationCallback<MerchantDetailViewModel.Factory> { factory ->
+            factory.create(merchantId)
+        }
+    )
 
     val uiState by viewModel.uiState.collectAsState()
 

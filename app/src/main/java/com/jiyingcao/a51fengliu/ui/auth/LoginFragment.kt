@@ -29,13 +29,15 @@ import com.jiyingcao.a51fengliu.viewmodel.LoginErrorType
 import com.jiyingcao.a51fengliu.viewmodel.LoginIntent
 import com.jiyingcao.a51fengliu.viewmodel.LoginState
 import com.jiyingcao.a51fengliu.viewmodel.LoginViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class LoginFragment : BaseFragment() {
     private var _binding: FragmentLoginBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: LoginViewModel by viewModels { LoginViewModel.Factory() }
+    private val viewModel: LoginViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,

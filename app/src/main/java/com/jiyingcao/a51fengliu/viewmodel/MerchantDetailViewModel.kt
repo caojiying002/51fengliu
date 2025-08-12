@@ -1,15 +1,16 @@
 package com.jiyingcao.a51fengliu.viewmodel
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.Merchant
 import com.jiyingcao.a51fengliu.data.LoginStateManager
 import com.jiyingcao.a51fengliu.data.LoginEvent
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.MerchantRepository
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -81,10 +82,11 @@ sealed class MerchantDetailIntent {
     object Retry : MerchantDetailIntent()
 }
 
-class MerchantDetailViewModel(
-    private val merchantId: String,
-    private val repository: MerchantRepository = MerchantRepository.getInstance(RetrofitClient.apiService),
-    private val loginStateManager: LoginStateManager = LoginStateManager.getInstance() // 依赖注入
+@HiltViewModel(assistedFactory = MerchantDetailViewModel.Factory::class)
+class MerchantDetailViewModel @AssistedInject constructor(
+    @Assisted private val merchantId: String,
+    private val repository: MerchantRepository,
+    private val loginStateManager: LoginStateManager
 ) : BaseViewModel() {
     private var fetchJob: Job? = null
 
@@ -277,22 +279,9 @@ class MerchantDetailViewModel(
         fetchJob?.cancel()
     }
 
-    /**
-     * 支持依赖注入的ViewModelFactory
-     * 便于测试时注入Mock对象
-     */
-    class Factory(
-        private val merchantId: String,
-        private val repository: MerchantRepository = MerchantRepository.getInstance(),
-        private val loginStateManager: LoginStateManager = LoginStateManager.getInstance()
-    ): ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(MerchantDetailViewModel::class.java)) {
-                @Suppress("UNCHECKED_CAST")
-                return MerchantDetailViewModel(merchantId, repository, loginStateManager) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
-        }
+    @AssistedFactory
+    interface Factory {
+        fun create(merchantId: String) : MerchantDetailViewModel
     }
 
     companion object {

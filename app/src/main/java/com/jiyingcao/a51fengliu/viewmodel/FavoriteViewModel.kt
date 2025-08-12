@@ -1,21 +1,20 @@
 package com.jiyingcao.a51fengliu.viewmodel
 
 import androidx.annotation.GuardedBy
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.jiyingcao.a51fengliu.api.RetrofitClient
 import com.jiyingcao.a51fengliu.api.response.PageData
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.util.AppLogger
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import javax.inject.Inject
 
 /**
  * 单一UI状态
@@ -45,7 +44,8 @@ sealed class FavoriteIntent {
     data object LoadMore : FavoriteIntent()
 }
 
-class FavoriteViewModel(
+@HiltViewModel
+class FavoriteViewModel @Inject constructor(
     private val repository: RecordRepository
 ) : BaseViewModel() {
     private var fetchJob: Job? = null
@@ -220,17 +220,5 @@ class FavoriteViewModel(
 
     companion object {
         private const val TAG: String = "FavoriteViewModel"
-    }
-
-    class Factory(
-        private val repository: RecordRepository = RecordRepository.getInstance()
-    ) : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(FavoriteViewModel::class.java)) {
-                @Suppress("UNCHECKED_CAST")
-                return FavoriteViewModel(repository) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
-        }
     }
 }

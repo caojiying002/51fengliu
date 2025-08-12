@@ -27,6 +27,7 @@ import com.jiyingcao.a51fengliu.viewmodel.LoadingType
 import com.scwang.smart.refresh.footer.ClassicsFooter
 import com.scwang.smart.refresh.header.ClassicsHeader
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 /**
@@ -38,6 +39,7 @@ import kotlinx.coroutines.launch
  * - Records 复数形式已经暗示列表性质
  * - 避免过度冗长的命名 (FavoriteRecordListFragment)
  */
+@AndroidEntryPoint
 class FavoriteRecordsFragment : Fragment() {
 
     private var _binding: StatefulViewpager2RecyclerViewBinding? = null
@@ -48,9 +50,7 @@ class FavoriteRecordsFragment : Fragment() {
 
     private lateinit var recordAdapter: RecordAdapter
 
-    private val viewModel by viewModels<FavoriteViewModel> {
-        FavoriteViewModel.Factory()
-    }
+    private val viewModel: FavoriteViewModel by viewModels()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = StatefulViewpager2RecyclerViewBinding.inflate(inflater, container, false)

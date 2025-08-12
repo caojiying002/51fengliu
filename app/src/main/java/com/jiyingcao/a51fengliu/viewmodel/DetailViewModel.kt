@@ -9,6 +9,10 @@ import com.jiyingcao.a51fengliu.data.LoginStateManager
 import com.jiyingcao.a51fengliu.data.LoginEvent
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.RecordRepository
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -71,8 +75,9 @@ sealed class DetailEffect {
     data class ShowToast(val message: String) : DetailEffect()
 }
 
-class DetailViewModel(
-    private val infoId: String,
+@HiltViewModel(assistedFactory = DetailViewModel.Factory::class)
+class DetailViewModel @AssistedInject constructor(
+    @Assisted private val infoId: String,
     private val repository: RecordRepository,
     private val loginStateManager: LoginStateManager
 ) : BaseViewModel() {
@@ -333,17 +338,8 @@ class DetailViewModel(
         favoriteToggleJob?.cancel()
     }
 
-    class Factory(
-        private val infoId: String,
-        private val repository: RecordRepository = RecordRepository.getInstance(),
-        private val loginStateManager: LoginStateManager = LoginStateManager.getInstance()
-    ): ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(DetailViewModel::class.java)) {
-                @Suppress("UNCHECKED_CAST")
-                return DetailViewModel(infoId, repository, loginStateManager) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
-        }
+    @AssistedFactory
+    interface Factory {
+        fun create(infoId: String): DetailViewModel
     }
 }

@@ -17,7 +17,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.jiyingcao.a51fengliu.util.showToast
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.config.AppConfig
@@ -41,12 +40,8 @@ fun FavoriteScreen(
 ) {
     val context = LocalContext.current
 
-    // 缓存 ViewModel 工厂，避免每次重组都创建
-    val factory = remember {
-        FavoriteViewModel.Factory()
-    }
-    
-    val viewModel: FavoriteViewModel = viewModel(factory = factory)
+    // 使用 Hilt 注入的 ViewModel，无需手动工厂
+    val viewModel: FavoriteViewModel = viewModel()
 
     val uiState by viewModel.uiState.collectAsState()
 

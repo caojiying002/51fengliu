@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.View.GONE
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.TextView
+import androidx.activity.viewModels
 import androidx.core.animation.doOnEnd
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
@@ -38,6 +39,8 @@ import com.jiyingcao.a51fengliu.viewmodel.DetailIntent
 import com.jiyingcao.a51fengliu.viewmodel.DetailUiState
 import com.jiyingcao.a51fengliu.viewmodel.DetailViewModel
 import com.jiyingcao.a51fengliu.viewmodel.FavoriteProgress
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.lifecycle.withCreationCallback
 import kotlinx.coroutines.launch
 
 /**
@@ -49,10 +52,19 @@ import kotlinx.coroutines.launch
  * 3. 代码量减少60%+，可读性显著提升
  * 4. 可复用性强，其他Activity可以直接使用相同模式
  */
+@AndroidEntryPoint
 class DetailActivity : BaseActivity() {
     private lateinit var binding: ActivityDetailBinding
     private val contentBinding: ContentDetail0Binding get() = binding.contentLayout.contentDetail0
-    private lateinit var viewModel: DetailViewModel
+    private lateinit var recordId: String
+
+    private val viewModel by viewModels<DetailViewModel>(
+        extrasProducer = {
+            defaultViewModelCreationExtras.withCreationCallback<DetailViewModel.Factory> { factory ->
+                factory.create(recordId)
+            }
+        }
+    )
     private var loadingDialog: LoadingDialog? = null
     
     // 使用转场Helper，替代之前的所有转场相关代码
@@ -65,16 +77,17 @@ class DetailActivity : BaseActivity() {
         binding = ActivityDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val recordId = intent.getRecordId()
-        if (recordId == null) {
+        val intentRecordId = intent.getRecordId()
+        if (intentRecordId == null) {
             showToast("缺少参数: recordId")
             finish()
             return
+        } else {
+            recordId = intentRecordId
         }
 
         setupClickListeners()
         setupSmartRefreshLayout()
-        setupViewModel(recordId)
         setupStateObservers()
 
         // 横竖屏等配置更改时，不需要重新加载数据
@@ -85,13 +98,6 @@ class DetailActivity : BaseActivity() {
         binding.contentLayout.refreshLayout.setOnRefreshListener {
             viewModel.processIntent(DetailIntent.PullToRefresh)
         }
-    }
-
-    private fun setupViewModel(recordId: String) {
-        viewModel = ViewModelProvider(
-            this,
-            DetailViewModel.Factory(recordId)
-        )[DetailViewModel::class.java]
     }
 
     override fun onStart() {

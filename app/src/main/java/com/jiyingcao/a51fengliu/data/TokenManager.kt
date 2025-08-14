@@ -4,14 +4,18 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.config.AppConfig
-import com.jiyingcao.a51fengliu.util.dataStore
+import com.jiyingcao.a51fengliu.di.AuthDataStore
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 
-class TokenManager private constructor(private val dataStore: DataStore<Preferences>) {
+@Singleton
+class TokenManager @Inject constructor(
+    @AuthDataStore private val dataStore: DataStore<Preferences>
+) {
     // 获取 Token 的 Flow，用于需要观察 Token 变化的场景
     val token: Flow<String?> = dataStore.data
         .map { preferences ->
@@ -53,14 +57,5 @@ class TokenManager private constructor(private val dataStore: DataStore<Preferen
 
     companion object {
         private val TOKEN_KEY = stringPreferencesKey("jwt_token")
-
-        @Volatile
-        private var instance: TokenManager? = null
-
-        fun getInstance(dataStore: DataStore<Preferences> = App.INSTANCE.dataStore): TokenManager {
-            return instance ?: synchronized(this) {
-                instance ?: TokenManager(dataStore).also { instance = it }
-            }
-        }
     }
 }

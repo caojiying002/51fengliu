@@ -60,13 +60,11 @@ class CityRecordListFragment : Fragment() {
     )
 
     /**
-     * Saving selected city, shared with other [CityRecordListFragment] instances.
+     * Saving selected city, shared with all child Fragments of the host Activity.
      *
-     * 保存选中的城市，与其他 [CityRecordListFragment] 实例共享。
+     * 保存选中的城市，与宿主Activity的所有子Fragment共享。
      */
-    private val citySelectionViewModel: CitySelectionViewModel by activityViewModels {
-        CitySelectionViewModel.Factory()
-    }
+    private val citySelectionViewModel: CitySelectionViewModel by activityViewModels()
 
     private lateinit var recordAdapter: RecordAdapter
 

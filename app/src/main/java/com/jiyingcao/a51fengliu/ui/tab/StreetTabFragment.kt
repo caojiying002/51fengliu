@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import dagger.hilt.android.AndroidEntryPoint
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -18,13 +19,13 @@ import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.databinding.FragmentCityTabPagerBinding
 import com.jiyingcao.a51fengliu.ui.ChooseCityActivity
 import com.jiyingcao.a51fengliu.util.AppLogger
-import com.jiyingcao.a51fengliu.util.dataStore
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.util.to2LevelName
 import com.jiyingcao.a51fengliu.viewmodel.CitySelectionViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class StreetTabFragment : Fragment() {
     private var _binding: FragmentCityTabPagerBinding? = null
     private val binding get() = _binding!!
@@ -35,9 +36,7 @@ class StreetTabFragment : Fragment() {
      *
      * 由所有 [StreetListFragment] 共享。
      */
-    private val citySelectionViewModel: CitySelectionViewModel by activityViewModels {
-        CitySelectionViewModel.Factory()
-    }
+    private val citySelectionViewModel: CitySelectionViewModel by activityViewModels()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentCityTabPagerBinding.inflate(inflater, container, false)

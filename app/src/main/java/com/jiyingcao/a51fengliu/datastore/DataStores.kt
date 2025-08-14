@@ -9,4 +9,4 @@ val Context.userSelectionDataStore: DataStore<Preferences> by preferencesDataSto
 
 //val Context.appSettingsDataStore: DataStore<Preferences> by preferencesDataStore("app_settings")
 
-//val Context.authDataStore: DataStore<Preferences> by preferencesDataStore("auth")
+val Context.authDataStore: DataStore<Preferences> by preferencesDataStore("auth")

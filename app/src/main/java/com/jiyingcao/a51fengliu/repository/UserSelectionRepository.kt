@@ -1,12 +1,10 @@
 package com.jiyingcao.a51fengliu.repository
 
-import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.jiyingcao.a51fengliu.App
-import com.jiyingcao.a51fengliu.datastore.userSelectionDataStore
+import com.jiyingcao.a51fengliu.di.UserSelectionDataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -14,9 +12,17 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class UserSelectionRepository private constructor(
-    private val dataStore: DataStore<Preferences> = App.INSTANCE.userSelectionDataStore
+/**
+ * DataStore Repository：依赖DataStore，处理本地数据
+ * 用户选择相关的本地数据持久化
+ * - 目前暂时只有**选择城市**场景
+ */
+@Singleton
+class UserSelectionRepository @Inject constructor(
+    @UserSelectionDataStore private val dataStore: DataStore<Preferences>
 ) {
     // 使用应用级别的CoroutineScope，确保数据流在应用生命周期内保持活跃
     private val repositoryScope = CoroutineScope(
@@ -59,19 +65,5 @@ class UserSelectionRepository private constructor(
 
     companion object {
         private val SELECTED_CITY_KEY = stringPreferencesKey("selected_city")
-
-        @Volatile
-        private var INSTANCE: UserSelectionRepository? = null
-
-        /**
-         * 获取单例实例
-         */
-        fun getInstance(context: Context): UserSelectionRepository {
-            return INSTANCE ?: synchronized(this) {
-                INSTANCE ?: UserSelectionRepository(
-                    context.applicationContext.userSelectionDataStore
-                ).also { INSTANCE = it }
-            }
-        }
     }
 }

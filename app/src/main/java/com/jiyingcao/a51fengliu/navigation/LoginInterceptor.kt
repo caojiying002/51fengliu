@@ -11,6 +11,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.jiyingcao.a51fengliu.data.LoginStateManager
+import javax.inject.Inject
 import com.jiyingcao.a51fengliu.ui.auth.AuthActivity
 
 /**
@@ -19,7 +20,9 @@ import com.jiyingcao.a51fengliu.ui.auth.AuthActivity
  * 
  * 企业应用实践：使用Activity Result API处理登录流程，确保导航意图不丢失
  */
-class LoginInterceptor {
+class LoginInterceptor @Inject constructor(
+    private val loginStateManager: LoginStateManager
+) {
 
     private var loginLauncher: ActivityResultLauncher<LoginRequestData>? = null
     private var pendingAction: (() -> Unit)? = null
@@ -74,7 +77,7 @@ class LoginInterceptor {
      */
     fun execute(action: () -> Unit) {
         // 同步检查登录状态
-        val isLoggedIn = LoginStateManager.getInstance().isLoggedIn.value
+        val isLoggedIn = loginStateManager.isLoggedIn.value
 
         if (isLoggedIn) {
             // 已登录，直接执行

@@ -6,6 +6,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * 全局登录状态变化事件
@@ -26,7 +28,8 @@ sealed class LoginEvent {
  * 登录状态管理器
  * 负责提供统一的登录状态监听接口
  */
-class LoginStateManager private constructor(private val tokenManager: TokenManager) {
+@Singleton
+class LoginStateManager @Inject constructor(private val tokenManager: TokenManager) {
 
     private val managerScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
@@ -95,14 +98,4 @@ class LoginStateManager private constructor(private val tokenManager: TokenManag
         }
     }
 
-    companion object {
-        @Volatile
-        private var instance: LoginStateManager? = null
-
-        fun getInstance(tokenManager: TokenManager = TokenManager.getInstance()): LoginStateManager {
-            return instance ?: synchronized(this) {
-                instance ?: LoginStateManager(tokenManager).also { instance = it }
-            }
-        }
-    }
 }

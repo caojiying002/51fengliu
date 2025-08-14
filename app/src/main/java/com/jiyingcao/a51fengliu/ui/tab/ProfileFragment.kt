@@ -16,6 +16,7 @@ import com.jiyingcao.a51fengliu.viewmodel.ProfileState
 import com.jiyingcao.a51fengliu.viewmodel.ProfileViewModel
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.navigation.LoginInterceptor
+import javax.inject.Inject
 import com.jiyingcao.a51fengliu.ui.FavoriteActivity
 import com.jiyingcao.a51fengliu.ui.auth.AuthActivity
 import com.jiyingcao.a51fengliu.ui.PostInfoActivity
@@ -44,14 +45,13 @@ class ProfileFragment : Fragment() {
 
     private var loadingDialog: LoadingDialog? = null
 
-    private lateinit var loginInterceptor: LoginInterceptor
+    @Inject
+    lateinit var loginInterceptor: LoginInterceptor
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // 初始化登录拦截器
-        loginInterceptor = LoginInterceptor().apply {
-            register(this@ProfileFragment)
-        }
+        loginInterceptor.register(this@ProfileFragment)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

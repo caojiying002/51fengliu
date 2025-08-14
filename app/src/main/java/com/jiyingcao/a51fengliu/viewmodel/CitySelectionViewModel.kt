@@ -1,14 +1,15 @@
 package com.jiyingcao.a51fengliu.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.repository.UserSelectionRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 
-class CitySelectionViewModel(
+@HiltViewModel
+class CitySelectionViewModel @Inject constructor(
     private val userSelectionRepository: UserSelectionRepository
 ) : ViewModel() {
 
@@ -25,18 +26,6 @@ class CitySelectionViewModel(
     fun setCity(cityCode: String) {
         viewModelScope.launch {
             userSelectionRepository.updateSelectedCity(cityCode)
-        }
-    }
-
-    class Factory(
-        private val userSelectionRepository: UserSelectionRepository = UserSelectionRepository.getInstance(App.INSTANCE)
-    ) : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(CitySelectionViewModel::class.java)) {
-                @Suppress("UNCHECKED_CAST")
-                return CitySelectionViewModel(userSelectionRepository) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class")
         }
     }
 }

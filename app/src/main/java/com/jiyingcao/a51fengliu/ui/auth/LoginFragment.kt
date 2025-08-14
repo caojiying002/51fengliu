@@ -17,7 +17,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.jiyingcao.a51fengliu.R
-import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.databinding.FragmentLoginBinding
 import com.jiyingcao.a51fengliu.ui.base.BaseFragment
 import com.jiyingcao.a51fengliu.util.AppLogger
@@ -148,11 +147,6 @@ class LoginFragment : BaseFragment() {
     }
 
     private fun navigateToMainActivity() {
-        // TODO 这里只是为了打印,需要移除
-        viewLifecycleOwner.lifecycleScope.launch {
-            val savedToken = TokenManager.getInstance().getToken()
-            AppLogger.d(TAG, "登录成功，Token已保存: $savedToken")
-        }
         requireActivity().apply {
             showToast("登录成功")
             // 设置返回结果

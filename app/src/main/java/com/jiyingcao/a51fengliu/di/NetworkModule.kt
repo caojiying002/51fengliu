@@ -1,21 +1,15 @@
 package com.jiyingcao.a51fengliu.di
 
-import android.content.Context
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import com.jiyingcao.a51fengliu.api.ApiService
 import com.jiyingcao.a51fengliu.api.AuthInterceptor
 import com.jiyingcao.a51fengliu.api.DebugAuthInterceptor
 import com.jiyingcao.a51fengliu.api.GsonInstance
 import com.jiyingcao.a51fengliu.api.parse.ApiCallAdapterFactory
 import com.jiyingcao.a51fengliu.config.AppConfig
-import com.jiyingcao.a51fengliu.data.LoginStateManager
 import com.jiyingcao.a51fengliu.data.TokenManager
-import com.jiyingcao.a51fengliu.util.dataStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -28,20 +22,6 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    // TODO: 临时方案 - 应该迁移到单独的 Module 中
-    // 这样可以更好地分离关注点，将数据层和网络层的依赖分开管理
-    @Provides
-    @Singleton
-    fun provideTokenManager(@ApplicationContext context: Context): TokenManager {
-        return TokenManager.getInstance(context.dataStore)
-    }
-
-    // TODO: 临时方案 - 应该迁移到单独的 Module 中
-    @Provides
-    @Singleton
-    fun provideLoginStateManager(tokenManager: TokenManager): LoginStateManager {
-        return LoginStateManager.getInstance(tokenManager)
-    }
 
     @Provides
     @Singleton

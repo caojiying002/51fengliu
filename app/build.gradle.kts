@@ -100,11 +100,14 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.exoplayer.hls)
     implementation(libs.squareup.retrofit)
-    implementation(libs.squareup.retrofit.converter.gson)
+    implementation(libs.squareup.retrofit.converter.moshi)
+    implementation(libs.squareup.retrofit.converter.gson)   // 待移除
+    implementation(libs.squareup.moshi)
+    implementation(libs.squareup.moshi.kotlin)
     implementation(libs.squareup.okhttp)
     implementation(libs.squareup.okhttp.logginginterceptor)
     implementation(libs.squareup.okio)
-    implementation(libs.gson)
+    implementation(libs.gson)   // 待移除
     implementation(libs.bumptech.glide)
     implementation(libs.bumptech.glide.okhttp3integration)
     implementation(libs.coil)
@@ -118,8 +121,9 @@ dependencies {
     implementation(libs.gsyvideoplayer)
     implementation(libs.gsyvideoplayer.exo2)
     implementation(libs.hilt.android)
-    //debugImplementation(libs.leakcanary.android)
+    //debugImplementation(libs.squareup.leakcanary.android)
     ksp(libs.hilt.compiler)
+    ksp(libs.squareup.moshi.kotlin.codegen)
     ksp(libs.androidx.room.compiler)
     //noinspection KaptUsageInsteadOfKsp
     kapt(libs.bumptech.glide.compiler)

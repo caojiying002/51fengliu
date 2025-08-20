@@ -18,8 +18,8 @@ object AppConfig {
      * 网络相关配置
      */
     object Network {
-        const val BASE_URL = "https://d197ecfef.n5api.xyz"
-        const val BASE_IMAGE_URL = "https://s6.img770.xyz/info/picture/"
+        const val BASE_URL = "https://da5fe4028.l4api.xyz"
+        const val BASE_IMAGE_URL = "https://s3.img801.xyz/info/picture/"
         const val CONNECT_TIMEOUT = 30L
         const val READ_TIMEOUT = 30L
         const val WRITE_TIMEOUT = 30L
@@ -31,10 +31,17 @@ object AppConfig {
         const val USER_AGENT = "Dart/3.0 (dart:io)"
 
         /**
-         * 用于HTTP请求的Referer头
+         * 用于图片HTTP请求的User-Agent头
+         * 不指定请求头会下载占位图片
+         * 官方APP 2.7.11版本开始与主User-Agent不同
+         */
+        const val IMAGE_USER_AGENT = "Dart/3.8 (dart:io), Dart/3.0"
+
+        /**
+         * 用于图片HTTP请求的Referer头
          * 图片API需要验证请求来源，否则会下载失败（可能是为了防盗链）
          */
-        const val REFERER = "https://ysalgfhqd3.com"
+        const val IMAGE_REFERER = "https://ysalgfhqd3.com"
 
         /**
          * 创建一个带有主机无关缓存键的图片URL

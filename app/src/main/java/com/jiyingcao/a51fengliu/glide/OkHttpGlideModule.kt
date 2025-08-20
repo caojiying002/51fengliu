@@ -22,8 +22,8 @@ class OkHttpGlideModule: AppGlideModule() {
             addInterceptor { chain ->
                 val originalRequest = chain.request()
                 val requestWithHeaders = originalRequest.newBuilder()
-                    .header("Referer", AppConfig.Network.REFERER)
-                    .header("User-Agent", AppConfig.Network.USER_AGENT)
+                    .header("Referer", AppConfig.Network.IMAGE_REFERER)
+                    .header("User-Agent", AppConfig.Network.IMAGE_USER_AGENT)
                     .build()
                 chain.proceed(requestWithHeaders)
             }

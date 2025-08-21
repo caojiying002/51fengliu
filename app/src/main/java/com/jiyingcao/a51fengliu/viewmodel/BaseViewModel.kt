@@ -1,6 +1,7 @@
 package com.jiyingcao.a51fengliu.viewmodel
 
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.CancellationException
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager
 import com.jiyingcao.a51fengliu.domain.exception.RemoteLoginException
 
@@ -22,6 +23,7 @@ abstract class BaseViewModel : ViewModel() {
  */
 suspend fun ViewModel.handleFailure(e: Throwable): Boolean {
     return when (e) {
+        is CancellationException -> throw e
         is RemoteLoginException -> {
             RemoteLoginManager.handleRemoteLogin()
             true

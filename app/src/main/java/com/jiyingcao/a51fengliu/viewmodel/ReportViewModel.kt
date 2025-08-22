@@ -1,8 +1,6 @@
 package com.jiyingcao.a51fengliu.viewmodel
 
 import android.net.Uri
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.api.response.ReportErrorData
@@ -64,23 +62,6 @@ sealed class SubmitState {
     data class Error(val message: String) : SubmitState()
 }
 
-@Deprecated("将被ReportState2替换，更符合MVI单一可信数据源原则")
-sealed class ReportState {
-    object Initial : ReportState()
-    sealed class Loading : ReportState() {
-        object UploadingImage : Loading()
-        object SubmittingReport : Loading()
-    }
-    sealed class Success : ReportState() {
-        data class ImageUploaded(val relativeUrl: String) : Success()
-        object ReportSubmitted : Success()
-    }
-    sealed class Error : ReportState() {
-        data class ImageUploadError(val message: String) : Error()
-        data class ReportSubmissionError(val message: String) : Error()
-    }
-}
-
 sealed class ReportIntent {
     data class UploadImage(val uri: Uri) : ReportIntent()
     object ClearUploadedImage : ReportIntent()
@@ -104,18 +85,6 @@ class ReportViewModel @AssistedInject constructor(
 
     private val _state2 = MutableStateFlow(ReportState2())
     val state2: StateFlow<ReportState2> = _state2.asStateFlow()
-
-    @Deprecated("将被_state2替换")
-    private val _state = MutableStateFlow<ReportState>(ReportState.Initial)
-    val state: StateFlow<ReportState> = _state.asStateFlow()
-
-    @Deprecated("将被ReportState2替换，更符合MVI单一可信数据源原则")
-    private val _uploadedImageUrl = MutableStateFlow<String?>(null)
-    val uploadedImageUrl: StateFlow<String?> = _uploadedImageUrl.asStateFlow()
-
-    @Deprecated("将被ReportState2替换，更符合MVI单一可信数据源原则")
-    private val _isUploading = MutableStateFlow(false)
-    val isUploading: StateFlow<Boolean> = _isUploading.asStateFlow()
     
     private val _effect = Channel<ReportEffect>()
     val effect = _effect.receiveAsFlow()
@@ -135,10 +104,6 @@ class ReportViewModel @AssistedInject constructor(
     private fun uploadImage(file: File) {
         if (_state2.value.imageUploadState is ImageUploadState.Uploading) return
         
-        // 更新旧状态 (保持向后兼容)
-        _isUploading.value = true
-        _state.value = ReportState.Loading.UploadingImage
-        
         // 更新新状态
         _state2.value = _state2.value.copy(
             imageUploadState = ImageUploadState.Uploading(0)
@@ -150,9 +115,6 @@ class ReportViewModel @AssistedInject constructor(
                     result.mapCatching { requireNotNull(it) }
                         .fold(
                             onSuccess = { url ->
-                                // 更新旧状态
-                                _uploadedImageUrl.value = url
-                                _state.value = ReportState.Success.ImageUploaded(url)
                                 
                                 // 更新新状态
                                 _state2.value = _state2.value.copy(
@@ -166,9 +128,6 @@ class ReportViewModel @AssistedInject constructor(
                                 if (!handleFailure(e)) {
                                     val errorMessage = e.toUserFriendlyMessage()
                                     
-                                    // 更新旧状态
-                                    _state.value = ReportState.Error.ImageUploadError(errorMessage)
-                                    
                                     // 更新新状态
                                     _state2.value = _state2.value.copy(
                                         imageUploadState = ImageUploadState.Error(errorMessage)
@@ -178,8 +137,6 @@ class ReportViewModel @AssistedInject constructor(
                                 }
                             }
                         )
-                    // 更新旧状态
-                    _isUploading.value = false
                 }
         }
     }
@@ -188,10 +145,6 @@ class ReportViewModel @AssistedInject constructor(
      * 清除上传的图片
      */
     private fun clearUploadedImage() {
-        // 更新旧状态
-        _uploadedImageUrl.value = null
-        _state.value = ReportState.Initial
-        
         // 更新新状态
         _state2.value = _state2.value.copy(
             selectedImageUri = null,
@@ -206,9 +159,6 @@ class ReportViewModel @AssistedInject constructor(
      */
     private fun submitReport(reason: String) {
         // TODO 如果图片上传中，提醒用户等待上传完成再提交举报
-
-        // 更新旧状态
-        _state.value = ReportState.Loading.SubmittingReport
         
         // 更新新状态
         _state2.value = _state2.value.copy(
@@ -223,8 +173,6 @@ class ReportViewModel @AssistedInject constructor(
                 .collect { result ->
                     result.fold(
                         onSuccess = {
-                            // 更新旧状态
-                            _state.value = ReportState.Success.ReportSubmitted
                             
                             // 更新新状态
                             _state2.value = _state2.value.copy(
@@ -243,9 +191,6 @@ class ReportViewModel @AssistedInject constructor(
                                 } else {
                                     e.toUserFriendlyMessage()
                                 }
-                                
-                                // 更新旧状态
-                                _state.value = ReportState.Error.ReportSubmissionError(errorMessage)
                                 
                                 // 更新新状态
                                 _state2.value = _state2.value.copy(

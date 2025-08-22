@@ -108,8 +108,7 @@ class ReportDialog : DialogFragment() {
         
         // Image upload
         binding.tvUploadImage.setOnClickListener {
-            // 使用新状态的imageUploadState进行检查
-            val currentState = viewModel.state2.value.imageUploadState
+            val currentState = viewModel.uiState.value.imageUploadState
             if (currentState is ImageUploadState.Uploading) {
                 return@setOnClickListener
             }
@@ -129,14 +128,13 @@ class ReportDialog : DialogFragment() {
     }
     
     private fun observeUiState() {
-        // Observe new state changes
         lifecycleScope.launch {
-            viewModel.state2.collect { state ->
+            viewModel.uiState.collect { uiState ->
                 // 处理图片上传状态
-                when (state.imageUploadState) {
+                when (uiState.imageUploadState) {
                     is ImageUploadState.Idle -> {
                         // 闲置状态，重置UI
-                        if (state.selectedImageUri == null) {
+                        if (uiState.selectedImageUri == null) {
                             resetUploadUI()
                         }
                     }
@@ -144,20 +142,20 @@ class ReportDialog : DialogFragment() {
                         showLoadingState()
                     }
                     is ImageUploadState.Success -> {
-                        state.uploadedImageUrl?.let { url ->
+                        uiState.uploadedImageUrl?.let { url ->
                             displayUploadedImage(url)
                         }
                     }
                     is ImageUploadState.Error -> {
                         // 错误会通过effects展示，如果没有已上传图片就重置UI
-                        if (state.uploadedImageUrl == null) {
+                        if (uiState.uploadedImageUrl == null) {
                             resetUploadUI()
                         }
                     }
                 }
 
                 // 处理提交状态
-                when (state.submitState) {
+                when (uiState.submitState) {
                     is SubmitState.Idle -> {
                         updateReportButtonState(true)
                     }

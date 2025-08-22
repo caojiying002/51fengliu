@@ -23,8 +23,7 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 
-// 举报状态的主State类
-data class ReportState2(
+data class ReportUiState(
     // 用户输入内容
     //val subject: String = "",  // 举报标题，如"温柔雨梦"
     val reason: String = "",   // 举报原因详情
@@ -83,8 +82,8 @@ class ReportViewModel @AssistedInject constructor(
     private val repository: RecordRepository
 ) : BaseViewModel() {
 
-    private val _state2 = MutableStateFlow(ReportState2())
-    val state2: StateFlow<ReportState2> = _state2.asStateFlow()
+    private val _uiState = MutableStateFlow(ReportUiState())
+    val uiState: StateFlow<ReportUiState> = _uiState.asStateFlow()
     
     private val _effect = Channel<ReportEffect>()
     val effect = _effect.receiveAsFlow()
@@ -102,10 +101,9 @@ class ReportViewModel @AssistedInject constructor(
      * @param file 要上传的图片文件
      */
     private fun uploadImage(file: File) {
-        if (_state2.value.imageUploadState is ImageUploadState.Uploading) return
-        
-        // 更新新状态
-        _state2.value = _state2.value.copy(
+        if (_uiState.value.imageUploadState is ImageUploadState.Uploading) return
+
+        _uiState.value = _uiState.value.copy(
             imageUploadState = ImageUploadState.Uploading(0)
         )
         
@@ -115,9 +113,7 @@ class ReportViewModel @AssistedInject constructor(
                     result.mapCatching { requireNotNull(it) }
                         .fold(
                             onSuccess = { url ->
-                                
-                                // 更新新状态
-                                _state2.value = _state2.value.copy(
+                                _uiState.value = _uiState.value.copy(
                                     uploadedImageUrl = url,
                                     imageUploadState = ImageUploadState.Success(url)
                                 )
@@ -127,9 +123,8 @@ class ReportViewModel @AssistedInject constructor(
                             onFailure = { e ->
                                 if (!handleFailure(e)) {
                                     val errorMessage = e.toUserFriendlyMessage()
-                                    
-                                    // 更新新状态
-                                    _state2.value = _state2.value.copy(
+
+                                    _uiState.value = _uiState.value.copy(
                                         imageUploadState = ImageUploadState.Error(errorMessage)
                                     )
                                     
@@ -145,8 +140,7 @@ class ReportViewModel @AssistedInject constructor(
      * 清除上传的图片
      */
     private fun clearUploadedImage() {
-        // 更新新状态
-        _state2.value = _state2.value.copy(
+        _uiState.value = _uiState.value.copy(
             selectedImageUri = null,
             uploadedImageUrl = null,
             imageUploadState = ImageUploadState.Idle
@@ -159,23 +153,20 @@ class ReportViewModel @AssistedInject constructor(
      */
     private fun submitReport(reason: String) {
         // TODO 如果图片上传中，提醒用户等待上传完成再提交举报
-        
-        // 更新新状态
-        _state2.value = _state2.value.copy(
+
+        _uiState.value = _uiState.value.copy(
             reason = reason,
             submitState = SubmitState.Submitting
         )
         
         viewModelScope.launch(remoteLoginCoroutineContext) {
             // 使用新状态中的图片URL
-            val picture = _state2.value.uploadedImageUrl.orEmpty()
+            val picture = _uiState.value.uploadedImageUrl.orEmpty()
             repository.report(infoId, reason, picture)
                 .collect { result ->
                     result.fold(
                         onSuccess = {
-                            
-                            // 更新新状态
-                            _state2.value = _state2.value.copy(
+                            _uiState.value = _uiState.value.copy(
                                 submitState = SubmitState.Success
                             )
                             
@@ -191,9 +182,8 @@ class ReportViewModel @AssistedInject constructor(
                                 } else {
                                     e.toUserFriendlyMessage()
                                 }
-                                
-                                // 更新新状态
-                                _state2.value = _state2.value.copy(
+
+                                _uiState.value = _uiState.value.copy(
                                     submitState = SubmitState.Error(errorMessage)
                                 )
                                 
@@ -207,7 +197,7 @@ class ReportViewModel @AssistedInject constructor(
 
     private fun convertUriToFileAndUpload(uri: Uri) {
         // 立即更新选择的URI
-        _state2.value = _state2.value.copy(selectedImageUri = uri)
+        _uiState.value = _uiState.value.copy(selectedImageUri = uri)
         
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -216,9 +206,9 @@ class ReportViewModel @AssistedInject constructor(
                     uploadImage(file)
                 } else {
                     _effect.send(ReportEffect.ShowToast("图片处理失败"))
-                    
+
                     // 重置状态
-                    _state2.value = _state2.value.copy(
+                    _uiState.value = _uiState.value.copy(
                         imageUploadState = ImageUploadState.Error("图片处理失败")
                     )
                 }
@@ -227,7 +217,7 @@ class ReportViewModel @AssistedInject constructor(
                 _effect.send(ReportEffect.ShowToast("图片处理失败"))
                 
                 // 重置状态
-                _state2.value = _state2.value.copy(
+                _uiState.value = _uiState.value.copy(
                     imageUploadState = ImageUploadState.Error("图片处理失败: ${e.message}")
                 )
             }

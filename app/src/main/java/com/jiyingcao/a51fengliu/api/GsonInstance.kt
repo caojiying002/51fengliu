@@ -12,6 +12,7 @@ import java.lang.reflect.Type
 
 private const val TAG = "GsonInstance"
 
+@Deprecated("本类是基于ApiResult的设计，现已弃用")
 object GsonInstance {
     val gson: Gson by lazy {
         GsonBuilder()
@@ -24,6 +25,7 @@ object GsonInstance {
     }
 }
 
+@Deprecated("本类是基于ApiResult的设计，现已弃用")
 class ApiResponseDeserializer<T, E>(
     private val successType: Type,
     private val errorType: Type
@@ -57,6 +59,7 @@ class ApiResponseDeserializer<T, E>(
     }
 }
 
+@Deprecated("本方法是基于ApiResult的设计，现已弃用")
 inline fun <reified S, reified E> GsonBuilder.registerApiResponseType(): GsonBuilder = apply {
     registerTypeAdapter(
         TypeToken.getParameterized(

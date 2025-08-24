@@ -2,6 +2,10 @@ package com.jiyingcao.a51fengliu.api.response
 
 import com.jiyingcao.a51fengliu.domain.exception.ApiException
 
+/**
+ * 通用API响应基类
+ * 用于大多数正常的API接口
+ */
 data class ApiResponse<T>(
     val code: Int,
     val msg: String?,
@@ -28,6 +32,7 @@ object NoErrorData
  * 这种场景下，[ApiResponse.data]的类型是String和[LoginErrorData]，
  * 应当使用ApiResponse<ApiResult<String, LoginErrorData>>。
  */
+@Deprecated("将被专门的响应类型替代，例如LoginResponse")
 sealed class ApiResult<out T, out E> {
     data class Success<T>(val data: T) : ApiResult<T, Nothing>()
     data class Error<E>(

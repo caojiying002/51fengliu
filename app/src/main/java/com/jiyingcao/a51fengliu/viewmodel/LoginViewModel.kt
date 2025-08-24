@@ -2,7 +2,6 @@ package com.jiyingcao.a51fengliu.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jiyingcao.a51fengliu.api.response.LoginErrorData
 import com.jiyingcao.a51fengliu.data.TokenManager
 import com.jiyingcao.a51fengliu.domain.exception.LoginException
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
@@ -83,16 +82,13 @@ class LoginViewModel @Inject constructor(
                         when (e) {
                             is LoginException -> {
                                 // 处理特定的登录错误
-                                val errorType = when (e.errorData) {
-                                    is LoginErrorData -> {
-                                        LoginErrorType.NamePassword(
-                                            name = e.errorData.name,
-                                            password = e.errorData.password
-                                        )
-                                    }
-                                    else -> {
-                                        LoginErrorType.UnknownError(e.toUserFriendlyMessage())
-                                    }
+                                val nameError = e.errors["name"]
+                                val passwordError = e.errors["password"]
+
+                                val errorType = if (nameError != null || passwordError != null) {
+                                    LoginErrorType.NamePassword(nameError, passwordError)
+                                } else {
+                                    LoginErrorType.UnknownError(e.toUserFriendlyMessage())
                                 }
                                 _state.value = LoginState.Error(errorType, e.code)
                             }

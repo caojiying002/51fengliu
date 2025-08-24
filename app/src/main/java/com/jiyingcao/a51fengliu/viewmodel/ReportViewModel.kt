@@ -3,7 +3,6 @@ package com.jiyingcao.a51fengliu.viewmodel
 import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.App
-import com.jiyingcao.a51fengliu.api.response.ReportErrorData
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
 import com.jiyingcao.a51fengliu.domain.exception.ReportException
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
@@ -176,9 +175,9 @@ class ReportViewModel @AssistedInject constructor(
                         onFailure = { e ->
                             if (!handleFailure(e)) {
                                 // 处理特定的举报错误
-                                val errorMessage = if (e is ReportException && e.errorData is ReportErrorData) {
+                                val errorMessage = if (e is ReportException) {
                                     // 优先处理内容错误，其次处理图片错误，最后使用通用错误信息
-                                    e.errorData.content ?: e.errorData.picture ?: e.toUserFriendlyMessage()
+                                    e.errors["content"] ?: e.errors["picture"] ?: e.toUserFriendlyMessage()
                                 } else {
                                     e.toUserFriendlyMessage()
                                 }

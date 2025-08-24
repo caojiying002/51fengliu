@@ -95,7 +95,7 @@ interface ApiService {
     @POST(ApiEndpoints.Records.REPORT)
     suspend fun postReport(
         @Body body: ReportRequest
-    ): ApiResponse<ApiResult<String, ReportErrorData>>
+    ): ReportResponse
 
     // ========== 用户认证相关接口 ==========
 
@@ -109,7 +109,7 @@ interface ApiService {
     @POST(ApiEndpoints.Auth.LOGIN)
     suspend fun postLogin(
         @Body body: LoginRequest
-    ): ApiResponse<ApiResult<String, LoginErrorData>>
+    ): LoginResponse
 
     /**
      * 用户退出登录

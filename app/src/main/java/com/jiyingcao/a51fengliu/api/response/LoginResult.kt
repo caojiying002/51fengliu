@@ -2,6 +2,14 @@ package com.jiyingcao.a51fengliu.api.response
 
 /**
  * {
+ *     "code": 0,
+ *     "msg": "Ok",
+ *     "data": "some.jwt.token"
+ * }
+ */
+
+/**
+ * {
  *     "code": -1,
  *     "msg": "Validation Error",
  *     "data": {
@@ -10,6 +18,7 @@ package com.jiyingcao.a51fengliu.api.response
  *     }
  * }
  */
+@Deprecated("将会被LoginResponse替代")
 data class LoginErrorData(
     val name: String?,
     val password: String?

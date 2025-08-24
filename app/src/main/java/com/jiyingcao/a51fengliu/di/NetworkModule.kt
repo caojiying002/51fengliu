@@ -1,10 +1,14 @@
 package com.jiyingcao.a51fengliu.di
 
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.jiyingcao.a51fengliu.api.ApiService
 import com.jiyingcao.a51fengliu.api.AuthInterceptor
 import com.jiyingcao.a51fengliu.api.DebugAuthInterceptor
-import com.jiyingcao.a51fengliu.api.GsonInstance
-import com.jiyingcao.a51fengliu.api.parse.ApiCallAdapterFactory
+import com.jiyingcao.a51fengliu.api.parse.LoginResponseAdapter
+import com.jiyingcao.a51fengliu.api.parse.ReportResponseAdapter
+import com.jiyingcao.a51fengliu.api.response.LoginResponse
+import com.jiyingcao.a51fengliu.api.response.ReportResponse
 import com.jiyingcao.a51fengliu.config.AppConfig
 import com.jiyingcao.a51fengliu.data.TokenManager
 import dagger.Module
@@ -65,12 +69,21 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
+    fun provideGson(): Gson {
+        return GsonBuilder()
+            .registerTypeAdapter(LoginResponse::class.java, LoginResponseAdapter())
+            .registerTypeAdapter(ReportResponse::class.java, ReportResponseAdapter())
+            .create()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRetrofit(okHttpClient: OkHttpClient, gson: Gson): Retrofit {
         return Retrofit.Builder()
             .client(okHttpClient)
             .baseUrl(AppConfig.Network.BASE_URL)
-            .addCallAdapterFactory(ApiCallAdapterFactory())
-            .addConverterFactory(GsonConverterFactory.create(GsonInstance.gson).withStreaming())
+            //.addCallAdapterFactory(ApiCallAdapterFactory())
+            .addConverterFactory(GsonConverterFactory.create(gson).withStreaming())
             .build()
     }
 

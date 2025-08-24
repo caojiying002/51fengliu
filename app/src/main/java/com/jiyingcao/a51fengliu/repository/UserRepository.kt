@@ -2,7 +2,7 @@ package com.jiyingcao.a51fengliu.repository
 
 import com.jiyingcao.a51fengliu.api.ApiService
 import com.jiyingcao.a51fengliu.api.request.LoginRequest
-import com.jiyingcao.a51fengliu.api.response.ApiResult
+import com.jiyingcao.a51fengliu.api.response.LoginData
 import com.jiyingcao.a51fengliu.api.response.Profile
 import com.jiyingcao.a51fengliu.domain.exception.LoginException
 import kotlinx.coroutines.Dispatchers
@@ -26,21 +26,18 @@ class UserRepository @Inject constructor(
     fun login(username: String, password: String): Flow<Result<String>> = flow {
         try {
             val response = apiService.postLogin(LoginRequest(username, password))
-            when (val result = response.data) {
-                is ApiResult.Success -> {
-                    emit(Result.success(result.data))
+            when (val loginData = response.data) {
+                is LoginData.Success -> {
+                    emit(Result.success(loginData.token))
                 }
-                is ApiResult.Error -> {
+                is LoginData.Error -> {
                     emit(Result.failure(
                         LoginException(
-                            code = result.code,
-                            message = result.msg,
-                            errorData = result.errorData
+                            code = response.code,
+                            message = response.msg,
+                            errors = loginData.errors
                         )
                     ))
-                }
-                null -> {
-                    emit(Result.failure(Exception("Empty response data")))
                 }
             }
         } catch (e: Exception) {

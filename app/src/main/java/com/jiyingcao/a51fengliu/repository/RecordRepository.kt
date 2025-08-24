@@ -4,9 +4,9 @@ import com.jiyingcao.a51fengliu.api.ApiService
 import com.jiyingcao.a51fengliu.api.request.InfoIdRequest
 import com.jiyingcao.a51fengliu.api.request.RecordsRequest
 import com.jiyingcao.a51fengliu.api.request.ReportRequest
-import com.jiyingcao.a51fengliu.api.response.ApiResult
 import com.jiyingcao.a51fengliu.api.response.PageData
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
+import com.jiyingcao.a51fengliu.api.response.ReportData
 import com.jiyingcao.a51fengliu.domain.exception.ReportException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -91,21 +91,18 @@ class RecordRepository @Inject constructor(
     fun report(infoId: String, content: String, picture: String = ""): Flow<Result<*>> = flow {
         try {
             val response = apiService.postReport(ReportRequest(infoId, content, picture))
-            when (val result = response.data) {
-                is ApiResult.Success -> {
-                    emit(Result.success(result.data))
+            when (val reportData = response.data) {
+                is ReportData.Success -> {
+                    emit(Result.success(Unit))
                 }
-                is ApiResult.Error -> {
+                is ReportData.Error -> {
                     emit(Result.failure(
                         ReportException(
-                            code = result.code,
-                            message = result.msg,
-                            errorData = result.errorData
+                            code = response.code,
+                            message = response.msg,
+                            errors = reportData.errors
                         )
                     ))
-                }
-                null -> {
-                    emit(Result.failure(Exception("Empty response data")))
                 }
             }
         } catch (e: Exception) {

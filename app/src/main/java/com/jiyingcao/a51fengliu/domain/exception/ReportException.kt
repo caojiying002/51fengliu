@@ -1,15 +1,13 @@
 package com.jiyingcao.a51fengliu.domain.exception
 
-import com.jiyingcao.a51fengliu.api.response.ReportErrorData
-
 class ReportException(
     code: Int,
     message: String?,
     cause: Throwable? = null,
-    val errorData: ReportErrorData?
+    val errors: Map<String, String>
 ) : ApiException(code, message, cause) {
 
     override fun toString(): String {
-        return "LoginException(code=$code, message=$message, errorData=$errorData)"
+        return "ReportException(code=$code, message=$message, errors=$errors)"
     }
 }

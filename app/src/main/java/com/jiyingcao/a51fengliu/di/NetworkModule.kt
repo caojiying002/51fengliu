@@ -82,7 +82,6 @@ object NetworkModule {
         return Retrofit.Builder()
             .client(okHttpClient)
             .baseUrl(AppConfig.Network.BASE_URL)
-            //.addCallAdapterFactory(ApiCallAdapterFactory())
             .addConverterFactory(GsonConverterFactory.create(gson).withStreaming())
             .build()
     }

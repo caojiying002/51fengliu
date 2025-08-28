@@ -13,9 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.CreationExtras
-import dagger.hilt.android.lifecycle.withCreationCallback
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.jiyingcao.a51fengliu.api.response.Merchant
 import com.jiyingcao.a51fengliu.ui.auth.AuthActivity
 import com.jiyingcao.a51fengliu.ui.compose.components.*
@@ -29,13 +27,21 @@ import com.jiyingcao.a51fengliu.viewmodel.*
  * @param merchantId 商户ID
  * @param onBackClick 返回按钮点击回调
  * @param onNavigate 导航回调，用于页面内跳转
+ * @param viewModel 可选的ViewModel注入，用于测试或从Activity调用
  */
 @Composable
 fun MerchantDetailScreen(
     merchantId: String,
     onBackClick: () -> Unit,
-    onNavigate: (String) -> Unit = {}
+    onNavigate: (String) -> Unit = {},
+    viewModel: MerchantDetailViewModel? = null
 ) {
+    // 如果没有传入ViewModel，则在内部创建
+    // 如果传入了ViewModel（比如从Activity），则使用传入的
+    val merchantDetailViewModel = viewModel ?: hiltViewModel<MerchantDetailViewModel, MerchantDetailViewModel.Factory>(
+        creationCallback = { factory -> factory.create(merchantId) }
+    )
+
     if (merchantId.isEmpty()) {
         Column(
             modifier = Modifier.fillMaxSize()
@@ -56,19 +62,11 @@ fun MerchantDetailScreen(
     }
 
     val context = LocalContext.current
-
-    // 使用 AssistedInject 的 ViewModel，提供运行时参数
-    val viewModel: MerchantDetailViewModel = viewModel(
-        extras = CreationExtras.Empty.withCreationCallback<MerchantDetailViewModel.Factory> { factory ->
-            factory.create(merchantId)
-        }
-    )
-
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by merchantDetailViewModel.uiState.collectAsState()
 
     // 初始化加载
     LaunchedEffect(merchantId) {
-        viewModel.processIntent(MerchantDetailIntent.InitialLoad)
+        merchantDetailViewModel.processIntent(MerchantDetailIntent.InitialLoad)
     }
 
     Column(
@@ -92,7 +90,7 @@ fun MerchantDetailScreen(
                     AppErrorLayout(
                         errorMessage = uiState.errorMessage.ifEmpty { "出错了，请稍后重试" },
                         onButtonClick = {
-                            viewModel.processIntent(MerchantDetailIntent.Retry)
+                            merchantDetailViewModel.processIntent(MerchantDetailIntent.Retry)
                         }
                     )
                 }

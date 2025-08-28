@@ -121,6 +121,7 @@ dependencies {
     implementation(libs.gsyvideoplayer)
     implementation(libs.gsyvideoplayer.exo2)
     implementation(libs.hilt.android)
+    implementation(libs.hilt.navigation.compose)
     //debugImplementation(libs.squareup.leakcanary.android)
     ksp(libs.hilt.compiler)
     ksp(libs.squareup.moshi.kotlin.codegen)

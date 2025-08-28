@@ -37,6 +37,7 @@ flexbox = "3.0.0"
 composeBom = "2025.07.00"
 gsyvideoplayer = "11.1.0"
 hilt = "2.57"
+hiltNavigationCompose = "1.2.0"
 
 # 测试库
 mockito = "5.18.0"
@@ -136,6 +137,7 @@ gsyvideoplayer-exo2 = { group = "io.github.carguo", name = "gsyvideoplayer-exo2"
 # Hilt
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
+hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 
 # Others
 #jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }

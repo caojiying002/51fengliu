@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -14,6 +15,7 @@ import com.jiyingcao.a51fengliu.ui.compose.navigation.ComposeDestinations
 import com.jiyingcao.a51fengliu.ui.compose.screens.MerchantDetailScreen
 import com.jiyingcao.a51fengliu.ui.compose.screens.FavoriteScreen
 import com.jiyingcao.a51fengliu.ui.compose.theme.AppTheme
+import dagger.hilt.android.AndroidEntryPoint
 
 /**
  * 统一的 Compose 容器 Activity
@@ -23,6 +25,7 @@ import com.jiyingcao.a51fengliu.ui.compose.theme.AppTheme
  * - ComposeContainerActivity.startMerchantDetail(context, merchantId)
  * - ComposeContainerActivity.startProfile(context)
  */
+@AndroidEntryPoint
 class ComposeContainerActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -137,7 +140,8 @@ private fun ComposeNavigationHost(
                 onBackClick = onFinish,
                 onNavigate = { destination ->
                     navController.navigate(destination)
-                }
+                },
+                viewModel = hiltViewModel()
             )
         }
 

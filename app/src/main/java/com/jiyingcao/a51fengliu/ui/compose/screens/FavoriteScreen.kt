@@ -16,8 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.jiyingcao.a51fengliu.util.showToast
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.config.AppConfig
 import com.jiyingcao.a51fengliu.ui.DetailActivity
@@ -36,13 +36,10 @@ import com.jiyingcao.a51fengliu.viewmodel.*
 @Composable
 fun FavoriteScreen(
     onBackClick: () -> Unit,
-    onNavigate: (String) -> Unit = {}
+    onNavigate: (String) -> Unit = {},
+    viewModel: FavoriteViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-
-    // 使用 Hilt 注入的 ViewModel，无需手动工厂
-    val viewModel: FavoriteViewModel = viewModel()
-
     val uiState by viewModel.uiState.collectAsState()
 
     // 初始化加载

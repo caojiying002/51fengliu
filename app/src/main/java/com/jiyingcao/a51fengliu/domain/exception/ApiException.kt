@@ -23,7 +23,7 @@ open class ApiException(
         const val CODE_REMOTE_LOGIN = 1003
 
         /** 2001: 无效的记录Record ID，可能已被删除 */
-        const val CODE_INVALID_RECORD_ID = 20012001
+        const val CODE_INVALID_RECORD_ID = 2001
 
         /** 4001: 商家信息不存在或已删除 */
         const val CODE_INVALID_MERCHANT_ID = 4001
@@ -49,6 +49,8 @@ fun Throwable.toUserFriendlyMessage(): String {
     return when (this) {
         is ApiException -> toUserFriendlyMessage()
         is HttpException -> toUserFriendlyMessage()
+        is HttpEmptyResponseException -> "HTTP响应体为空：${messageTaggedByType()}"
+        // TODO 这里应该加上Moshi的解析异常类型
         is MalformedJsonException, is JsonParseException -> "数据解析错误：${messageTaggedByType()}"
         is IOException -> "网络错误：${messageTaggedByType()}"
         else -> "未知错误：${messageTaggedByType()}"

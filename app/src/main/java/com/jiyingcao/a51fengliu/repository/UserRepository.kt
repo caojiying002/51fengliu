@@ -25,20 +25,29 @@ class UserRepository @Inject constructor(
      */
     fun login(username: String, password: String): Flow<Result<String>> = flow {
         try {
-            val response = apiService.postLogin(LoginRequest(username, password))
-            when (val loginData = response.data) {
-                is LoginData.Success -> {
-                    emit(Result.success(loginData.token))
+            val httpResponse = apiService.postLogin(LoginRequest(username, password))
+            if (httpResponse.isSuccessful) {
+                val loginResponse = httpResponse.body()
+                if (loginResponse != null) {
+                    when (val loginData = loginResponse.data) {
+                        is LoginData.Success -> {
+                            emit(Result.success(loginData.token))
+                        }
+                        is LoginData.Error -> {
+                            emit(Result.failure(
+                                LoginException(
+                                    code = loginResponse.code,
+                                    message = loginResponse.msg,
+                                    errors = loginData.errors
+                                )
+                            ))
+                        }
+                    }
+                } else {
+                    emit(Result.failure(Exception("Response body is null")))
                 }
-                is LoginData.Error -> {
-                    emit(Result.failure(
-                        LoginException(
-                            code = response.code,
-                            message = response.msg,
-                            errors = loginData.errors
-                        )
-                    ))
-                }
+            } else {
+                emit(Result.failure(Exception("HTTP Error: ${httpResponse.code()} ${httpResponse.message()}")))
             }
         } catch (e: Exception) {
             emit(Result.failure(e))

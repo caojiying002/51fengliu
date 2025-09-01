@@ -9,6 +9,7 @@ import com.jiyingcao.a51fengliu.api.response.*
 import com.jiyingcao.a51fengliu.util.City
 import okhttp3.MultipartBody
 import retrofit2.http.*
+import retrofit2.Response
 
 /**
  * API服务接口
@@ -29,7 +30,7 @@ interface ApiService {
     @GET(ApiEndpoints.Records.PAGE)
     suspend fun getRecords(
         @QueryMap map: Map<String, String>
-    ): ApiResponse<PageData<RecordInfo>>
+    ): Response<ApiResponse<PageData<RecordInfo>>>
 
     /**
      * 获取信息详情
@@ -42,7 +43,7 @@ interface ApiService {
     @GET(ApiEndpoints.Records.DETAIL)
     suspend fun getDetail(
         @Query("infoId") id: String
-    ): ApiResponse<RecordInfo>
+    ): Response<ApiResponse<RecordInfo>>
 
     /**
      * 收藏信息
@@ -55,7 +56,7 @@ interface ApiService {
     @POST(ApiEndpoints.Records.FAVORITE)
     suspend fun postFavorite(
         @Body body: InfoIdRequest
-    ): ApiResponse<Nothing>
+    ): Response<ApiResponse<Nothing>>
 
     /**
      * 取消收藏信息
@@ -68,7 +69,7 @@ interface ApiService {
     @POST(ApiEndpoints.Records.UNFAVORITE)
     suspend fun postUnfavorite(
         @Body body: InfoIdRequest
-    ): ApiResponse<Nothing>
+    ): Response<ApiResponse<Nothing>>
 
     /**
      * 上传图片
@@ -82,7 +83,7 @@ interface ApiService {
     @POST(ApiEndpoints.Records.UPLOAD)
     suspend fun postUpload(
         @Part file: MultipartBody.Part
-    ): ApiResponse<String>
+    ): Response<ApiResponse<String>>
 
     /**
      * 举报信息
@@ -95,7 +96,7 @@ interface ApiService {
     @POST(ApiEndpoints.Records.REPORT)
     suspend fun postReport(
         @Body body: ReportRequest
-    ): ReportResponse
+    ): Response<ReportResponse>
 
     // ========== 用户认证相关接口 ==========
 
@@ -109,7 +110,7 @@ interface ApiService {
     @POST(ApiEndpoints.Auth.LOGIN)
     suspend fun postLogin(
         @Body body: LoginRequest
-    ): LoginResponse
+    ): Response<LoginResponse>
 
     /**
      * 用户退出登录
@@ -119,7 +120,7 @@ interface ApiService {
      */
     @TokenPolicy(Policy.REQUIRED)
     @POST(ApiEndpoints.Auth.LOGOUT)
-    suspend fun postLogout(): ApiResponse<Nothing>
+    suspend fun postLogout(): Response<ApiResponse<Nothing>>
 
     // ========== 用户个人资料相关接口 ==========
 
@@ -131,7 +132,7 @@ interface ApiService {
      */
     @TokenPolicy(Policy.REQUIRED)
     @GET(ApiEndpoints.User.PROFILE)
-    suspend fun getProfile(): ApiResponse<Profile>
+    suspend fun getProfile(): Response<ApiResponse<Profile>>
 
     /**
      * 获取我的收藏列表
@@ -144,7 +145,7 @@ interface ApiService {
     @GET(ApiEndpoints.User.FAVORITES)
     suspend fun getFavorites(
         @Query("page") page: Int = 1
-    ): ApiResponse<PageData<RecordInfo>>
+    ): Response<ApiResponse<PageData<RecordInfo>>>
 
     /**
      * 获取我的暗巷收藏列表
@@ -159,7 +160,7 @@ interface ApiService {
     suspend fun getFavoriteStreets(
         @Query("page") page: Int = 1,
         @Query("perPage") perPage: Int = 30
-    ): ApiResponse<PageData<Street>>
+    ): Response<ApiResponse<PageData<Street>>>
 
     /**
      * 获取我发布的信息列表
@@ -176,7 +177,7 @@ interface ApiService {
         @Query("page") page: Int = 1,
         @Query("perPage") perPage: Int = 30,
         @Query("status") status: Int? = null
-    ): ApiResponse<PageData<RecordInfo>>
+    ): Response<ApiResponse<PageData<RecordInfo>>>
 
     // ========== 商家相关接口 ==========
 
@@ -193,7 +194,7 @@ interface ApiService {
     suspend fun getMerchants(
         @Query("page") page: Int = 1,
         @Query("perPage") perPage: Int = 12
-    ): ApiResponse<PageData<Merchant>>
+    ): Response<ApiResponse<PageData<Merchant>>>
 
     /**
      * 获取商家详情
@@ -206,7 +207,7 @@ interface ApiService {
     @GET(ApiEndpoints.Merchant.DETAIL)
     suspend fun getMerchantDetail(
         @Query("merchantId") id: String
-    ): ApiResponse<Merchant>
+    ): Response<ApiResponse<Merchant>>
 
     /**
      * 获取商家城市列表
@@ -216,7 +217,7 @@ interface ApiService {
      */
     @TokenPolicy(Policy.OPTIONAL)
     @GET(ApiEndpoints.Merchant.CITIES)
-    suspend fun getMerchantCities(): ApiResponse<List<City>>
+    suspend fun getMerchantCities(): Response<ApiResponse<List<City>>>
 
     // ========== 暗巷相关接口 ==========
 
@@ -237,7 +238,7 @@ interface ApiService {
         @Query("sort") sort: String = "publish",
         @Query("page") page: Int = 1,
         @Query("perPage") perPage: Int = 30
-    ): ApiResponse<PageData<Street>>
+    ): Response<ApiResponse<PageData<Street>>>
 
     /**
      * 获取暗巷详情
@@ -250,7 +251,7 @@ interface ApiService {
     @GET(ApiEndpoints.Street.DETAIL)
     suspend fun getStreetDetail(
         @Query("streetId") streetId: String
-    ): ApiResponse<Street>
+    ): Response<ApiResponse<Street>>
 
     /**
      * 收藏暗巷
@@ -263,7 +264,7 @@ interface ApiService {
     @POST(ApiEndpoints.Street.FAVORITE)
     suspend fun postStreetFavorite(
         @Body body: StreetIdRequest
-    ): ApiResponse<Nothing>
+    ): Response<ApiResponse<Nothing>>
 
     /**
      * 取消收藏暗巷
@@ -276,5 +277,5 @@ interface ApiService {
     @POST(ApiEndpoints.Street.UNFAVORITE)
     suspend fun postStreetUnfavorite(
         @Body body: StreetIdRequest
-    ): ApiResponse<Nothing>
+    ): Response<ApiResponse<Nothing>>
 }

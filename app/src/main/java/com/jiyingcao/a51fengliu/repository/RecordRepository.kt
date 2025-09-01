@@ -7,6 +7,7 @@ import com.jiyingcao.a51fengliu.api.request.ReportRequest
 import com.jiyingcao.a51fengliu.api.response.PageData
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.api.response.ReportData
+import com.jiyingcao.a51fengliu.domain.exception.HttpEmptyResponseException
 import com.jiyingcao.a51fengliu.domain.exception.ReportException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.flowOn
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import retrofit2.HttpException
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -90,20 +92,29 @@ class RecordRepository @Inject constructor(
      */
     fun report(infoId: String, content: String, picture: String = ""): Flow<Result<*>> = flow {
         try {
-            val response = apiService.postReport(ReportRequest(infoId, content, picture))
-            when (val reportData = response.data) {
-                is ReportData.Success -> {
-                    emit(Result.success(Unit))
+            val httpResponse = apiService.postReport(ReportRequest(infoId, content, picture))
+            if (httpResponse.isSuccessful) {
+                val reportResponse = httpResponse.body()
+                if (reportResponse != null) {
+                    when (val reportData = reportResponse.data) {
+                        is ReportData.Success -> {
+                            emit(Result.success(Unit))
+                        }
+                        is ReportData.Error -> {
+                            emit(Result.failure(
+                                ReportException(
+                                    code = reportResponse.code,
+                                    message = reportResponse.msg,
+                                    errors = reportData.errors
+                                )
+                            ))
+                        }
+                    }
+                } else {
+                    emit(Result.failure(HttpEmptyResponseException()))
                 }
-                is ReportData.Error -> {
-                    emit(Result.failure(
-                        ReportException(
-                            code = response.code,
-                            message = response.msg,
-                            errors = reportData.errors
-                        )
-                    ))
-                }
+            } else {
+                emit(Result.failure(HttpException(httpResponse)))
             }
         } catch (e: Exception) {
             emit(Result.failure(e))

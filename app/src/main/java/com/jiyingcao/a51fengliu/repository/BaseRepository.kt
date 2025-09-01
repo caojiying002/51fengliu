@@ -2,12 +2,15 @@ package com.jiyingcao.a51fengliu.repository
 
 import com.jiyingcao.a51fengliu.api.response.ApiResponse
 import com.jiyingcao.a51fengliu.domain.exception.ApiException
+import com.jiyingcao.a51fengliu.domain.exception.HttpEmptyResponseException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlin.coroutines.cancellation.CancellationException
+import retrofit2.HttpException
+import retrofit2.Response
 
 /** Repository基类 */
 abstract class BaseRepository {
@@ -22,15 +25,22 @@ abstract class BaseRepository {
 
 fun <T> apiCall(
     dispatcher: CoroutineDispatcher = Dispatchers.IO,
-    call: suspend () -> ApiResponse<T>
+    call: suspend () -> Response<ApiResponse<T>>
 ): Flow<Result<T?>> = flow {
     try {
-        val response = call()
-        when {
-            // 在其他设备登录的异常处理，包含在else分支中，这里不再需要单独处理
-            //response.code == 1003 -> emit(Result.failure(RemoteLoginException(1003, response.msg)))
-            response.isSuccessful() -> emit(Result.success(response.data))
-            else -> emit(Result.failure(ApiException.createFromResponse(response)))
+        val httpResponse = call()
+        if (httpResponse.isSuccessful) {
+            val apiResponse = httpResponse.body()
+            if (apiResponse != null) {
+                when {
+                    apiResponse.isSuccessful() -> emit(Result.success(apiResponse.data))
+                    else -> emit(Result.failure(ApiException.createFromResponse(apiResponse)))
+                }
+            } else {
+                emit(Result.failure(HttpEmptyResponseException()))
+            }
+        } else {
+            emit(Result.failure(HttpException(httpResponse)))
         }
     } catch (e: CancellationException) {
         // 重要：重新抛出[CancellationException]以保持协程取消机制

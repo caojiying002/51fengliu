@@ -15,11 +15,8 @@ data class ApiResponse<T>(
 }
 
 /** API响应的扩展函数，用于快速检查响应状态并抛出异常 */
-fun <T> ApiResponse<T>.throwIfNotZero() {
+fun <T> ApiResponse<T>.throwIfUnsuccessful() {
     if (code != 0) {
         throw ApiException.createFromResponse(this)
     }
 }
-
-/** 如果某些接口不需要错误数据类型，可以使用这个对象来代替 */
-object NoErrorData

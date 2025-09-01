@@ -9,6 +9,7 @@ import com.jiyingcao.a51fengliu.data.LoginStateManager
 import com.jiyingcao.a51fengliu.data.LoginEvent
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.repository.RecordRepository
+import com.jiyingcao.a51fengliu.util.AppLogger
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -208,6 +209,7 @@ class DetailViewModel @AssistedInject constructor(
                 if (!handleFailure(e)) { // 通用的错误处理
                     updateUiStateToError(e.toUserFriendlyMessage(), loadingType)
                 }
+                AppLogger.w(TAG, e)
             }
     }
 
@@ -264,6 +266,7 @@ class DetailViewModel @AssistedInject constructor(
                     if (!handleFailure(e)) {
                         _effect.send(DetailEffect.ShowToast(e.toUserFriendlyMessage()))
                     }
+                    AppLogger.w(TAG, e)
                 }
             }
         }
@@ -341,5 +344,9 @@ class DetailViewModel @AssistedInject constructor(
     @AssistedFactory
     interface Factory {
         fun create(infoId: String): DetailViewModel
+    }
+
+    companion object {
+        private const val TAG = "DetailViewModel"
     }
 }

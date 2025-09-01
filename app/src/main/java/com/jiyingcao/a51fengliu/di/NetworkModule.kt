@@ -7,8 +7,10 @@ import com.jiyingcao.a51fengliu.api.AuthInterceptor
 import com.jiyingcao.a51fengliu.api.DebugAuthInterceptor
 import com.jiyingcao.a51fengliu.api.parse.LoginResponseAdapter
 import com.jiyingcao.a51fengliu.api.parse.ReportResponseAdapter
+import com.jiyingcao.a51fengliu.api.parse.NoDataTypeAdapter
 import com.jiyingcao.a51fengliu.api.response.LoginResponse
 import com.jiyingcao.a51fengliu.api.response.ReportResponse
+import com.jiyingcao.a51fengliu.api.response.NoData
 import com.jiyingcao.a51fengliu.config.AppConfig
 import com.jiyingcao.a51fengliu.data.TokenManager
 import dagger.Module
@@ -73,6 +75,7 @@ object NetworkModule {
         return GsonBuilder()
             .registerTypeAdapter(LoginResponse::class.java, LoginResponseAdapter())
             .registerTypeAdapter(ReportResponse::class.java, ReportResponseAdapter())
+            .registerTypeAdapter(NoData::class.java, NoDataTypeAdapter())
             .create()
     }
 

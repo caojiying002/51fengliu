@@ -56,7 +56,7 @@ interface ApiService {
     @POST(ApiEndpoints.Records.FAVORITE)
     suspend fun postFavorite(
         @Body body: InfoIdRequest
-    ): Response<ApiResponse<Nothing>>
+    ): Response<ApiResponse<NoData>>
 
     /**
      * 取消收藏信息
@@ -69,7 +69,7 @@ interface ApiService {
     @POST(ApiEndpoints.Records.UNFAVORITE)
     suspend fun postUnfavorite(
         @Body body: InfoIdRequest
-    ): Response<ApiResponse<Nothing>>
+    ): Response<ApiResponse<NoData>>
 
     /**
      * 上传图片

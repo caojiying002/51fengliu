@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jiyingcao.a51fengliu.R
 import com.jiyingcao.a51fengliu.ui.compose.theme.AppTheme
+import com.jiyingcao.a51fengliu.ui.compose.screens.MerchantListScreen
 import com.jiyingcao.a51fengliu.ui.compose.theme.*
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -45,6 +46,13 @@ class ComposeMainActivity : ComponentActivity() {
 @Composable
 fun MainScreen() {
     var selectedTab by remember { mutableIntStateOf(0) }
+    // 记录已经访问过的tab页，用于实现懒加载
+    var visitedTabs by remember { mutableStateOf(setOf(0)) } // 默认首页已访问
+    
+    // 当选中的tab发生变化时，将其标记为已访问
+    LaunchedEffect(selectedTab) {
+        visitedTabs = visitedTabs + selectedTab
+    }
     
     Column(
         modifier = Modifier.fillMaxSize()
@@ -59,7 +67,19 @@ fun MainScreen() {
                 0 -> HomeScreen()
                 1 -> RecordScreen()
                 2 -> StreetScreen()
-                3 -> MerchantScreen()
+                3 -> {
+                    // 只有当商家tab被访问过时才显示内容，实现懒加载
+                    if (visitedTabs.contains(3)) {
+                        MerchantListScreen()
+                    } else {
+                        // 显示占位符，避免内容闪烁
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color(0xFFF5F5F5))
+                        )
+                    }
+                }
                 4 -> ProfileScreen()
             }
         }
@@ -214,22 +234,6 @@ fun StreetScreen() {
     }
 }
 
-@Composable
-fun MerchantScreen() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF5F5F5)),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "商家",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF333333)
-        )
-    }
-}
 
 @Composable
 fun ProfileScreen() {

@@ -45,19 +45,12 @@ class ComposeMainActivity : ComponentActivity() {
 
 @Composable
 fun MainScreen() {
+    // TODO fix: 配置更改（旋转屏幕、暗色模式）时选择的tab会丢失
     var selectedTab by remember { mutableIntStateOf(0) }
-    // 记录已经访问过的tab页，用于实现懒加载
-    var visitedTabs by remember { mutableStateOf(setOf(0)) } // 默认首页已访问
-    
-    // 当选中的tab发生变化时，将其标记为已访问
-    LaunchedEffect(selectedTab) {
-        visitedTabs = visitedTabs + selectedTab
-    }
     
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Main content area
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -67,31 +60,19 @@ fun MainScreen() {
                 0 -> HomeScreen()
                 1 -> RecordScreen()
                 2 -> StreetScreen()
-                3 -> {
-                    // 只有当商家tab被访问过时才显示内容，实现懒加载
-                    if (visitedTabs.contains(3)) {
-                        MerchantListScreen()
-                    } else {
-                        // 显示占位符，避免内容闪烁
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color(0xFFF5F5F5))
-                        )
-                    }
-                }
+                3 -> MerchantListScreen()
                 4 -> ProfileScreen()
             }
         }
         
-        // Bottom navigation
+        // 自定义底部导航栏，保证UI样式灵活性
         CustomBottomNavigation(
             selectedTab = selectedTab,
             onTabSelected = { selectedTab = it },
             backgroundColor = Surface
         )
         
-        // 适配手机系统底部导航栏高度的占位 Space，背景色为 Surface
+        // edge-to-edge适配，高度设置为系统底部导航栏高度，背景色与CustomBottomNavigation保持一致
         Spacer(
             modifier = Modifier
                 .fillMaxWidth()

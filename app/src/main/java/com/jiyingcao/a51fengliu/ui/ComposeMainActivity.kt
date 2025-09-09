@@ -21,7 +21,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import com.jiyingcao.a51fengliu.R
+import com.jiyingcao.a51fengliu.ui.compose.screens.MerchantDetailScreen
+import com.jiyingcao.a51fengliu.ui.compose.navigation.ComposeDestinations
 import com.jiyingcao.a51fengliu.ui.compose.theme.AppTheme
 import com.jiyingcao.a51fengliu.ui.compose.screens.MerchantListScreen
 import com.jiyingcao.a51fengliu.ui.compose.theme.*
@@ -38,7 +45,34 @@ class ComposeMainActivity : ComponentActivity() {
         
         setContent {
             AppTheme {
-                MainScreen()
+                // 项目已经添加了navigation compose依赖
+                // 需要支持页面导航
+                // 第一步，请用NavHost包裹MainScreen()
+                val navController = rememberNavController()
+                NavHost(
+                    navController = navController,
+                    startDestination = "main"
+                ) {
+                    composable("main") {
+                        MainScreen()
+                    }
+
+                    // 第二步：定义商家详情页（MerchantDetailScreen）路由，准备将来跳转
+                    composable(
+                        route = "${ComposeDestinations.MERCHANT_DETAIL}/{merchantId}",
+                        arguments = listOf(
+                            navArgument("merchantId") { type = NavType.StringType }
+                        )
+                    ) { backStackEntry ->
+                        val merchantId = backStackEntry.arguments?.getString("merchantId").orEmpty()
+                        MerchantDetailScreen(
+                            merchantId = merchantId,
+                            onBackClick = { navController.popBackStack() },
+                            onNavigate = { destination -> navController.navigate(destination) }
+                        )
+                    }
+
+                }
             }
         }
     }

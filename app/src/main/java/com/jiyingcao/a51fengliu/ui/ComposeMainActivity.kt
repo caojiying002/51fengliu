@@ -8,6 +8,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.remember
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,6 +30,12 @@ import com.jiyingcao.a51fengliu.ui.compose.navigation.MainNavGraph
 import com.jiyingcao.a51fengliu.ui.compose.theme.AppTheme
 import com.jiyingcao.a51fengliu.ui.compose.screens.MerchantListScreen
 import com.jiyingcao.a51fengliu.ui.compose.theme.*
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.jiyingcao.a51fengliu.ui.compose.components.AppErrorLayout
+import com.jiyingcao.a51fengliu.ui.compose.components.AppLoadingLayout
+import com.jiyingcao.a51fengliu.util.AppLogger
+import com.jiyingcao.a51fengliu.viewmodel.HomeRecordListIntent
+import com.jiyingcao.a51fengliu.viewmodel.HomeRecordListViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -180,18 +188,81 @@ data class TabItem(
 // Placeholder screens for each tab
 @Composable
 fun HomeScreen() {
+    // 标题栏 + 内容区域（Pager）
+    Column(modifier = Modifier.fillMaxSize()) {
+        // 顶部系统状态栏高度占位，避免标题栏遮挡状态栏内容
+        Spacer(modifier = Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
+
+        // 标题栏：本次留空（实际包含：居中的两个Tab、左侧Logo、右侧搜索按钮）
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            color = Surface,
+            shadowElevation = 4.dp
+        ) { /* 空内容 */ }
+
+        // 内容区域：左右滑动的Pager（两个子页面）
+        val pagerState = rememberPagerState(
+            initialPage = 0,
+            pageCount = { 2 }   // TODO 建议抽取常量
+        )
+
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+        ) { page ->
+            // TODO 建议抽取映射逻辑
+            val sort = if (page == 0) "daily" else "publish"
+            HomeRecordListPage(sort = sort)
+        }
+    }
+}
+
+@Composable
+private fun HomeRecordListPage(
+    sort: String
+) {
+    // 使用 Hilt + AssistedFactory 创建需要参数的 ViewModel
+    val viewModel = hiltViewModel<HomeRecordListViewModel, HomeRecordListViewModel.Factory>(
+        key = "HomeRecordList-$sort",   // 【重要】确保两个子页面使用不同的viewModel实例
+        creationCallback = { factory -> factory.create(sort) }
+    )
+    val uiState by viewModel.uiState.collectAsState()
+
+    // 首次进入或 sort 变化时加载数据
+    LaunchedEffect(sort) {
+        viewModel.processIntent(HomeRecordListIntent.InitialLoad)
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF5F5F5)),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = "首页",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF333333)
-        )
+        when {
+            uiState.showFullScreenLoading -> {
+                AppLoadingLayout()
+            }
+            uiState.showFullScreenError -> {
+                AppErrorLayout(
+                    errorMessage = uiState.errorMessage,
+                    onButtonClick = { viewModel.processIntent(HomeRecordListIntent.Retry) }
+                )
+            }
+            uiState.showContent || uiState.records.isNotEmpty() -> {
+                // 本次不关注UI，简单显示数据条数即可
+                Text(
+                    text = "共${uiState.records.size}条数据",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFF333333)
+                )
+            }
+        }
     }
 }
 

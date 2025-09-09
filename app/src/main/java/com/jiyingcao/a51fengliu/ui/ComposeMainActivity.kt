@@ -21,14 +21,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.NavType
-import androidx.navigation.navArgument
 import com.jiyingcao.a51fengliu.R
-import com.jiyingcao.a51fengliu.ui.compose.screens.MerchantDetailScreen
-import com.jiyingcao.a51fengliu.ui.compose.navigation.ComposeDestinations
+import com.jiyingcao.a51fengliu.ui.compose.navigation.MainDestinations
+import com.jiyingcao.a51fengliu.ui.compose.navigation.MainNavGraph
 import com.jiyingcao.a51fengliu.ui.compose.theme.AppTheme
 import com.jiyingcao.a51fengliu.ui.compose.screens.MerchantListScreen
 import com.jiyingcao.a51fengliu.ui.compose.theme.*
@@ -45,41 +41,19 @@ class ComposeMainActivity : ComponentActivity() {
         
         setContent {
             AppTheme {
-                // 项目已经添加了navigation compose依赖
-                // 需要支持页面导航
-                // 第一步，请用NavHost包裹MainScreen()
                 val navController = rememberNavController()
-                NavHost(
-                    navController = navController,
-                    startDestination = "main"
-                ) {
-                    composable("main") {
-                        MainScreen()
-                    }
-
-                    // 第二步：定义商家详情页（MerchantDetailScreen）路由，准备将来跳转
-                    composable(
-                        route = "${ComposeDestinations.MERCHANT_DETAIL}/{merchantId}",
-                        arguments = listOf(
-                            navArgument("merchantId") { type = NavType.StringType }
-                        )
-                    ) { backStackEntry ->
-                        val merchantId = backStackEntry.arguments?.getString("merchantId").orEmpty()
-                        MerchantDetailScreen(
-                            merchantId = merchantId,
-                            onBackClick = { navController.popBackStack() },
-                            onNavigate = { destination -> navController.navigate(destination) }
-                        )
-                    }
-
-                }
+                // 将路由管理抽取到独立的导航图中，便于扩展与维护
+                MainNavGraph(navController = navController)
             }
         }
     }
 }
 
 @Composable
-fun MainScreen() {
+fun MainScreen(
+    // 路由跳转回调，由外层 NavHost 提供
+    onNavigate: (String) -> Unit = {}
+) {
     // 配置更改（旋转屏幕、暗色模式）后，使用 rememberSaveable 保持所选 tab 状态
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     
@@ -95,7 +69,12 @@ fun MainScreen() {
                 0 -> HomeScreen()
                 1 -> RecordScreen()
                 2 -> StreetScreen()
-                3 -> MerchantListScreen()
+                3 -> MerchantListScreen(
+                    onNavigateToDetail = { merchantId ->
+                        // 构建详情页路由并跳转（使用统一的路由辅助函数）
+                        onNavigate(MainDestinations.merchantDetail(merchantId))
+                    }
+                )
                 4 -> ProfileScreen()
             }
         }

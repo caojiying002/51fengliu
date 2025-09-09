@@ -30,12 +30,7 @@ import com.jiyingcao.a51fengliu.ui.compose.navigation.MainNavGraph
 import com.jiyingcao.a51fengliu.ui.compose.theme.AppTheme
 import com.jiyingcao.a51fengliu.ui.compose.screens.MerchantListScreen
 import com.jiyingcao.a51fengliu.ui.compose.theme.*
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.jiyingcao.a51fengliu.ui.compose.components.AppErrorLayout
-import com.jiyingcao.a51fengliu.ui.compose.components.AppLoadingLayout
-import com.jiyingcao.a51fengliu.util.AppLogger
-import com.jiyingcao.a51fengliu.viewmodel.HomeRecordListIntent
-import com.jiyingcao.a51fengliu.viewmodel.HomeRecordListViewModel
+import com.jiyingcao.a51fengliu.ui.compose.screens.HomeRecordListPage
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -217,51 +212,6 @@ fun HomeScreen() {
             // TODO 建议抽取映射逻辑
             val sort = if (page == 0) "daily" else "publish"
             HomeRecordListPage(sort = sort)
-        }
-    }
-}
-
-@Composable
-private fun HomeRecordListPage(
-    sort: String
-) {
-    // 使用 Hilt + AssistedFactory 创建需要参数的 ViewModel
-    val viewModel = hiltViewModel<HomeRecordListViewModel, HomeRecordListViewModel.Factory>(
-        key = "HomeRecordList-$sort",   // 【重要】确保两个子页面使用不同的viewModel实例
-        creationCallback = { factory -> factory.create(sort) }
-    )
-    val uiState by viewModel.uiState.collectAsState()
-
-    // 首次进入或 sort 变化时加载数据
-    LaunchedEffect(sort) {
-        viewModel.processIntent(HomeRecordListIntent.InitialLoad)
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF5F5F5)),
-        contentAlignment = Alignment.Center
-    ) {
-        when {
-            uiState.showFullScreenLoading -> {
-                AppLoadingLayout()
-            }
-            uiState.showFullScreenError -> {
-                AppErrorLayout(
-                    errorMessage = uiState.errorMessage,
-                    onButtonClick = { viewModel.processIntent(HomeRecordListIntent.Retry) }
-                )
-            }
-            uiState.showContent || uiState.records.isNotEmpty() -> {
-                // 本次不关注UI，简单显示数据条数即可
-                Text(
-                    text = "共${uiState.records.size}条数据",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color(0xFF333333)
-                )
-            }
         }
     }
 }

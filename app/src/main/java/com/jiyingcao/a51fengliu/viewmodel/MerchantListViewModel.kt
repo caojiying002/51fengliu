@@ -1,6 +1,5 @@
 package com.jiyingcao.a51fengliu.viewmodel
 
-import androidx.annotation.GuardedBy
 import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.api.response.Merchant
 import com.jiyingcao.a51fengliu.api.response.PageData
@@ -12,8 +11,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 
 /**
@@ -29,6 +26,7 @@ data class MerchantListUiState(
     val noMoreData: Boolean = false,
     val isRefreshing: Boolean = false,
     val isLoadingMore: Boolean = false,
+    val lastLoadedPage: Int = 0, // 最近成功加载的页码
     val hasLoaded: Boolean = false // 是否已经加载过数据
 ) {
     // 派生状态 - 通过计算得出，避免状态冗余
@@ -36,6 +34,7 @@ data class MerchantListUiState(
     val showEmpty: Boolean get() = !isLoading && !isError && merchants.isEmpty() && hasLoaded
     val showFullScreenLoading: Boolean get() = isLoading && loadingType == LoadingType.FULL_SCREEN
     val showFullScreenError: Boolean get() = isError && loadingType == LoadingType.FULL_SCREEN
+    val nextPageToLoad: Int get() = lastLoadedPage + 1
 }
 
 sealed class MerchantListIntent {
@@ -50,16 +49,12 @@ class MerchantListViewModel @Inject constructor(
     private val repository: MerchantRepository
 ) : BaseViewModel() {
     private var fetchJob: Job? = null
-    private val dataLock = Mutex()
-    
+
     // 单一状态源 - 这是MVI的核心原则
     private val _uiState = MutableStateFlow(MerchantListUiState())
     val uiState = _uiState.asStateFlow()
     
     // 内部状态管理
-    @GuardedBy("dataLock")
-    private var currentMerchants: MutableList<Merchant> = mutableListOf()
-    private var currentPage = 0
     private var pendingInitialLoad = true
     
     /**
@@ -105,9 +100,7 @@ class MerchantListViewModel @Inject constructor(
     ) {
         result.mapCatching { requireNotNull(it) }
             .onSuccess { pageData ->
-                currentPage = page
-                val newMerchants = updateMerchantsList(page, pageData.records)
-                updateUiStateToSuccess(newMerchants, pageData.noMoreData(), loadingType)
+                updateUiStateToSuccess(page, pageData.records, pageData.noMoreData(), loadingType)
             }
             .onFailure { e ->
                 if (!handleFailure(e)) {    // 通用错误处理(如远程登录), 如果处理过就不用再处理了
@@ -115,20 +108,6 @@ class MerchantListViewModel @Inject constructor(
                 }
                 AppLogger.w(TAG, "网络请求失败: ", e)
             }
-    }
-
-    private suspend fun updateMerchantsList(page: Int, newMerchants: List<Merchant>): List<Merchant> {
-        return dataLock.withLock {
-            if (page == 1) {
-                // 首页或刷新 - 替换数据
-                currentMerchants.clear()
-                currentMerchants.addAll(newMerchants)
-            } else {
-                // 加载更多 - 追加数据
-                currentMerchants.addAll(newMerchants)
-            }
-            currentMerchants.toList() // 返回不可变副本
-        }
     }
 
     private fun retry() {
@@ -140,7 +119,7 @@ class MerchantListViewModel @Inject constructor(
     }
 
     private fun loadMore() {
-        fetchData(page = currentPage + 1, loadingType = LoadingType.LOAD_MORE)
+        fetchData(page = uiState.value.nextPageToLoad, loadingType = LoadingType.LOAD_MORE)
     }
 
     // ===== 专门的UI状态更新方法 =====
@@ -163,23 +142,27 @@ class MerchantListViewModel @Inject constructor(
     
     /**
      * 更新UI状态到成功状态
-     * @param merchants 商家列表
+     * @param page 当前页码，用于判断替换还是追加列表
+     * @param newMerchants 商家列表
      * @param noMoreData 是否没有更多数据
      * @param loadingType 成功对应的加载类型，UI层可据此正确结束对应的加载状态
      */
     private fun updateUiStateToSuccess(
-        merchants: List<Merchant>, 
+        page: Int,
+        newMerchants: List<Merchant>,
         noMoreData: Boolean = false,
         loadingType: LoadingType
     ) {
         _uiState.update { currentState ->
+            val mergedMerchants = if (page == 1) newMerchants else currentState.merchants + newMerchants
             currentState.copy(
                 isLoading = false,
                 isRefreshing = false,
                 isLoadingMore = false,
                 isError = false,
-                merchants = merchants,
+                merchants = mergedMerchants,
                 noMoreData = noMoreData,
+                lastLoadedPage = page,
                 hasLoaded = true,
                 loadingType = loadingType
             )

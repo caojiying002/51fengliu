@@ -1,8 +1,5 @@
 package com.jiyingcao.a51fengliu.viewmodel
 
-import androidx.annotation.GuardedBy
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.api.request.RecordsRequest
 import com.jiyingcao.a51fengliu.api.response.PageData
@@ -15,9 +12,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 
 /**
@@ -62,18 +56,8 @@ class SearchViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(SearchUiState())
     val uiState = _uiState.asStateFlow()
 
-    /** 保护[data]列表，确保在多线程环境下的数据安全。 */
-    private val dataLock = Mutex()
-
     // 内部状态管理 - 不暴露给UI
 
-    /**
-     * 存放Records的列表，更改关键词或者城市时清空。
-     *
-     * 【注意】应当使用[updateRecordsList]方法修改这个列表，确保数据同步更新。
-     */
-    @GuardedBy("dataLock")
-    private var currentRecords: MutableList<RecordInfo> = mutableListOf()
     private var currentPage = 0
 
     fun processIntent(intent: SearchIntent) {
@@ -95,8 +79,6 @@ class SearchViewModel @Inject constructor(
         val currentState = _uiState.value
         if (currentState.keywords == keywords) return
 
-        // 清除当前记录，避免显示旧数据
-        clearRecordsBlocking()
         // 更新关键词并清空记录显示
         _uiState.update { currentState ->
             currentState.copy(
@@ -121,8 +103,6 @@ class SearchViewModel @Inject constructor(
         // 无事发生
         if (!cityChanged && !keywordsChanged) return
 
-        // 清除当前记录，避免显示旧数据
-        clearRecordsBlocking()
         // 更新城市和关键词并清空记录显示
         _uiState.update { currentState ->
             currentState.copy(
@@ -170,14 +150,6 @@ class SearchViewModel @Inject constructor(
         )
     }
 
-    private fun clearRecordsBlocking() {
-        runBlocking {
-            dataLock.withLock {
-                currentRecords.clear()
-            }
-        }
-    }
-
     private fun search(
         keywords: String,
         cityCode: String,
@@ -209,8 +181,7 @@ class SearchViewModel @Inject constructor(
         result.mapCatching { requireNotNull(it) }
             .onSuccess { pageData ->
                 currentPage = page
-                val newRecords = updateRecordsList(page, pageData.records)
-                updateUiStateToSuccess(newRecords, pageData.noMoreData(), loadingType)
+                updateUiStateToSuccess(page, pageData.records, pageData.noMoreData(), loadingType)
             }
             .onFailure { e ->
                 if (!handleFailure(e)) { // 通用错误处理
@@ -218,20 +189,6 @@ class SearchViewModel @Inject constructor(
                 }
                 AppLogger.w(TAG, "网络请求失败: ", e)
             }
-    }
-
-    private suspend fun updateRecordsList(page: Int, newRecords: List<RecordInfo>): List<RecordInfo> {
-        return dataLock.withLock {
-            if (page == 1) {
-                // 首页或刷新 - 替换数据
-                currentRecords.clear()
-                currentRecords.addAll(newRecords)
-            } else {
-                // 加载更多 - 追加数据
-                currentRecords.addAll(newRecords)
-            }
-            currentRecords.toList() // 返回不可变副本
-        }
     }
 
     // ===== 专门的UI状态更新方法 - 语义明确 =====
@@ -265,22 +222,29 @@ class SearchViewModel @Inject constructor(
 
     /**
      * 更新UI状态到成功状态
-     * @param records 记录列表
+     * @param page 当前页码，用于判断替换还是追加列表
+     * @param newRecords 本次请求返回的记录列表
      * @param noMoreData 是否没有更多数据
      * @param loadingType 成功对应的加载类型，UI层可据此正确结束对应的加载状态
      */
     private fun updateUiStateToSuccess(
-        records: List<RecordInfo>,
+        page: Int,
+        newRecords: List<RecordInfo>,
         noMoreData: Boolean = false,
         loadingType: LoadingType
     ) {
         _uiState.update { currentState ->
+            val mergedRecords = if (page == 1) {
+                newRecords
+            } else {
+                currentState.records + newRecords
+            }
             currentState.copy(
                 isLoading = false,
                 isRefreshing = false,
                 isLoadingMore = false,
                 isError = false,
-                records = records,
+                records = mergedRecords,
                 noMoreData = noMoreData,
                 hasSearched = true,
                 loadingType = loadingType

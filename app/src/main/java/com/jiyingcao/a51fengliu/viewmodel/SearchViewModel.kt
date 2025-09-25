@@ -28,6 +28,7 @@ data class SearchUiState(
     val isLoadingMore: Boolean = false,
     val keywords: String? = null, // 当前搜索关键词
     val cityCode: String = "", // 当前城市代码
+    val lastLoadedPage: Int = 0, // 最近成功加载的页码
     val hasSearched: Boolean = false // 是否已经进行过搜索
 ) {
     // 派生状态 - 通过计算得出，避免状态冗余
@@ -36,6 +37,7 @@ data class SearchUiState(
     val showFullScreenLoading: Boolean get() = isLoading && loadingType == LoadingType.FULL_SCREEN
     val showFullScreenError: Boolean get() = isError && loadingType == LoadingType.FULL_SCREEN
     val showInitialState: Boolean get() = !hasSearched && !isLoading && !isError
+    val nextPageToLoad: Int get() = lastLoadedPage + 1
 }
 
 sealed class SearchIntent {
@@ -55,10 +57,6 @@ class SearchViewModel @Inject constructor(
     // 单一状态源 - 这是MVI的核心原则
     private val _uiState = MutableStateFlow(SearchUiState())
     val uiState = _uiState.asStateFlow()
-
-    // 内部状态管理 - 不暴露给UI
-
-    private var currentPage = 0
 
     fun processIntent(intent: SearchIntent) {
         when (intent) {
@@ -83,7 +81,8 @@ class SearchViewModel @Inject constructor(
         _uiState.update { currentState ->
             currentState.copy(
                 records = emptyList(),
-                keywords = keywords
+                keywords = keywords,
+                lastLoadedPage = 0
             )
         }
 
@@ -108,7 +107,8 @@ class SearchViewModel @Inject constructor(
             currentState.copy(
                 records = emptyList(),
                 keywords = keywords,
-                cityCode = cityCode
+                cityCode = cityCode,
+                lastLoadedPage = 0
             )
         }
 
@@ -135,7 +135,7 @@ class SearchViewModel @Inject constructor(
         search(
             keywords = currentState.keywords.orEmpty(),
             cityCode = currentState.cityCode,
-            page = currentPage + 1,
+            page = currentState.nextPageToLoad,
             loadingType = LoadingType.LOAD_MORE
         )
     }
@@ -180,7 +180,6 @@ class SearchViewModel @Inject constructor(
     ) {
         result.mapCatching { requireNotNull(it) }
             .onSuccess { pageData ->
-                currentPage = page
                 updateUiStateToSuccess(page, pageData.records, pageData.noMoreData(), loadingType)
             }
             .onFailure { e ->
@@ -246,6 +245,7 @@ class SearchViewModel @Inject constructor(
                 isError = false,
                 records = mergedRecords,
                 noMoreData = noMoreData,
+                lastLoadedPage = page,
                 hasSearched = true,
                 loadingType = loadingType
             )
@@ -284,7 +284,6 @@ class SearchViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         searchJob?.cancel()
-        currentPage = 0
     }
 
     companion object {

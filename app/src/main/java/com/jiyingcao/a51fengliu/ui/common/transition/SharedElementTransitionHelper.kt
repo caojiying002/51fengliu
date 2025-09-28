@@ -59,8 +59,8 @@ class SharedElementTransitionHelper(private val activity: Activity) {
     data class ImageGridConfig(
         val cornerRadius: Int = 4.dp,
         val maxImageCount: Int = 4,
-        val placeholder: Int = R.drawable.placeholder,
-        val errorDrawable: Int = R.drawable.image_broken
+        val placeholder: Int = R.drawable.layer_placeholder,
+        val errorDrawable: Int = R.drawable.picture_loading_failed
     )
     
     /**
@@ -72,7 +72,7 @@ class SharedElementTransitionHelper(private val activity: Activity) {
      * @param onImageClick 图片点击回调，参数为(点击的图片索引, 所有图片URL列表)
      */
     fun loadImagesIntoGrid(
-        imageContainer: android.view.ViewGroup,
+        imageContainer: ViewGroup,
         imageUrls: List<String>,
         config: ImageGridConfig = ImageGridConfig(),
         onImageClick: ((clickedIndex: Int, allImages: List<String>) -> Unit)? = null

@@ -56,7 +56,7 @@ fun MerchantImageContainer(
                             .aspectRatio(2f / 3f), // 2:3比例
                         contentScale = ContentScale.Crop,
                         placeholder = painterResource(R.drawable.placeholder),
-                        error = painterResource(R.drawable.image_broken)
+                        error = painterResource(R.drawable.picture_loading_failed)
                     )
                 } else {
                     // 空位置用Spacer填充，保持1/4宽度

@@ -65,8 +65,8 @@ class MerchantAdapter : ListAdapter<Merchant, MerchantAdapter.MerchantViewHolder
 
                         val fullUrl = AppConfig.Network.BASE_IMAGE_URL + item.coverPicture
                         imageView.load(fullUrl) {
-                            placeholder(R.drawable.placeholder)
-                            error(R.drawable.image_broken)
+                            placeholder(R.drawable.layer_placeholder)
+                            error(R.drawable.picture_loading_failed)
                             transformations(RoundedCornersTransformation(4.dp.toFloat()))
                         }
                     }

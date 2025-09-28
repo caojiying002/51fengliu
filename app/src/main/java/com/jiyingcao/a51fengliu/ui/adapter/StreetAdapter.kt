@@ -69,8 +69,8 @@ class StreetAdapter : ListAdapter<Street, StreetAdapter.StreetViewHolder>(Street
                         // 使用Coil3替代Glide加载图片，自动使用全局设置的ImageLoader
                         val fullUrl = AppConfig.Network.BASE_IMAGE_URL + item.coverPicture
                         imageView.load(fullUrl) {
-                            placeholder(R.drawable.placeholder)
-                            error(R.drawable.image_broken)
+                            placeholder(R.drawable.layer_placeholder)
+                            error(R.drawable.picture_loading_failed)
                             transformations(RoundedCornersTransformation(4.dp.toFloat()))
                         }
                     }

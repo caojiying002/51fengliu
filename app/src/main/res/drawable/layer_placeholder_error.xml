@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:width="120dp"
+        android:height="160dp"
+        android:drawable="@drawable/bg_placeholder" />
+    <item
+        android:width="60dp"
+        android:height="48dp"
+        android:gravity="center"
+        android:drawable="@drawable/ic_placeholder_error_foreground" />
+</layer-list>

@@ -265,8 +265,8 @@ class BigImageViewerActivity : BaseActivity() {
             val request = ImageRequest.Builder(context)
                 .data(imageUrl)
                 .target(holder.photoView)
-                .placeholder(R.drawable.placeholder)
-                .error(R.drawable.image_broken)
+                .placeholder(R.drawable.layer_placeholder)
+                .error(R.drawable.picture_loading_failed)
                 .listener(
                     onStart = {
                         // 开始加载

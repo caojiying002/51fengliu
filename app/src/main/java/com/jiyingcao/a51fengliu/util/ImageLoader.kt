@@ -43,8 +43,8 @@ object ImageLoader {
         imageView: ImageView,
         url: String,
         cornerRadius: Int = 4,
-        placeholder: Int = R.drawable.placeholder,
-        errorImage: Int = R.drawable.image_broken,
+        placeholder: Int = R.drawable.layer_placeholder,
+        errorImage: Int = R.drawable.picture_loading_failed,
         centerCrop: Boolean = true,
         useTransition: Boolean = false
     ) {
@@ -89,8 +89,8 @@ object ImageLoader {
         url: String,
         listener: RequestListener<Drawable>,
         cornerRadius: Int = 4,
-        placeholder: Int = R.drawable.placeholder,
-        errorImage: Int = R.drawable.image_broken,
+        placeholder: Int = R.drawable.layer_placeholder,
+        errorImage: Int = R.drawable.picture_loading_failed,
         centerCrop: Boolean = true,
         useTransition: Boolean = false
     ) {

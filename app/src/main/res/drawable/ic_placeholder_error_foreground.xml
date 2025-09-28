@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 前景图：加载失败的简洁图标（山形+太阳+斜杠），无多余留白 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="96dp"
+    android:viewportWidth="120"
+    android:viewportHeight="96">
+
+    <!-- 画面外框（可选的淡边，增强识别，不填充） -->
+    <path
+        android:name="frame"
+        android:fillColor="#00000000"
+        android:strokeColor="#D0D3D8"
+        android:strokeWidth="1"
+        android:pathData="M6,6 H114 V90 H6 Z" />
+
+    <!-- 太阳（右上角的小圆） -->
+    <path
+        android:name="sun"
+        android:fillColor="#C9CDD4"
+        android:pathData="M90,26
+                          a6,6 0 1,1 -12,0
+                          a6,6 0 1,1 12,0" />
+
+    <!-- 山形（底部折线） -->
+    <path
+        android:name="mountain"
+        android:fillColor="#D8DAE0"
+        android:pathData="M16,80 L46,48 L62,64 L78,48 L104,80 Z" />
+
+    <!-- 失败/破图斜杠（强调“加载失败”的语义） -->
+    <path
+        android:name="slash"
+        android:fillColor="#00000000"
+        android:strokeColor="#AEB3BB"
+        android:strokeWidth="6"
+        android:strokeLineCap="round"
+        android:pathData="M28,24 L92,72" />
+
+</vector>

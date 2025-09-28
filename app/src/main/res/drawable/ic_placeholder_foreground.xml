@@ -1,0 +1,16 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="96dp"
+    android:viewportWidth="120"
+    android:viewportHeight="96">
+
+    <!-- 山形图案 -->
+    <path
+        android:fillColor="#CCCDCF"
+        android:pathData="M20,32 L60,2 L100,32 L120,22 L120,96 L0,96 L0,42 Z" />
+
+    <!-- 太阳图案 -->
+    <path
+        android:fillColor="#CCCDCF"
+        android:pathData="M115,12 A12,12 0 1 1 115,11.9" />
+</vector>

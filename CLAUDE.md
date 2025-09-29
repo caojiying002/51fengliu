@@ -2,161 +2,138 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Essential Build Commands
+## 核心构建命令
 
 ```bash
-# Build and test commands
-./gradlew build                    # Full build with tests
-./gradlew testDebugUnitTest       # Run unit tests
-./gradlew lint                    # Run lint checks including custom rules
-./gradlew assembleDebug           # Build debug APK
-./gradlew connectedAndroidTest    # Run instrumentation tests (requires device)
+# 构建和测试命令
+./gradlew build                    # 完整构建（包含测试）
+./gradlew testDebugUnitTest       # 运行单元测试
+./gradlew lint                    # 运行Lint检查（包含自定义规则）
+./gradlew assembleDebug           # 构建Debug APK
+./gradlew connectedAndroidTest    # 运行设备测试（需要连接设备）
 
-# Single test execution
-./gradlew test --tests "com.jiyingcao.a51fengliu.viewmodel.MerchantDetailViewModelTest"
+# 单独运行特定测试
+./gradlew test --tests "com.jiyingcao.a51fengliu.viewmodel.*Test"
 
-# Clean and rebuild
+# 清理重建
 ./gradlew clean build
 ```
 
-## Modern API Requirements
+## 项目架构概览
 
-⚠️ **CRITICAL: Always use modern Android APIs. Deprecated patterns are strictly forbidden.**
+这是一个基于 **MVVM + MVI** 模式的Android应用，使用Kotlin Flow进行响应式编程。
 
-### Mandatory Modern API Usage
+### 技术栈组合
+- **传统View系统** + **Jetpack Compose** 混合架构
+- **Hilt** 依赖注入
+- **Retrofit + Moshi** 网络层（逐步从Gson迁移）
+- **Room** 数据库
+- **DataStore** 数据持久化
+- **Coil + Glide** 图片加载（并存，自定义Lint规则约束）
+- **自定义Lint规则** 强制代码规范
 
-**Activity Results**: Use `ActivityResultContracts` for all activity results and permission requests. Never use `onActivityResult()`, `startActivityForResult()`, or `onRequestPermissionsResult()`.
+### 核心架构模式
 
-**Back Navigation**: Use `OnBackPressedDispatcher.addCallback()` for custom back handling. Never override `onBackPressed()`.
+**数据层设计**:
+- `TokenManager`: 单例Token管理，基于DataStore持久化
+- `LoginStateManager`: 双流设计，分离持久状态(StateFlow)和事件(SharedFlow)
+- `RemoteLoginManager`: 全局会话管理，原子状态处理
 
-**Lifecycle Management**: Use `LifecycleObserver` and `@OnLifecycleEvent` annotations instead of overriding lifecycle methods (`onStart`, `onResume`, `onPause`, `onStop`). This prevents logic scattering and mixing of different concerns across lifecycle methods.
+**Repository模式**:
+- `BaseRepository.apiCall()`: 标准化Flow-based API调用封装
+- 所有Repository使用Flow流进行响应式数据流
 
-**View Binding**: Mandatory for all Activities and Fragments. Never use `findViewById()`.
+**ViewModel层(MVI)**:
+- 单一`UiState`数据类包含所有UI状态
+- 密封`Intent`类表示用户行为
+- 参考`MerchantDetailViewModel`的`ContactDisplayState`管理模式
 
-**Async Operations**: Use Kotlin Coroutines with `viewModelScope` or `lifecycleScope`. Never use `AsyncTask`, `Thread`, or `Handler.post()`.
+**网络层**:
+- `@TokenPolicy` 注解控制API方法认证策略
+- `AuthInterceptor` 自动Token注入
+- `ApiResponse<T>` 统一响应处理
 
-**RecyclerView**: Use `ListAdapter` with `DiffUtil.ItemCallback`. Never extend `RecyclerView.Adapter` directly.
+### 图片加载策略
 
-**Fragment Navigation**: Use Navigation Component with SafeArgs. Never use `FragmentManager.beginTransaction()` for navigation.
-
-**ViewModel Creation**: Use `by viewModels()` delegate or `ViewModelProvider.Factory`. Follow dependency injection patterns.
-
-### Jetpack Compose Requirements
-
-**New Screens**: All new UI screens should use Jetpack Compose with Material 3 theming.
-
-**State Management**: Use `collectAsState()` for ViewModel states, `remember`/`rememberSaveable` for local state.
-
-**Navigation**: Use Compose Navigation or `ActivityResultContracts` for inter-screen navigation.
-
-### Strictly Forbidden APIs
-
-🚫 **Never use these deprecated patterns:**
-- `onActivityResult()`, `startActivityForResult()`, `onRequestPermissionsResult()`
-- `onBackPressed()`
-- Lifecycle method overrides: `onStart()`, `onResume()`, `onPause()`, `onStop()`, `onDestroy()` (use LifecycleObserver instead)
-- `findViewById()`, `AsyncTask`, `Thread`, `Runnable`, `Handler.post()`
-- Direct `RecyclerView.Adapter` inheritance
-- `FragmentManager.beginTransaction()` for navigation
-
-## Architecture Overview
-
-This Android app follows **MVVM + MVI** architecture with reactive programming using Kotlin Flow.
-
-### Core Architectural Components
-
-**Data Layer**:
-- `TokenManager`: Singleton managing authentication tokens with DataStore persistence
-- `LoginStateManager`: Dual-flow design separating persistent state (StateFlow) from events (SharedFlow)
-- `RemoteLoginManager`: Global session management with atomic state handling
-
-**Repository Pattern**:
-- `BaseRepository.apiCall()`: Standardized Flow-based API call wrapper with error handling
-- All repositories use Flow streams for reactive data
-
-**ViewModel Layer (MVI)**:
-- Single `UiState` data class containing all UI state
-- Sealed `Intent` classes for user actions
-- Example: `MerchantDetailViewModel` demonstrates the pattern with `ContactDisplayState` management
-
-**Network Layer**:
-- `@TokenPolicy` annotations on `ApiService` methods control authentication
-- `AuthInterceptor` handles automatic token injection
-- `ApiResponse<T>` wrapper for consistent response handling
-
-### State Management Patterns
-
-**Login State Integration**:
-- ViewModels observe `LoginStateManager.isLoggedIn` StateFlow
-- Use `collectLogin()` extension for automatic state updates
-- Login events trigger UI updates without manual state management
-
-**MVI State Updates**:
+**强制使用模式**（自定义Lint规则约束）:
 ```kotlin
-// Pattern used throughout ViewModels
+// ✅ 正确用法 - 使用HostInvariantGlideUrl
+AppConfig.Network.createImageUrl(imagePath)
+
+// ❌ 禁止用法 - 直接字符串URL
+Glide.with(context).load("https://example.com/image.jpg")
+```
+
+**双引擎并存**:
+- **Glide**: 传统View系统，复杂加载逻辑
+- **Coil**: Jetpack Compose，现代化API
+
+### 状态管理核心
+
+**登录状态集成**:
+- ViewModel观察`LoginStateManager.isLoggedIn` StateFlow
+- 使用`collectLogin()`扩展函数自动状态更新
+- 登录事件触发UI更新，无需手动状态管理
+
+**MVI状态更新模式**:
+```kotlin
+// 项目中通用的ViewModel状态更新模式
 _uiState.update { currentState ->
     currentState.copy(isLoading = false, data = newData)
 }
 ```
 
-**Exception Handling**:
-- `BaseViewModel.handleFailure()` extension for centralized error handling
-- `RemoteLoginException` triggers global logout flow
-- Domain-specific exceptions in `/domain/exception/`
+**异常处理**:
+- `BaseViewModel.handleFailure()` 扩展统一错误处理
+- `RemoteLoginException` 触发全局登出流程
+- 领域特定异常在`/domain/exception/`目录
 
-### UI Architecture
+### 混合UI架构
 
-**Hybrid View System**:
-- Traditional Activities/Fragments for main navigation
-- Jetpack Compose integration in `MerchantDetailComposeActivity`
-- Custom Material 3 theme in `/ui/theme/`
+**View + Compose共存**:
+- 传统Activity/Fragment作为主要导航
+- `MerchantDetailComposeActivity` Compose集成示例
+- `/ui/theme/`目录下Material 3自定义主题
 
-**Custom Components**:
-- `StatefulLayout`: Loading/Error/Content state management
-- `TitleBarBack`: Reusable toolbar component
-- Compose components in `/ui/components/`
+**自定义组件**:
+- `StatefulLayout`: 加载/错误/内容状态管理
+- `TitleBarBack`: 可复用工具栏组件
+- Compose组件在`/ui/components/`目录
 
-### Key Conventions
+## 开发约定
 
-**File Organization**:
-- ViewModels handle all business logic and state management
-- Activities/Fragments are minimal UI controllers
-- Custom lint rules enforce `HostInvariantGlideUrl` usage over direct string URLs
+**文件组织原则**:
+- ViewModel处理所有业务逻辑和状态管理
+- Activity/Fragment作为轻量级UI控制器
+- 自定义Lint规则强制`HostInvariantGlideUrl`使用规范
 
-**Testing**:
-- ViewModelTest files use Mockito + Truth assertions
-- Flow testing with Turbine library
-- Architecture components testing with `InstantTaskExecutorRule`
+**配置管理**:
+- `AppConfig`: 分环境配置管理（Debug/Release变体）
+- `gradle/libs.versions.toml` 版本目录统一依赖管理
+- 构建变体控制调试功能和屏幕方向
 
-**Configuration**:
-- `AppConfig`: Centralized configuration with debug/release variants
-- Version catalog in `gradle/libs.versions.toml` for dependency management
-- Build variants control debug features and screen orientation
+**认证流程**:
+- 登录状态变化自动传播到所有观察的ViewModel
+- VIP状态通过`LoginStateManager.isVip`派生属性检查
+- 网络层透明处理Token刷新
 
-## Development Notes
+**自定义Lint规则**:
+- `/lint-rules`模块强制Glide URL处理模式
+- 通过`lintChecks(project(":lint-rules"))`集成
+- 运行`./gradlew lint`应用自定义规则
 
-**Authentication Flow**:
-- Login state changes automatically propagate to all observing ViewModels
-- VIP status checked via `LoginStateManager.isVip` derived property
-- Token refresh handled transparently by network layer
+## 开发注意事项
 
-**Custom Lint Rules**:
-- `/lint-rules` module enforces Glide URL handling patterns
-- Run `./gradlew lint` to apply custom rules
-- Rules integrated via `lintChecks(project(":lint-rules"))`
+**现代API要求** - 严禁使用已弃用的API:
+- 使用`ActivityResultContracts`处理Activity结果和权限请求
+- 使用`OnBackPressedDispatcher.addCallback()`处理返回导航
+- 强制使用View Binding，禁止`findViewById()`
+- 使用Kotlin协程配合`viewModelScope`或`lifecycleScope`
+- RecyclerView使用`ListAdapter`配合`DiffUtil.ItemCallback`
+- Fragment导航使用Navigation Component配合SafeArgs
 
-**Compose Integration**:
-- Use `ActivityResultContracts` for navigation between View and Compose screens
-- State hoisting pattern with ViewModels providing state to Composables
-- Material 3 theming with custom color schemes
-
-## Development Preferences
-
-- Follow enterprise-level development best practices
-- 遵循企业级开发最佳实践
-- Prioritize code maintainability, scalability, and performance
-- Use established design patterns and architectural principles
-- Ensure proper error handling and logging
-- Write clean, readable, and well-documented code
-- Follow SOLID principles and clean architecture guidelines
-- **Always use modern Android APIs - deprecated APIs are strictly forbidden**
+**Compose集成**:
+- 新界面优先使用Jetpack Compose
+- 使用`ActivityResultContracts`处理View和Compose界面间导航
+- 状态提升模式，ViewModel为Composable提供状态
+- Material 3主题配合自定义配色方案

@@ -18,7 +18,7 @@ object AppConfig {
      * 网络相关配置
      */
     object Network {
-        const val BASE_URL = "https://da5fe4028.l4api.xyz/"
+        const val BASE_URL = "https://0bfcc0b9f.l4api.xyz/"
         const val BASE_IMAGE_URL = "https://s3.img801.xyz/info/picture/"
         const val CONNECT_TIMEOUT = 30L
         const val READ_TIMEOUT = 30L

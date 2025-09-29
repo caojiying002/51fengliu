@@ -18,7 +18,16 @@ import com.jiyingcao.a51fengliu.databinding.DialogVipPromptBinding
 /**
  * 显示VIP提示的对话框
  * 告知用户需要VIP会员或使用积分购买才能查看大图
+ *
+ * @deprecated 请使用 CommonDialog.newPromptInstance() 替代
  */
+@Deprecated(
+    message = "请使用 CommonDialog.newPromptInstance() 替代",
+    replaceWith = ReplaceWith(
+        "CommonDialog.newPromptInstance(message, buttonText, cancelable)",
+        "com.jiyingcao.a51fengliu.ui.dialog.CommonDialog"
+    )
+)
 class VipPromptDialog : DialogFragment() {
     private var _binding: DialogVipPromptBinding? = null
     private val binding get() = _binding!!

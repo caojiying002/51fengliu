@@ -14,6 +14,38 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
     <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginBottom="0dp"
+        android:text=""
+        android:textColor="@color/text_title"
+        android:textSize="18dp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:visibility="visible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/top_space" />
+
+    <!-- 标题相关：使用一个小的Space作为标题和消息之间的间隙，并把Space与标题放到Group中，便于整体显示/隐藏 -->
+    <Space
+        android:id="@+id/title_space"
+        android:layout_width="0dp"
+        android:layout_height="16dp"
+        app:layout_constraintTop_toBottomOf="@id/tv_title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Group 包含标题与其上方的间距，方便在代码中一次性显示/隐藏 -->
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/title_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="tv_title,title_space" />
+
+    <TextView
         android:id="@+id/tv_message"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -23,7 +55,7 @@
         android:textSize="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/top_space" />
+        app:layout_constraintTop_toBottomOf="@+id/title_space" />
 
     <LinearLayout
         android:id="@+id/button_container"
@@ -45,7 +77,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
-            android:text="@string/cancel" />
+            android:text="@string/cancel"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/btn_positive"

@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="24dp"
         android:layout_marginTop="24dp"
-        android:text="仅积分购买此联系方式的用户和VIP会员可使用图片放大功能，请使用积分购买或者升级VIP会员"
+        android:text="@string/large_image_check_message"
         android:textColor="@color/text_item_title"
         android:textSize="16dp"
         app:layout_constraintEnd_toEndOf="parent"

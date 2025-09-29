@@ -25,9 +25,9 @@ import com.jiyingcao.a51fengliu.ui.base.BaseActivity
 import com.jiyingcao.a51fengliu.ui.common.transition.SharedElementTransitionHelper
 import com.jiyingcao.a51fengliu.ui.common.transition.createImageTransitionHelper
 import com.jiyingcao.a51fengliu.ui.common.transition.loadRecordImages
+import com.jiyingcao.a51fengliu.ui.dialog.CommonDialog
 import com.jiyingcao.a51fengliu.ui.dialog.LoadingDialog
 import com.jiyingcao.a51fengliu.ui.dialog.ReportDialog
-import com.jiyingcao.a51fengliu.ui.dialog.VipPromptDialog
 import com.jiyingcao.a51fengliu.util.copyOnLongClick
 import com.jiyingcao.a51fengliu.util.copyOnLongClickWithMenu
 import com.jiyingcao.a51fengliu.util.showToast
@@ -302,8 +302,8 @@ class DetailActivity : BaseActivity() {
             onImageClick = { clickedIndex ->
                 // 业务逻辑：权限检查
                 if (!canViewLargeImage(record)) {
-                    VipPromptDialog.newInstance(cancelable = false)
-                        .showNow(supportFragmentManager, VipPromptDialog.TAG)
+                    CommonDialog.newPromptInstance(getString(R.string.large_image_check_message))
+                        .showNow(supportFragmentManager, CommonDialog.TAG)
                     return@loadRecordImages
                 }
 

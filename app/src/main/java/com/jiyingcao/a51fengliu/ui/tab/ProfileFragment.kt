@@ -21,8 +21,8 @@ import com.jiyingcao.a51fengliu.ui.FavoriteActivity
 import com.jiyingcao.a51fengliu.ui.auth.AuthActivity
 import com.jiyingcao.a51fengliu.ui.PostInfoActivity
 import com.jiyingcao.a51fengliu.ui.compose.ComposeContainerActivity
+import com.jiyingcao.a51fengliu.ui.dialog.CommonDialog
 import com.jiyingcao.a51fengliu.ui.dialog.LoadingDialog
-import com.jiyingcao.a51fengliu.ui.dialog.ConfirmDialog
 import com.jiyingcao.a51fengliu.util.showToast
 import com.jiyingcao.a51fengliu.viewmodel.LogoutEffect
 import dagger.hilt.android.AndroidEntryPoint
@@ -141,15 +141,15 @@ class ProfileFragment : Fragment() {
             startActivity(AuthActivity.createIntent(requireContext()))
         }
         binding.tvLogout.setOnClickListener {
-            ConfirmDialog.newInstance(
+            CommonDialog.newConfirmInstance(
                 message = getString(R.string.logout_confirmation_message),
                 positiveButtonText = getString(R.string.quit),
                 negativeButtonText = getString(R.string.cancel)
-            ).setOnConfirmDialogListener(object : ConfirmDialog.OnConfirmDialogListener {
-                override fun onConfirm() {
+            ).setOnCommonDialogListener(object : CommonDialog.OnCommonDialogListener {
+                override fun onPositive() {
                     viewModel.processIntent(ProfileIntent.Logout)
                 }
-            }).show(parentFragmentManager, ConfirmDialog.TAG)
+            }).show(parentFragmentManager, CommonDialog.TAG)
         }
         binding.tvPostInfo.setOnClickListener {
             loginInterceptor.execute {

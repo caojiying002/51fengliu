@@ -49,4 +49,5 @@ Phasellus in leo massa. Aliquam malesuada, enim nec auctor posuere, quam sem mal
     <string name="logout_confirmation_message">确定要退出登录吗？</string>
     <string name="normal_member">普通会员</string>
     <string name="vip_member">VIP会员</string>
+    <string name="large_image_check_message">仅积分购买此联系方式的用户和VIP会员可使用图片放大功能，请使用积分购买或者升级VIP会员</string>
 </resources>

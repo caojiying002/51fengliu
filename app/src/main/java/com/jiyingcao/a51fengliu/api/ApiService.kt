@@ -212,12 +212,24 @@ interface ApiService {
     /**
      * 获取商家城市列表
      * 获取所有有商家的城市列表
-     * 
+     *
      * @return 城市列表
      */
     @TokenPolicy(Policy.OPTIONAL)
     @GET(ApiEndpoints.Merchant.CITIES)
     suspend fun getMerchantCities(): Response<ApiResponse<List<City>>>
+
+    // ========== 配置相关接口 ==========
+
+    /**
+     * 获取APP弹窗通知
+     * 用于APP启动时显示促销等信息的弹窗
+     *
+     * @return 弹窗通知数据，包含是否启用、标题、内容和显示周期
+     */
+    @TokenPolicy(Policy.OPTIONAL)
+    @GET(ApiEndpoints.Config.APP_POPUP_NOTICE)
+    suspend fun getAppPopupNotice(): Response<ApiResponse<AppPopupNotice>>
 
     // ========== 暗巷相关接口 ==========
 

@@ -39,6 +39,11 @@ object ApiEndpoints {
         const val DETAIL = "api/mobile/merchant/detail.json"
         const val CITIES = "api/mobile/config/merchantCity.json"
     }
+
+    /** 配置相关接口 */
+    object Config {
+        const val APP_POPUP_NOTICE = "api/mobile/config/appPopupNotice.json"
+    }
     
     /** 暗巷相关接口 */
     object Street {

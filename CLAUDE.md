@@ -53,6 +53,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `AuthInterceptor` 自动Token注入
 - `ApiResponse<T>` 统一响应处理
 
+**API响应类型防御式设计**:
+```kotlin
+// ✅ 正确做法 - 防御性类型定义
+data class Profile(
+    val id: String?,             // 字符串类型定义为String? - 防止后端漏传字段导致崩溃
+    val name: String?,
+    val score: String?,          // Int - 注释标注实际类型
+    val expiredAt: String?,      // Long - 防止后端类型变更导致崩溃
+    val isVip: Boolean?          // Boolean可空
+)
+
+// ❌ 错误做法 - 直接使用基本类型
+data class Profile(
+    val score: Int,              // 后端改为字符串时会崩溃
+    val expiredAt: Long          // 后端返回null时会崩溃
+)
+```
+
+**规则说明**:
+- 字符串类型统一定义为 `String?`
+- 非字符串基本类型（Int/Long/Double/Float等）统一定义为 `String?`
+- Boolean类型定义为 `Boolean?`
+- 在注释中标注实际类型（如 `// Int`、`// Long`）以保持可读性
+- 客户端在使用时进行类型转换和验证
+- 防止后端类型变更或异常数据导致应用崩溃
+
 ### 图片加载策略
 
 **强制使用模式**（自定义Lint规则约束）:

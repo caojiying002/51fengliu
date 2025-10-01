@@ -19,7 +19,7 @@ package com.jiyingcao.a51fengliu.api.response
  * @property enable 是否启用弹窗 - Boolean
  * @property title 弹窗标题
  * @property content 弹窗内容，支持\n换行
- * @property period 弹窗显示周期（秒）- Int，控制多久显示一次
+ * @property period 拉取节流周期（秒）- Int，至少每 period 秒才会再次请求一次接口
  */
 data class AppPopupNotice(
     val enable: Boolean? = null,

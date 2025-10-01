@@ -1,6 +1,7 @@
 package com.jiyingcao.a51fengliu
 
 import android.app.Application
+import androidx.lifecycle.ProcessLifecycleOwner
 import dagger.hilt.android.HiltAndroidApp
 import com.jiyingcao.a51fengliu.ActivityManager.activityLifecycleCallbacks
 import com.jiyingcao.a51fengliu.coil.CoilConfig
@@ -14,12 +15,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltAndroidApp
 class App: Application() {
 
     /** 为应用全局事件处理创建专门的作用域，只在主进程创建 */
     private var applicationScope: CoroutineScope? = null
+
+    /** APP弹窗生命周期观察者 */
+    @Inject
+    lateinit var appPopupLifecycleObserver: AppPopupLifecycleObserver
 
     override fun onCreate() {
         super.onCreate()
@@ -33,6 +39,7 @@ class App: Application() {
             registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
             registerActivityLifecycleCallbacks(EdgeToEdgeWindowInsetsCallbacks)
             initRemoteLoginHandler()
+            initAppPopupObserver()
         }
     }
 
@@ -56,6 +63,10 @@ class App: Application() {
                     RemoteLoginActivity.start(applicationContext)
                 }
         }
+    }
+
+    private fun initAppPopupObserver() {
+        ProcessLifecycleOwner.get().lifecycle.addObserver(appPopupLifecycleObserver)
     }
 
     override fun onTerminate() {

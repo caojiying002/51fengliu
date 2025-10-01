@@ -93,6 +93,7 @@ dependencies {
     implementation(libs.androidx.gridlayout)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     //implementation(libs.androidx.lifecycle.livedata.ktx)
+    implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)

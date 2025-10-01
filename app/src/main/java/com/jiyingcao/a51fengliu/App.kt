@@ -4,7 +4,6 @@ import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
 import com.jiyingcao.a51fengliu.ActivityManager.activityLifecycleCallbacks
 import com.jiyingcao.a51fengliu.coil.CoilConfig
-import com.jiyingcao.a51fengliu.config.AppConfig
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager
 import com.jiyingcao.a51fengliu.ui.common.RemoteLoginActivity
 import com.jiyingcao.a51fengliu.util.NotificationManagerHelper
@@ -25,9 +24,6 @@ class App: Application() {
     override fun onCreate() {
         super.onCreate()
         INSTANCE = this
-
-        // 所有进程都需要初始化AppConfig（提供基础配置）
-        AppConfig.init(this)
 
         // 仅在主进程执行UI相关初始化
         if (ProcessUtil.isMainProcess(this)) {

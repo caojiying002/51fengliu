@@ -1,6 +1,5 @@
 package com.jiyingcao.a51fengliu.config
 
-import android.content.Context
 import com.jiyingcao.a51fengliu.glide.HostInvariantGlideUrl
 
 /**
@@ -8,11 +7,6 @@ import com.jiyingcao.a51fengliu.glide.HostInvariantGlideUrl
  * 集中管理所有的配置常量，按功能域分组
  */
 object AppConfig {
-    private lateinit var applicationContext: Context
-
-    fun init(context: Context) {
-        applicationContext = context.applicationContext
-    }
 
     /**
      * 网络相关配置
@@ -114,7 +108,7 @@ object AppConfig {
          * 
          * @return 是否启用日志
          */
-        fun isLoggingEnabled(): Boolean = BuildEnvironment.isDebug(applicationContext)
+    fun isLoggingEnabled(): Boolean = BuildConfig.IS_DEBUG
 
         /**
          * 控制是否使用调试用的Token
@@ -125,7 +119,7 @@ object AppConfig {
         fun useDebugToken(): Boolean =
             DEFAULT_USE_DEBUG_TOKEN
                 && DEFAULT_DEBUG_TOKEN.isNotBlank()
-                && BuildEnvironment.isDebug(applicationContext)
+                && BuildConfig.IS_DEBUG
 
         /**
          * 控制HTTP请求日志是否打印到控制台
@@ -134,7 +128,7 @@ object AppConfig {
          * @return 是否打印HTTP请求日志
          */
         fun isHttpLoggingEnabled(): Boolean = 
-            DEFAULT_HTTP_LOGGING_ENABLED && BuildEnvironment.isDebug(applicationContext)
+            DEFAULT_HTTP_LOGGING_ENABLED && BuildConfig.IS_DEBUG
 
         /**
          * 控制图片加载请求日志是否打印到控制台
@@ -143,7 +137,7 @@ object AppConfig {
          * @return 是否打印图片加载日志
          */
         fun isImageLoadingLoggingEnabled(): Boolean = 
-            DEFAULT_IMAGE_LOADING_LOGGING_ENABLED && BuildEnvironment.isDebug(applicationContext)
+            DEFAULT_IMAGE_LOADING_LOGGING_ENABLED && BuildConfig.IS_DEBUG
 
         /**
          * 控制是否跳过大图查看功能限制检查
@@ -152,6 +146,6 @@ object AppConfig {
          * @return 是否跳过限制检查
          */
         fun bypassLargeImageCheck(): Boolean = 
-            DEFAULT_BYPASS_LARGE_IMAGE_CHECK && BuildEnvironment.isDebug(applicationContext)
+            DEFAULT_BYPASS_LARGE_IMAGE_CHECK && BuildConfig.IS_DEBUG
     }
 }

@@ -37,19 +37,23 @@ package com.jiyingcao.a51fengliu.api.response
  */
 
 /**
- * 举报响应的特殊处理
- * 使用sealed class来表示不同的响应状态
- */
-data class ReportResponse(
-    val code: Int,
-    val msg: String?,
-    val data: ReportData
-)
-
-/**
- * 举报数据的多态表示
+ * 举报接口的data字段多态表示
+ *
+ * ## 使用场景
+ * `ApiResponse<ReportData>` - 举报接口的 `data` 字段在成功/失败时类型不同：
+ * - 成功: `data` 是空字符串 ""
+ * - 失败: `data` 是字段错误 Map 或 null
+ *
+ * ## 特殊处理
+ * 由于多态性，举报接口**无法使用** [com.jiyingcao.a51fengliu.repository.apiCallStrict]，
+ * 需要在 Repository 层手动处理，参见 [com.jiyingcao.a51fengliu.repository.RecordRepository.report]
+ *
+ * @see com.jiyingcao.a51fengliu.api.parse.ReportDataTypeAdapter 自定义反序列化器
  */
 sealed class ReportData {
+    /** 举报成功 */
     data object Success : ReportData()
+
+    /** 举报失败，包含字段级错误信息 */
     data class Error(val errors: Map<String, String>) : ReportData()
 }

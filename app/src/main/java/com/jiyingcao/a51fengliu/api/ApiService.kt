@@ -88,7 +88,7 @@ interface ApiService {
     /**
      * 举报信息
      * 不需要登录也可以举报
-     * 
+     *
      * @param body 举报请求参数，包含信息ID、举报内容、举报图片等
      * @return 举报操作结果，包含成功信息或错误详情
      */
@@ -96,13 +96,13 @@ interface ApiService {
     @POST(ApiEndpoints.Records.REPORT)
     suspend fun postReport(
         @Body body: ReportRequest
-    ): Response<ReportResponse>
+    ): Response<ApiResponse<ReportData>>
 
     // ========== 用户认证相关接口 ==========
 
     /**
      * 用户登录
-     * 
+     *
      * @param body 登录请求参数，包含用户名和密码
      * @return 登录结果，成功时返回token，失败时返回错误信息
      */
@@ -110,7 +110,7 @@ interface ApiService {
     @POST(ApiEndpoints.Auth.LOGIN)
     suspend fun postLogin(
         @Body body: LoginRequest
-    ): Response<LoginResponse>
+    ): Response<ApiResponse<LoginData>>
 
     /**
      * 用户退出登录

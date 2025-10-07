@@ -7,7 +7,9 @@ import com.jiyingcao.a51fengliu.api.request.ReportRequest
 import com.jiyingcao.a51fengliu.api.response.PageData
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.api.response.ReportData
+import com.jiyingcao.a51fengliu.domain.exception.ApiException
 import com.jiyingcao.a51fengliu.domain.exception.HttpEmptyResponseException
+import com.jiyingcao.a51fengliu.domain.exception.MissingDataException
 import com.jiyingcao.a51fengliu.domain.exception.ReportException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -85,6 +87,13 @@ class RecordRepository @Inject constructor(
 
     /**
      * 提交举报
+     *
+     * 注意：此方法**无法使用** [BaseRepository.apiCallStrict]，原因如下：
+     * 1. 需要将 [ReportData.Error] 转换为 [ReportException] 以携带字段级错误信息
+     *
+     * **重要**：此方法的错误处理逻辑参考自 [BaseRepository.apiCallStrict]。
+     * 如果未来修改 apiCallStrict 的逻辑（如增加新的错误处理），需要同步修改此方法。
+     *
      * @param infoId Record ID
      * @param content 举报内容
      * @param picture 图片URL（相对路径，不包含BASE_URL）
@@ -93,28 +102,45 @@ class RecordRepository @Inject constructor(
     fun report(infoId: String, content: String, picture: String = ""): Flow<Result<*>> = flow {
         try {
             val httpResponse = apiService.postReport(ReportRequest(infoId, content, picture))
-            if (httpResponse.isSuccessful) {
-                val reportResponse = httpResponse.body()
-                if (reportResponse != null) {
-                    when (val reportData = reportResponse.data) {
-                        is ReportData.Success -> {
-                            emit(Result.success(Unit))
-                        }
-                        is ReportData.Error -> {
-                            emit(Result.failure(
-                                ReportException(
-                                    code = reportResponse.code,
-                                    message = reportResponse.msg,
-                                    errors = reportData.errors
-                                )
-                            ))
-                        }
-                    }
-                } else {
-                    emit(Result.failure(HttpEmptyResponseException()))
-                }
-            } else {
+            if (!httpResponse.isSuccessful) {
                 emit(Result.failure(HttpException(httpResponse)))
+                return@flow
+            }
+
+            val apiResponse = httpResponse.body()
+            if (apiResponse == null) {
+                emit(Result.failure(HttpEmptyResponseException()))
+                return@flow
+            }
+
+            // 优先检查通用错误码（如 1003 远程登录等）
+            if (!apiResponse.isSuccessful()) {
+                emit(Result.failure(ApiException.createFromResponse(apiResponse)))
+                return@flow
+            }
+
+            // data 不应该为 null（TypeAdapter 保证），此检查仅为 make compiler happy
+            val reportData = apiResponse.data
+            if (reportData == null) {
+                emit(Result.failure(MissingDataException()))
+                return@flow
+            }
+
+            // 业务成功（code=0），根据 ReportData 类型处理
+            when (reportData) {
+                is ReportData.Success -> {
+                    emit(Result.success(Unit))
+                }
+                is ReportData.Error -> {
+                    // code=0 但 data 是 Error 类型，包含字段验证错误
+                    emit(Result.failure(
+                        ReportException(
+                            code = apiResponse.code,
+                            message = apiResponse.msg,
+                            errors = reportData.errors
+                        )
+                    ))
+                }
             }
         } catch (e: Exception) {
             emit(Result.failure(e))

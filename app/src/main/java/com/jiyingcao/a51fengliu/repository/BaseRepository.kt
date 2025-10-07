@@ -69,6 +69,24 @@ fun <T> apiCall(
 /**
  * 严格版：业务成功时 data 不允许为 null；若为 null 且类型不是 NoData/Unit，抛出 MissingDataException。
  * 返回 Flow<Result<T>>（非空）。
+ *
+ * ## 适用场景
+ * 适用于标准的 `ApiResponse<T>` 接口，自动处理：
+ * - HTTP 错误（非 2xx）
+ * - 通用业务错误（如 code=1003 远程登录）
+ * - data 为 null 的异常情况
+ *
+ * ## 不适用场景
+ * **注意**：以下接口由于 `data` 字段多态性，**无法使用此函数**：
+ *
+ * 1. **登录接口** - [com.jiyingcao.a51fengliu.repository.UserRepository.login]
+ *    - 需要从 [LoginData.Success] 中提取 token 字符串
+ *    - 需要将 [LoginData.Error] 转换为 [com.jiyingcao.a51fengliu.domain.exception.LoginException]
+ *
+ * 2. **举报接口** - [com.jiyingcao.a51fengliu.repository.RecordRepository.report]
+ *    - 需要将 [ReportData.Error] 转换为 [com.jiyingcao.a51fengliu.domain.exception.ReportException]
+ *
+ * 这些接口需要手动实现错误处理逻辑。**重要**：修改此函数时，需同步修改上述两个方法。
  */
 inline fun <reified T : Any> apiCallStrict(
     dispatcher: CoroutineDispatcher = Dispatchers.IO,

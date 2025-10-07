@@ -5,11 +5,11 @@ import com.google.gson.GsonBuilder
 import com.jiyingcao.a51fengliu.api.ApiService
 import com.jiyingcao.a51fengliu.api.AuthInterceptor
 import com.jiyingcao.a51fengliu.api.DebugAuthInterceptor
-import com.jiyingcao.a51fengliu.api.parse.LoginResponseAdapter
-import com.jiyingcao.a51fengliu.api.parse.ReportResponseAdapter
+import com.jiyingcao.a51fengliu.api.parse.LoginDataTypeAdapter
+import com.jiyingcao.a51fengliu.api.parse.ReportDataTypeAdapter
 import com.jiyingcao.a51fengliu.api.parse.NoDataTypeAdapter
-import com.jiyingcao.a51fengliu.api.response.LoginResponse
-import com.jiyingcao.a51fengliu.api.response.ReportResponse
+import com.jiyingcao.a51fengliu.api.response.LoginData
+import com.jiyingcao.a51fengliu.api.response.ReportData
 import com.jiyingcao.a51fengliu.api.response.NoData
 import com.jiyingcao.a51fengliu.config.AppConfig
 import com.jiyingcao.a51fengliu.data.TokenManager
@@ -73,8 +73,8 @@ object NetworkModule {
     @Singleton
     fun provideGson(): Gson {
         return GsonBuilder()
-            .registerTypeAdapter(LoginResponse::class.java, LoginResponseAdapter())
-            .registerTypeAdapter(ReportResponse::class.java, ReportResponseAdapter())
+            .registerTypeAdapter(LoginData::class.java, LoginDataTypeAdapter())
+            .registerTypeAdapter(ReportData::class.java, ReportDataTypeAdapter())
             .registerTypeAdapter(NoData::class.java, NoDataTypeAdapter())
             .create()
     }

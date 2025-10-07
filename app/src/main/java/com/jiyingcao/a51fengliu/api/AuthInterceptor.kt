@@ -6,6 +6,7 @@ import okhttp3.Interceptor
 import okhttp3.Response
 import kotlinx.coroutines.runBlocking
 import okhttp3.Request
+import retrofit2.Invocation
 
 /**
  * 正式环境使用的认证拦截器
@@ -48,8 +49,9 @@ class AuthInterceptor(
      * 获取请求对应的TokenPolicy注解
      */
     private fun Request.findTokenPolicy(): TokenPolicy? {
-        // TODO 可以添加方法缓存，避免每次都反射获取注解
-        return this.method.javaClass.getAnnotation(TokenPolicy::class.java)
+        return this.tag(Invocation::class.java)
+            ?.method()
+            ?.getAnnotation(TokenPolicy::class.java)
     }
 }
 

@@ -1,5 +1,6 @@
-package com.jiyingcao.a51fengliu.api
+package com.jiyingcao.a51fengliu.api.interceptor
 
+import com.jiyingcao.a51fengliu.api.TokenPolicy
 import com.jiyingcao.a51fengliu.api.TokenPolicy.Policy
 import com.jiyingcao.a51fengliu.data.TokenManager
 import okhttp3.Interceptor

@@ -31,9 +31,6 @@ open class ApiException(
         /** 创建异常实例的便捷方法 */
         @JvmStatic
         fun createFromResponse(response: ApiResponse<*>): ApiException {
-            if (response.code == CODE_REMOTE_LOGIN)
-                return RemoteLoginException(response.code, response.msg)
-
             return ApiException(
                 code = response.code,
                 message = response.msg ?: "Unknown API error"

@@ -7,6 +7,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 
@@ -24,9 +25,19 @@ object RemoteLoginManager {
      */
     val remoteLoginCoroutineContext: CoroutineContext get() = _networkScope.coroutineContext
 
-    suspend fun handleRemoteLogin() {
+    /**
+     * 处理远程登录事件
+     *
+     * 改为普通函数（非suspend）以便在OkHttp Interceptor中直接调用，避免使用runBlocking。
+     * 使用AtomicBoolean确保多个并发请求同时返回1003时，只有第一个触发处理逻辑。
+     */
+    fun handleRemoteLogin() {
         if (_isHandlingRemoteLogin.compareAndSet(false, true)) {
-            _remoteLoginEvent.emit(Unit)
+            // 在协程中发送事件
+            _networkScope.launch {
+                _remoteLoginEvent.emit(Unit)
+            }
+            // 取消所有进行中的网络请求
             _networkScope.coroutineContext[Job]?.cancelChildren()
         }
     }

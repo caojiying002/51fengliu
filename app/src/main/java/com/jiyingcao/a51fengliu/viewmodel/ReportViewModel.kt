@@ -121,15 +121,13 @@ class ReportViewModel @AssistedInject constructor(
                                 _effect.send(ReportEffect.ShowToast("图片上传成功"))
                             },
                             onFailure = { e ->
-                                if (!handleFailure(e)) {
-                                    val errorMessage = e.toUserFriendlyMessage()
+                                val errorMessage = e.toUserFriendlyMessage()
 
-                                    _uiState.value = _uiState.value.copy(
-                                        imageUploadState = ImageUploadState.Error(errorMessage)
-                                    )
-                                    
-                                    _effect.send(ReportEffect.ShowToast("图片上传失败：$errorMessage"))
-                                }
+                                _uiState.value = _uiState.value.copy(
+                                    imageUploadState = ImageUploadState.Error(errorMessage)
+                                )
+
+                                _effect.send(ReportEffect.ShowToast("图片上传失败：$errorMessage"))
                             }
                         )
                 }
@@ -175,25 +173,22 @@ class ReportViewModel @AssistedInject constructor(
                             _effect.send(ReportEffect.DismissDialog)
                         }
                         is ApiResult.ApiError -> {
-                            // 先检查通用错误（如远程登录）
-                            if (!handleApiResultFailure(result)) {
-                                // 检查是否为字段验证错误 (code=0 且 data 是 Map)
-                                val errorMessage = if (result.code == 0 && result.data is Map<*, *>) {
-                                    @Suppress("UNCHECKED_CAST")
-                                    val fieldErrors = result.data as Map<String, String>
-                                    // 优先处理内容错误，其次处理图片错误，最后使用通用错误信息
-                                    fieldErrors["content"] ?: fieldErrors["picture"] ?: result.message
-                                } else {
-                                    // 通用业务错误
-                                    result.message
-                                }
-
-                                _uiState.value = _uiState.value.copy(
-                                    submitState = SubmitState.Error(errorMessage)
-                                )
-
-                                _effect.send(ReportEffect.ShowToast("举报提交失败：$errorMessage"))
+                            // 检查是否为字段验证错误 (code=0 且 data 是 Map)
+                            val errorMessage = if (result.code == 0 && result.data is Map<*, *>) {
+                                @Suppress("UNCHECKED_CAST")
+                                val fieldErrors = result.data as Map<String, String>
+                                // 优先处理内容错误，其次处理图片错误，最后使用通用错误信息
+                                fieldErrors["content"] ?: fieldErrors["picture"] ?: result.message
+                            } else {
+                                // 通用业务错误
+                                result.message
                             }
+
+                            _uiState.value = _uiState.value.copy(
+                                submitState = SubmitState.Error(errorMessage)
+                            )
+
+                            _effect.send(ReportEffect.ShowToast("举报提交失败：$errorMessage"))
                         }
                         is ApiResult.NetworkError -> {
                             // 网络错误

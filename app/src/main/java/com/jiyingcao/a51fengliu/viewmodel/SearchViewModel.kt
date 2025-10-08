@@ -183,9 +183,7 @@ class SearchViewModel @Inject constructor(
                 updateUiStateToSuccess(page, pageData.records, pageData.noMoreData(), loadingType)
             }
             .onFailure { e ->
-                if (!handleFailure(e)) { // 通用错误处理
-                    updateUiStateToError(e.toUserFriendlyMessage(), loadingType)
-                }
+                updateUiStateToError(e.toUserFriendlyMessage(), loadingType)
                 AppLogger.w(TAG, "网络请求失败: ", e)
             }
     }

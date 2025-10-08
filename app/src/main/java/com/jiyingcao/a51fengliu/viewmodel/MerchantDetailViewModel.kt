@@ -191,11 +191,7 @@ class MerchantDetailViewModel @AssistedInject constructor(
                 updateUiStateToSuccess(result.data)
             }
             is ApiResult.ApiError -> {
-                // 先检查是否为通用错误（如远程登录）
-                if (!handleApiResultFailure(result)) {
-                    // 不是通用错误，显示具体错误信息
-                    updateUiStateToError(result.message, loadingType)
-                }
+                updateUiStateToError(result.message, loadingType)
             }
             is ApiResult.NetworkError -> {
                 updateUiStateToError(result.getErrorMessage("网络连接失败"), loadingType)

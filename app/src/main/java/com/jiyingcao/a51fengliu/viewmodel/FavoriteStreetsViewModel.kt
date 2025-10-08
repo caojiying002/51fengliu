@@ -112,9 +112,7 @@ class FavoriteStreetsViewModel @Inject constructor(
                 updateUiStateToSuccess(page, pageData.records, pageData.noMoreData(), loadingType)
             }
             .onFailure { e ->
-                if (!handleFailure(e)) {    // 通用错误处理(如远程登录), 如果处理过就不用再处理了
-                    updateUiStateToError(e.toUserFriendlyMessage(), loadingType)
-                }
+                updateUiStateToError(e.toUserFriendlyMessage(), loadingType)
                 AppLogger.w(TAG, "获取收藏暗巷失败: ", e)
             }
     }

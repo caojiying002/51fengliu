@@ -103,11 +103,8 @@ class MerchantListViewModel @Inject constructor(
                 updateUiStateToSuccess(page, pageData.records, pageData.noMoreData(), loadingType)
             }
             is ApiResult.ApiError -> {
-                // 先检查通用错误（如远程登录）
-                if (!handleApiResultFailure(result)) {
-                    updateUiStateToError(result.message, loadingType)
-                    AppLogger.w(TAG, "API错误: code=${result.code}, message=${result.message}")
-                }
+                updateUiStateToError(result.message, loadingType)
+                AppLogger.w(TAG, "API错误: code=${result.code}, message=${result.message}")
             }
             is ApiResult.NetworkError -> {
                 val errorMessage = result.getErrorMessage("网络连接失败")

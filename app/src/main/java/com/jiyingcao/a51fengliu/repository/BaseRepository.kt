@@ -180,6 +180,7 @@ inline fun <reified T : Any> apiCallResult(
         }
 
         // 业务失败（服务端返回错误码）
+        // 注意：1003等全局错误码已由BusinessErrorInterceptor处理，这里只需返回ApiError
         if (!apiResponse.isSuccessful()) {
             emit(ApiResult.ApiError(
                 code = apiResponse.code,

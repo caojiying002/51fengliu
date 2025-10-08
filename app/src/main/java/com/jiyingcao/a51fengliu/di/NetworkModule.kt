@@ -3,8 +3,9 @@ package com.jiyingcao.a51fengliu.di
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.jiyingcao.a51fengliu.api.ApiService
-import com.jiyingcao.a51fengliu.api.AuthInterceptor
-import com.jiyingcao.a51fengliu.api.DebugAuthInterceptor
+import com.jiyingcao.a51fengliu.api.interceptor.AuthInterceptor
+import com.jiyingcao.a51fengliu.api.interceptor.BusinessErrorInterceptor
+import com.jiyingcao.a51fengliu.api.interceptor.DebugAuthInterceptor
 import com.jiyingcao.a51fengliu.api.parse.LoginDataTypeAdapter
 import com.jiyingcao.a51fengliu.api.parse.ReportDataTypeAdapter
 import com.jiyingcao.a51fengliu.api.parse.NoDataTypeAdapter
@@ -12,6 +13,7 @@ import com.jiyingcao.a51fengliu.api.response.LoginData
 import com.jiyingcao.a51fengliu.api.response.ReportData
 import com.jiyingcao.a51fengliu.api.response.NoData
 import com.jiyingcao.a51fengliu.config.AppConfig
+import com.jiyingcao.a51fengliu.data.RemoteLoginManager
 import com.jiyingcao.a51fengliu.data.TokenManager
 import dagger.Module
 import dagger.Provides
@@ -54,6 +56,9 @@ object NetworkModule {
                     AuthInterceptor(tokenManager)
                 }
             )
+
+            // 业务错误拦截器：处理全局业务错误码（如1003异地登录）
+            addInterceptor(BusinessErrorInterceptor(RemoteLoginManager))
 
             // Debug环境：按需打印网络日志
             if (AppConfig.Debug.isHttpLoggingEnabled()) {

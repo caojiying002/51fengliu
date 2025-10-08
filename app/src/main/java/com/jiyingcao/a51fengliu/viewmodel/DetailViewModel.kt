@@ -206,9 +206,7 @@ class DetailViewModel @AssistedInject constructor(
                 updateUiStateToSuccess(record)
             }
             .onFailure { e ->
-                if (!handleFailure(e)) { // 通用的错误处理
-                    updateUiStateToError(e.toUserFriendlyMessage(), loadingType)
-                }
+                updateUiStateToError(e.toUserFriendlyMessage(), loadingType)
                 AppLogger.w(TAG, e)
             }
     }
@@ -263,9 +261,7 @@ class DetailViewModel @AssistedInject constructor(
                 }.onFailure { e ->
                     // 网络请求失败，恢复原来的收藏/未收藏状态
                     _uiState.update { it.copy(favoriteProgress = FavoriteProgress.None) }
-                    if (!handleFailure(e)) {
-                        _effect.send(DetailEffect.ShowToast(e.toUserFriendlyMessage()))
-                    }
+                    _effect.send(DetailEffect.ShowToast(e.toUserFriendlyMessage()))
                     AppLogger.w(TAG, e)
                 }
             }

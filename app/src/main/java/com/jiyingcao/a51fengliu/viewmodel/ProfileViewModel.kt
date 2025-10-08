@@ -101,8 +101,7 @@ class ProfileViewModel @Inject constructor(
                     .onSuccess { profile ->
                         _state.value = ProfileState.Success(profile)
                     }.onFailure { e ->
-                        if (!handleFailure(e))  // 通用的错误处理，如果处理过就不用再处理了
-                            _state.value = ProfileState.Error(e.toUserFriendlyMessage())
+                        _state.value = ProfileState.Error(e.toUserFriendlyMessage())
                     }
             }
         }
@@ -121,8 +120,7 @@ class ProfileViewModel @Inject constructor(
                         //_isLoggedIn.value = false // tokenManager.token流会自动触发_isLoggedIn流的赋值，这里不需要手动设置
                         _effect.send(LogoutEffect.ShowToast("已退出登录"))
                     }.onFailure { e ->
-                        if (!handleFailure(e))
-                            _effect.send(LogoutEffect.ShowToast(e.toUserFriendlyMessage()))
+                        _effect.send(LogoutEffect.ShowToast(e.toUserFriendlyMessage()))
                     }
                 }
                 .onCompletion {

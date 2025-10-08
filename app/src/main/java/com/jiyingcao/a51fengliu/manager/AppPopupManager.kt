@@ -1,6 +1,7 @@
 package com.jiyingcao.a51fengliu.manager
 
 import com.jiyingcao.a51fengliu.ActivityManager
+import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
 import com.jiyingcao.a51fengliu.repository.ConfigRepository
 import com.jiyingcao.a51fengliu.ui.dialog.CommonDialog
 import com.jiyingcao.a51fengliu.util.AppLogger
@@ -41,7 +42,7 @@ class AppPopupManager @Inject constructor(
         }
 
         // 请求API获取弹窗配置
-        scope.launch {
+        scope.launch(remoteLoginCoroutineContext) {
             configRepository.getAppPopupNotice()
                 .catch { exception ->
                     AppLogger.e("AppPopupManager", "获取弹窗配置失败", exception)

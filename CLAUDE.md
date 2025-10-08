@@ -42,6 +42,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Repository模式**:
 - `BaseRepository.apiCall()`: 标准化Flow-based API调用封装
 - 所有Repository使用Flow流进行响应式数据流
+- **多态响应特殊处理**: 登录和举报接口的 `data` 字段类型根据业务情况不同，**无法使用** `apiCall()`，必须手动处理
+  - `UserRepository.login()`: `LoginData.Success`(token字符串) 或 `LoginData.Error`(字段错误Map)
+  - `RecordRepository.report()`: `ReportData.Success`(空字符串) 或 `ReportData.Error`(字段错误Map)
+  - 参见 `LoginData.kt` 和 `ReportData.kt` 的注释和响应示例
+  - ViewModel层判断字段验证错误：检查 `result.data is Map<*, *>`（不需要检查code值）
 
 **ViewModel层(MVI)**:
 - 单一`UiState`数据类包含所有UI状态
@@ -110,9 +115,9 @@ _uiState.update { currentState ->
 ```
 
 **异常处理**:
-- `BaseViewModel.handleFailure()` 扩展统一错误处理
-- `RemoteLoginException` 触发全局登出流程
+- 全局错误码（如1003异地登录）由 `BusinessErrorInterceptor` 在网络层统一拦截处理
 - 领域特定异常在`/domain/exception/`目录
+- **多态响应的字段验证错误**：登录/举报接口返回 `ApiResult.ApiError`，`data` 字段包含 `Map<String, String>` 错误详情
 
 ### 混合UI架构
 

@@ -81,8 +81,8 @@ class LoginViewModel @Inject constructor(
                             _effect.send(LoginEffect.NavigateToMain)
                         }
                         is ApiResult.ApiError -> {
-                            // 检查是否为字段验证错误 (code=0 且 data 是 Map)
-                            val errorType = if (result.code == 0 && result.data is Map<*, *>) {
+                            // 检查是否为字段验证错误 (data 是 Map)
+                            val errorType = if (result.data is Map<*, *>) {
                                 @Suppress("UNCHECKED_CAST")
                                 val fieldErrors = result.data as Map<String, String>
                                 val nameError = fieldErrors["name"]

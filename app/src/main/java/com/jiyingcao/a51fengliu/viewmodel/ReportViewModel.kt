@@ -173,8 +173,8 @@ class ReportViewModel @AssistedInject constructor(
                             _effect.send(ReportEffect.DismissDialog)
                         }
                         is ApiResult.ApiError -> {
-                            // 检查是否为字段验证错误 (code=0 且 data 是 Map)
-                            val errorMessage = if (result.code == 0 && result.data is Map<*, *>) {
+                            // 检查是否为字段验证错误 (data 是 Map)
+                            val errorMessage = if (result.data is Map<*, *>) {
                                 @Suppress("UNCHECKED_CAST")
                                 val fieldErrors = result.data as Map<String, String>
                                 // 优先处理内容错误，其次处理图片错误，最后使用通用错误信息

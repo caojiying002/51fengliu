@@ -28,14 +28,16 @@ class UserRepository @Inject constructor(
      * 登录
      *
      * ## 多态响应处理
-     * 登录接口的 `data` 字段有两种情况：
-     * - `code=0` + `LoginData.Success`: 返回 `ApiResult.Success(token)`
-     * - `code=0` + `LoginData.Error`: 返回 `ApiResult.ApiError(code=0, message, data=errors)`
-     * - `code!=0`: 返回 `ApiResult.ApiError(code, message)`
+     * 登录接口的 `data` 字段根据业务情况有不同类型：
+     * - `LoginData.Success` (data="token"): 成功 → `ApiResult.Success(token)`
+     * - `LoginData.Error` (data={...}): 字段验证错误 → `ApiResult.ApiError(code, message, data=errors)`
+     *
+     * ## 实际响应示例
+     * - `code=0, data="some.jwt.token"`: 登录成功
+     * - `code=-1, data={password: "请输入正确的密码", name: "请输入正确的用户名或者邮箱"}`: 字段验证错误
      *
      * ## 注意事项
-     * - 字段级验证错误时，`code=0` 但会返回 `ApiError`，`data` 字段包含错误Map
-     * - 调用方可通过检查 `ApiError.code == 0` 和 `data != null` 来识别字段错误
+     * - `code!=0` 错误时返回 `LoginData.Error`，调用方可通过检查 `ApiError.data != null` 来识别字段验证错误
      *
      * @param username 用户名
      * @param password 密码
@@ -58,15 +60,6 @@ class UserRepository @Inject constructor(
                 return@flow
             }
 
-            // 业务失败（通用错误码，如1003远程登录）
-            if (!apiResponse.isSuccessful()) {
-                emit(ApiResult.ApiError(
-                    code = apiResponse.code,
-                    message = apiResponse.msg ?: "Unknown API error"
-                ))
-                return@flow
-            }
-
             // data 不应该为 null（TypeAdapter 保证），此检查仅为 make compiler happy
             val loginData = apiResponse.data
             if (loginData == null) {
@@ -74,17 +67,16 @@ class UserRepository @Inject constructor(
                 return@flow
             }
 
-            // 业务成功（code=0），根据 LoginData 类型处理
+            // 根据 LoginData 类型处理
             when (loginData) {
                 is LoginData.Success -> {
-                    // 真正的成功：返回token
+                    // 成功：返回token
                     emit(ApiResult.Success(loginData.token))
                 }
                 is LoginData.Error -> {
-                    // code=0 但包含字段验证错误
-                    // 用 ApiError 表示，data 字段包含错误信息
+                    // 字段验证错误时，data: Map<String, String> 包含具体字段错误信息
                     emit(ApiResult.ApiError(
-                        code = apiResponse.code,  // code=0
+                        code = apiResponse.code,
                         message = apiResponse.msg ?: "Validation Error",
                         data = loginData.errors  // Map<String, String>
                     ))

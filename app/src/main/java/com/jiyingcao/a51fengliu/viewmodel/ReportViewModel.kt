@@ -4,8 +4,9 @@ import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
-import com.jiyingcao.a51fengliu.domain.exception.ReportException
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
+import com.jiyingcao.a51fengliu.domain.model.ApiResult
+import com.jiyingcao.a51fengliu.util.getErrorMessage
 import com.jiyingcao.a51fengliu.repository.RecordRepository
 import com.jiyingcao.a51fengliu.util.AppLogger
 import dagger.assisted.Assisted
@@ -157,39 +158,62 @@ class ReportViewModel @AssistedInject constructor(
             reason = reason,
             submitState = SubmitState.Submitting
         )
-        
+
         viewModelScope.launch(remoteLoginCoroutineContext) {
             // 使用新状态中的图片URL
             val picture = _uiState.value.uploadedImageUrl.orEmpty()
             repository.report(infoId, reason, picture)
                 .collect { result ->
-                    result.fold(
-                        onSuccess = {
+                    when (result) {
+                        is ApiResult.Success -> {
+                            // 举报成功
                             _uiState.value = _uiState.value.copy(
                                 submitState = SubmitState.Success
                             )
-                            
+
                             _effect.send(ReportEffect.ShowToast("举报已提交，感谢您的反馈"))
                             _effect.send(ReportEffect.DismissDialog)
-                        },
-                        onFailure = { e ->
-                            if (!handleFailure(e)) {
-                                // 处理特定的举报错误
-                                val errorMessage = if (e is ReportException) {
+                        }
+                        is ApiResult.ApiError -> {
+                            // 先检查通用错误（如远程登录）
+                            if (!handleApiResultFailure(result)) {
+                                // 检查是否为字段验证错误 (code=0 且 data 是 Map)
+                                val errorMessage = if (result.code == 0 && result.data is Map<*, *>) {
+                                    @Suppress("UNCHECKED_CAST")
+                                    val fieldErrors = result.data as Map<String, String>
                                     // 优先处理内容错误，其次处理图片错误，最后使用通用错误信息
-                                    e.errors["content"] ?: e.errors["picture"] ?: e.toUserFriendlyMessage()
+                                    fieldErrors["content"] ?: fieldErrors["picture"] ?: result.message
                                 } else {
-                                    e.toUserFriendlyMessage()
+                                    // 通用业务错误
+                                    result.message
                                 }
 
                                 _uiState.value = _uiState.value.copy(
                                     submitState = SubmitState.Error(errorMessage)
                                 )
-                                
+
                                 _effect.send(ReportEffect.ShowToast("举报提交失败：$errorMessage"))
                             }
                         }
-                    )
+                        is ApiResult.NetworkError -> {
+                            // 网络错误
+                            val errorMessage = result.getErrorMessage("网络连接失败")
+                            _uiState.value = _uiState.value.copy(
+                                submitState = SubmitState.Error(errorMessage)
+                            )
+
+                            _effect.send(ReportEffect.ShowToast("举报提交失败：$errorMessage"))
+                        }
+                        is ApiResult.UnknownError -> {
+                            // 未知错误
+                            val errorMessage = result.getErrorMessage("未知错误")
+                            _uiState.value = _uiState.value.copy(
+                                submitState = SubmitState.Error(errorMessage)
+                            )
+
+                            _effect.send(ReportEffect.ShowToast("举报提交失败：$errorMessage"))
+                        }
+                    }
                 }
         }
     }

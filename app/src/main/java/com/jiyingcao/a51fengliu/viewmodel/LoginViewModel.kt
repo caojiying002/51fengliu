@@ -3,8 +3,8 @@ package com.jiyingcao.a51fengliu.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.data.TokenManager
-import com.jiyingcao.a51fengliu.domain.exception.LoginException
-import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
+import com.jiyingcao.a51fengliu.domain.model.ApiResult
+import com.jiyingcao.a51fengliu.util.getErrorMessage
 import com.jiyingcao.a51fengliu.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -72,31 +72,41 @@ class LoginViewModel @Inject constructor(
             _state.value = LoginState.Loading
             repository.login(username, password)
                 .collect { result ->
-                    result.onSuccess { token ->
-                        tokenManager.saveToken(token)
-                        _state.value = LoginState.Success(token)
-                        _effect.send(LoginEffect.NavigateToMain)
-                    }.onFailure { e ->
-                        when (e) {
-                            is LoginException -> {
-                                // 处理特定的登录错误
-                                val nameError = e.errors["name"]
-                                val passwordError = e.errors["password"]
-
-                                val errorType = if (nameError != null || passwordError != null) {
-                                    LoginErrorType.NamePassword(nameError, passwordError)
-                                } else {
-                                    LoginErrorType.UnknownError(e.toUserFriendlyMessage())
-                                }
-                                _state.value = LoginState.Error(errorType, e.code)
+                    when (result) {
+                        is ApiResult.Success -> {
+                            // 登录成功
+                            val token = result.data
+                            tokenManager.saveToken(token)
+                            _state.value = LoginState.Success(token)
+                            _effect.send(LoginEffect.NavigateToMain)
+                        }
+                        is ApiResult.ApiError -> {
+                            // 检查是否为字段验证错误 (code=0 且 data 是 Map)
+                            val errorType = if (result.code == 0 && result.data is Map<*, *>) {
+                                @Suppress("UNCHECKED_CAST")
+                                val fieldErrors = result.data as Map<String, String>
+                                val nameError = fieldErrors["name"]
+                                val passwordError = fieldErrors["password"]
+                                LoginErrorType.NamePassword(nameError, passwordError)
+                            } else {
+                                // 通用业务错误
+                                LoginErrorType.UnknownError(result.message)
                             }
-                            else -> {
-                                // 处理其他错误
-                                _state.value = LoginState.Error(
-                                    errorType = LoginErrorType.UnknownError(e.toUserFriendlyMessage()),
-                                    code = -999,
-                                )
-                            }
+                            _state.value = LoginState.Error(errorType, result.code)
+                        }
+                        is ApiResult.NetworkError -> {
+                            // 网络错误
+                            _state.value = LoginState.Error(
+                                errorType = LoginErrorType.UnknownError(result.getErrorMessage("网络连接失败")),
+                                code = -999,
+                            )
+                        }
+                        is ApiResult.UnknownError -> {
+                            // 未知错误
+                            _state.value = LoginState.Error(
+                                errorType = LoginErrorType.UnknownError(result.getErrorMessage("未知错误")),
+                                code = -999,
+                            )
                         }
                     }
                 }

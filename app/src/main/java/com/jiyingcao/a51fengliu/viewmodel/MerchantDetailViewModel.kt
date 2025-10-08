@@ -6,7 +6,9 @@ import com.jiyingcao.a51fengliu.data.LoginStateManager
 import com.jiyingcao.a51fengliu.data.LoginEvent
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
 import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
+import com.jiyingcao.a51fengliu.domain.model.ApiResult
 import com.jiyingcao.a51fengliu.repository.MerchantRepository
+import com.jiyingcao.a51fengliu.util.getErrorMessage
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -169,6 +171,7 @@ class MerchantDetailViewModel @AssistedInject constructor(
             // 更新加载状态
             updateUiStateToLoading(loadingType)
 
+            // 使用新的ApiResult版本
             repository.getMerchantDetail(merchantId)
                 .collect { result ->
                     handleDataResult(result, loadingType)
@@ -176,19 +179,31 @@ class MerchantDetailViewModel @AssistedInject constructor(
         }
     }
 
+    /**
+     * 处理ApiResult结果
+     */
     private suspend fun handleDataResult(
-        result: Result<Merchant?>,
+        result: ApiResult<Merchant>,
         loadingType: LoadingType
     ) {
-        result.mapCatching { requireNotNull(it) }
-            .onSuccess { merchant ->
-                updateUiStateToSuccess(merchant)
+        when (result) {
+            is ApiResult.Success -> {
+                updateUiStateToSuccess(result.data)
             }
-            .onFailure { e ->
-                if (!handleFailure(e)) { // 通用错误处理，如果处理过就不用再处理了
-                    updateUiStateToError(e.toUserFriendlyMessage(), loadingType)
+            is ApiResult.ApiError -> {
+                // 先检查是否为通用错误（如远程登录）
+                if (!handleApiResultFailure(result)) {
+                    // 不是通用错误，显示具体错误信息
+                    updateUiStateToError(result.message, loadingType)
                 }
             }
+            is ApiResult.NetworkError -> {
+                updateUiStateToError(result.getErrorMessage("网络连接失败"), loadingType)
+            }
+            is ApiResult.UnknownError -> {
+                updateUiStateToError(result.getErrorMessage("未知错误"), loadingType)
+            }
+        }
     }
 
     private fun initialLoad() {

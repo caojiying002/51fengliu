@@ -4,9 +4,10 @@ import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.api.response.Merchant
 import com.jiyingcao.a51fengliu.api.response.PageData
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
-import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
+import com.jiyingcao.a51fengliu.domain.model.ApiResult
 import com.jiyingcao.a51fengliu.repository.MerchantRepository
 import com.jiyingcao.a51fengliu.util.AppLogger
+import com.jiyingcao.a51fengliu.util.getErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
@@ -83,31 +84,42 @@ class MerchantListViewModel @Inject constructor(
         fetchJob = viewModelScope.launch(remoteLoginCoroutineContext) {
             // 更新加载状态
             updateUiStateToLoading(loadingType)
-            
+
             repository.getMerchants(page)
-                .onEach { result -> 
+                .collect { result ->
                     handleDataResult(page, result, loadingType)
                 }
-                .onCompletion { fetchJob = null }
-                .collect()
         }
     }
-    
+
     private suspend fun handleDataResult(
         page: Int,
-        result: Result<PageData<Merchant>?>,
+        result: ApiResult<PageData<Merchant>>,
         loadingType: LoadingType
     ) {
-        result.mapCatching { requireNotNull(it) }
-            .onSuccess { pageData ->
+        when (result) {
+            is ApiResult.Success -> {
+                val pageData = result.data
                 updateUiStateToSuccess(page, pageData.records, pageData.noMoreData(), loadingType)
             }
-            .onFailure { e ->
-                if (!handleFailure(e)) {    // 通用错误处理(如远程登录), 如果处理过就不用再处理了
-                    updateUiStateToError(e.toUserFriendlyMessage(), loadingType)
+            is ApiResult.ApiError -> {
+                // 先检查通用错误（如远程登录）
+                if (!handleApiResultFailure(result)) {
+                    updateUiStateToError(result.message, loadingType)
+                    AppLogger.w(TAG, "API错误: code=${result.code}, message=${result.message}")
                 }
-                AppLogger.w(TAG, "网络请求失败: ", e)
             }
+            is ApiResult.NetworkError -> {
+                val errorMessage = result.getErrorMessage("网络连接失败")
+                updateUiStateToError(errorMessage, loadingType)
+                AppLogger.w(TAG, "网络错误: ", result.exception)
+            }
+            is ApiResult.UnknownError -> {
+                val errorMessage = result.getErrorMessage("未知错误")
+                updateUiStateToError(errorMessage, loadingType)
+                AppLogger.w(TAG, "未知错误: ", result.exception)
+            }
+        }
     }
 
     private fun retry() {

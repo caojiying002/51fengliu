@@ -3,7 +3,9 @@ package com.jiyingcao.a51fengliu.viewmodel
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.CancellationException
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager
+import com.jiyingcao.a51fengliu.domain.exception.ApiException
 import com.jiyingcao.a51fengliu.domain.exception.RemoteLoginException
+import com.jiyingcao.a51fengliu.domain.model.ApiResult
 
 abstract class BaseViewModel : ViewModel() {
     /**
@@ -29,5 +31,31 @@ suspend fun ViewModel.handleFailure(e: Throwable): Boolean {
             true
         }
         else -> false
+    }
+}
+
+/**
+ * 处理ApiResult中的通用错误
+ *
+ * 目前处理：
+ * - 远程登录错误（code=1003）
+ *
+ * @param result API调用结果
+ * @return true表示错误已处理，false表示需要业务层继续处理
+ */
+suspend fun <T> ViewModel.handleApiResultFailure(result: ApiResult<T>): Boolean {
+    return when (result) {
+        is ApiResult.Success -> false
+        is ApiResult.ApiError -> {
+            // 检查是否为远程登录错误
+            if (result.code == ApiException.CODE_REMOTE_LOGIN) {
+                RemoteLoginManager.handleRemoteLogin()
+                true
+            } else {
+                false
+            }
+        }
+        is ApiResult.NetworkError,
+        is ApiResult.UnknownError -> false
     }
 }

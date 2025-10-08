@@ -1,5 +1,7 @@
 package com.jiyingcao.a51fengliu.repository
 
+import com.google.gson.JsonParseException
+import com.google.gson.stream.MalformedJsonException
 import com.jiyingcao.a51fengliu.api.ApiService
 import com.jiyingcao.a51fengliu.api.request.InfoIdRequest
 import com.jiyingcao.a51fengliu.api.request.RecordsRequest
@@ -7,10 +9,9 @@ import com.jiyingcao.a51fengliu.api.request.ReportRequest
 import com.jiyingcao.a51fengliu.api.response.PageData
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.api.response.ReportData
-import com.jiyingcao.a51fengliu.domain.exception.ApiException
 import com.jiyingcao.a51fengliu.domain.exception.HttpEmptyResponseException
 import com.jiyingcao.a51fengliu.domain.exception.MissingDataException
-import com.jiyingcao.a51fengliu.domain.exception.ReportException
+import com.jiyingcao.a51fengliu.domain.model.ApiResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -20,8 +21,10 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import retrofit2.HttpException
 import java.io.File
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.cancellation.CancellationException
 
 @Singleton
 class RecordRepository @Inject constructor(
@@ -88,62 +91,86 @@ class RecordRepository @Inject constructor(
     /**
      * 提交举报
      *
-     * 注意：此方法**无法使用** [BaseRepository.apiCallStrict]，原因如下：
-     * 1. 需要将 [ReportData.Error] 转换为 [ReportException] 以携带字段级错误信息
+     * ## 多态响应处理
+     * 举报接口的 `data` 字段有两种情况：
+     * - `code=0` + `ReportData.Success`: 返回 `ApiResult.Success(Unit)`
+     * - `code=0` + `ReportData.Error`: 返回 `ApiResult.ApiError(code=0, message, data=errors)`
+     * - `code!=0`: 返回 `ApiResult.ApiError(code, message)`
      *
-     * **重要**：此方法的错误处理逻辑参考自 [BaseRepository.apiCallStrict]。
-     * 如果未来修改 apiCallStrict 的逻辑（如增加新的错误处理），需要同步修改此方法。
+     * ## 注意事项
+     * - 字段级验证错误时，`code=0` 但会返回 `ApiError`，`data` 字段包含错误Map
+     * - 调用方可通过检查 `ApiError.code == 0` 和 `data != null` 来识别字段错误
      *
      * @param infoId Record ID
      * @param content 举报内容
      * @param picture 图片URL（相对路径，不包含BASE_URL）
-     * @return Flow<Result<*>> 表示举报成功或失败的结果流
+     * @return Flow<ApiResult<Unit>> 成功时返回Unit
      */
-    fun report(infoId: String, content: String, picture: String = ""): Flow<Result<*>> = flow {
+    fun report(infoId: String, content: String, picture: String = ""): Flow<ApiResult<Unit>> = flow {
         try {
             val httpResponse = apiService.postReport(ReportRequest(infoId, content, picture))
+
+            // HTTP错误（非2xx）
             if (!httpResponse.isSuccessful) {
-                emit(Result.failure(HttpException(httpResponse)))
+                emit(ApiResult.NetworkError(HttpException(httpResponse)))
                 return@flow
             }
 
+            // HTTP响应体为空
             val apiResponse = httpResponse.body()
             if (apiResponse == null) {
-                emit(Result.failure(HttpEmptyResponseException()))
+                emit(ApiResult.NetworkError(HttpEmptyResponseException()))
                 return@flow
             }
 
-            // 优先检查通用错误码（如 1003 远程登录等）
+            // 业务失败（通用错误码，如1003远程登录）
             if (!apiResponse.isSuccessful()) {
-                emit(Result.failure(ApiException.createFromResponse(apiResponse)))
+                emit(ApiResult.ApiError(
+                    code = apiResponse.code,
+                    message = apiResponse.msg ?: "Unknown API error"
+                ))
                 return@flow
             }
 
             // data 不应该为 null（TypeAdapter 保证），此检查仅为 make compiler happy
             val reportData = apiResponse.data
             if (reportData == null) {
-                emit(Result.failure(MissingDataException()))
+                emit(ApiResult.NetworkError(MissingDataException()))
                 return@flow
             }
 
             // 业务成功（code=0），根据 ReportData 类型处理
             when (reportData) {
                 is ReportData.Success -> {
-                    emit(Result.success(Unit))
+                    // 真正的成功：返回Unit
+                    emit(ApiResult.Success(Unit))
                 }
                 is ReportData.Error -> {
-                    // code=0 但 data 是 Error 类型，包含字段验证错误
-                    emit(Result.failure(
-                        ReportException(
-                            code = apiResponse.code,
-                            message = apiResponse.msg,
-                            errors = reportData.errors
-                        )
+                    // code=0 但包含字段验证错误
+                    // 用 ApiError 表示，data 字段包含错误信息
+                    emit(ApiResult.ApiError(
+                        code = apiResponse.code,  // code=0
+                        message = apiResponse.msg ?: "Validation Error",
+                        data = reportData.errors  // Map<String, String>
                     ))
                 }
             }
+
+        } catch (e: CancellationException) {
+            // 重要：重新抛出CancellationException以保持协程取消机制
+            throw e
+        } catch (e: IOException) {
+            // 网络异常（包括连接失败、超时等）
+            emit(ApiResult.NetworkError(e))
+        } catch (e: JsonParseException) {
+            // Gson JSON解析异常
+            emit(ApiResult.NetworkError(e))
+        } catch (e: MalformedJsonException) {
+            // Gson JSON格式错误
+            emit(ApiResult.NetworkError(e))
         } catch (e: Exception) {
-            emit(Result.failure(e))
+            // 其他未预期的异常
+            emit(ApiResult.UnknownError(e))
         }
     }.flowOn(Dispatchers.IO)
 }

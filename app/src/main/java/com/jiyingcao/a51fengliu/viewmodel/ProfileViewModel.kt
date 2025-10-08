@@ -5,8 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.api.response.Profile
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
 import com.jiyingcao.a51fengliu.data.TokenManager
-import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
+import com.jiyingcao.a51fengliu.domain.model.ApiResult
 import com.jiyingcao.a51fengliu.repository.UserRepository
+import com.jiyingcao.a51fengliu.util.getErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -97,12 +98,20 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch(remoteLoginCoroutineContext) {
             _state.value = ProfileState.Loading
             repository.getProfile().collect { result ->
-                result.mapCatching { requireNotNull(it) }
-                    .onSuccess { profile ->
-                        _state.value = ProfileState.Success(profile)
-                    }.onFailure { e ->
-                        _state.value = ProfileState.Error(e.toUserFriendlyMessage())
+                when (result) {
+                    is ApiResult.Success -> {
+                        _state.value = ProfileState.Success(result.data)
                     }
+                    is ApiResult.ApiError -> {
+                        _state.value = ProfileState.Error(result.message)
+                    }
+                    is ApiResult.NetworkError -> {
+                        _state.value = ProfileState.Error(result.getErrorMessage("网络连接失败"))
+                    }
+                    is ApiResult.UnknownError -> {
+                        _state.value = ProfileState.Error(result.getErrorMessage("未知错误"))
+                    }
+                }
             }
         }
     }
@@ -115,12 +124,21 @@ class ProfileViewModel @Inject constructor(
 
             repository.logout()
                 .onEach { result ->
-                    result.onSuccess {
-                        tokenManager.clearToken()
-                        //_isLoggedIn.value = false // tokenManager.token流会自动触发_isLoggedIn流的赋值，这里不需要手动设置
-                        _effect.send(LogoutEffect.ShowToast("已退出登录"))
-                    }.onFailure { e ->
-                        _effect.send(LogoutEffect.ShowToast(e.toUserFriendlyMessage()))
+                    when (result) {
+                        is ApiResult.Success -> {
+                            tokenManager.clearToken()
+                            //_isLoggedIn.value = false // tokenManager.token流会自动触发_isLoggedIn流的赋值，这里不需要手动设置
+                            _effect.send(LogoutEffect.ShowToast("已退出登录"))
+                        }
+                        is ApiResult.ApiError -> {
+                            _effect.send(LogoutEffect.ShowToast(result.message))
+                        }
+                        is ApiResult.NetworkError -> {
+                            _effect.send(LogoutEffect.ShowToast(result.getErrorMessage("网络连接失败")))
+                        }
+                        is ApiResult.UnknownError -> {
+                            _effect.send(LogoutEffect.ShowToast(result.getErrorMessage("未知错误")))
+                        }
                     }
                 }
                 .onCompletion {

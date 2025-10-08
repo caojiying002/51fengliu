@@ -18,7 +18,7 @@ class MerchantRepository @Inject constructor(
      * @param page 页码，默认从1开始
      * @return Flow<ApiResult<PageData<Merchant>>> 包含商家列表的结果流
      */
-    fun getMerchants(page: Int = 1): Flow<ApiResult<PageData<Merchant>>> = apiCallResult {
+    fun getMerchants(page: Int = 1): Flow<ApiResult<PageData<Merchant>>> = apiCall {
         apiService.getMerchants(page)
     }
 
@@ -27,7 +27,7 @@ class MerchantRepository @Inject constructor(
      * @param id 商家ID
      * @return Flow<ApiResult<Merchant>> 包含商家详情的结果流
      */
-    fun getMerchantDetail(id: String): Flow<ApiResult<Merchant>> = apiCallResult {
+    fun getMerchantDetail(id: String): Flow<ApiResult<Merchant>> = apiCall {
         apiService.getMerchantDetail(id)
     }
 }

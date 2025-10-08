@@ -45,7 +45,7 @@ package com.jiyingcao.a51fengliu.api.response
  * - 失败: `data` 是字段错误 Map 或 null
  *
  * ## 特殊处理
- * 由于多态性，举报接口**无法使用** [com.jiyingcao.a51fengliu.repository.apiCallStrict]，
+ * 由于多态性，举报接口**无法使用** [com.jiyingcao.a51fengliu.repository.apiCall]，
  * 需要在 Repository 层手动处理，参见 [com.jiyingcao.a51fengliu.repository.RecordRepository.report]
  *
  * @see com.jiyingcao.a51fengliu.api.parse.ReportDataTypeAdapter 自定义反序列化器

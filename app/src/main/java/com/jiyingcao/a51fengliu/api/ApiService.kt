@@ -115,12 +115,12 @@ interface ApiService {
     /**
      * 用户退出登录
      * 注销当前用户会话
-     * 
+     *
      * @return 表示退出登录成功或失败的响应
      */
     @TokenPolicy(Policy.REQUIRED)
     @POST(ApiEndpoints.Auth.LOGOUT)
-    suspend fun postLogout(): Response<ApiResponse<Nothing>>
+    suspend fun postLogout(): Response<ApiResponse<NoData>>
 
     // ========== 用户个人资料相关接口 ==========
 
@@ -268,7 +268,7 @@ interface ApiService {
     /**
      * 收藏暗巷
      * 需要用户登录状态，已收藏会报错（code=-2，msg=\"已经收藏过了\"）
-     * 
+     *
      * @param body 包含暗巷ID的请求体
      * @return 收藏操作结果
      */
@@ -276,12 +276,12 @@ interface ApiService {
     @POST(ApiEndpoints.Street.FAVORITE)
     suspend fun postStreetFavorite(
         @Body body: StreetIdRequest
-    ): Response<ApiResponse<Nothing>>
+    ): Response<ApiResponse<NoData>>
 
     /**
      * 取消收藏暗巷
      * 需要用户登录状态，未收藏会报错（code=-2，msg=\"Failed\"）
-     * 
+     *
      * @param body 包含暗巷ID的请求体
      * @return 取消收藏操作结果
      */
@@ -289,5 +289,5 @@ interface ApiService {
     @POST(ApiEndpoints.Street.UNFAVORITE)
     suspend fun postStreetUnfavorite(
         @Body body: StreetIdRequest
-    ): Response<ApiResponse<Nothing>>
+    ): Response<ApiResponse<NoData>>
 }

@@ -4,7 +4,6 @@ import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.App
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
-import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
 import com.jiyingcao.a51fengliu.domain.model.ApiResult
 import com.jiyingcao.a51fengliu.util.getErrorMessage
 import com.jiyingcao.a51fengliu.repository.RecordRepository
@@ -110,26 +109,39 @@ class ReportViewModel @AssistedInject constructor(
         viewModelScope.launch(remoteLoginCoroutineContext) {
             repository.uploadImage(file)
                 .collect { result ->
-                    result.mapCatching { requireNotNull(it) }
-                        .fold(
-                            onSuccess = { url ->
-                                _uiState.value = _uiState.value.copy(
-                                    uploadedImageUrl = url,
-                                    imageUploadState = ImageUploadState.Success(url)
-                                )
-                                
-                                _effect.send(ReportEffect.ShowToast("图片上传成功"))
-                            },
-                            onFailure = { e ->
-                                val errorMessage = e.toUserFriendlyMessage()
+                    when (result) {
+                        is ApiResult.Success -> {
+                            _uiState.value = _uiState.value.copy(
+                                uploadedImageUrl = result.data,
+                                imageUploadState = ImageUploadState.Success(result.data)
+                            )
 
-                                _uiState.value = _uiState.value.copy(
-                                    imageUploadState = ImageUploadState.Error(errorMessage)
-                                )
+                            _effect.send(ReportEffect.ShowToast("图片上传成功"))
+                        }
+                        is ApiResult.ApiError -> {
+                            _uiState.value = _uiState.value.copy(
+                                imageUploadState = ImageUploadState.Error(result.message)
+                            )
 
-                                _effect.send(ReportEffect.ShowToast("图片上传失败：$errorMessage"))
-                            }
-                        )
+                            _effect.send(ReportEffect.ShowToast("图片上传失败：${result.message}"))
+                        }
+                        is ApiResult.NetworkError -> {
+                            val errorMessage = result.getErrorMessage("网络连接失败")
+                            _uiState.value = _uiState.value.copy(
+                                imageUploadState = ImageUploadState.Error(errorMessage)
+                            )
+
+                            _effect.send(ReportEffect.ShowToast("图片上传失败：$errorMessage"))
+                        }
+                        is ApiResult.UnknownError -> {
+                            val errorMessage = result.getErrorMessage("未知错误")
+                            _uiState.value = _uiState.value.copy(
+                                imageUploadState = ImageUploadState.Error(errorMessage)
+                            )
+
+                            _effect.send(ReportEffect.ShowToast("图片上传失败：$errorMessage"))
+                        }
+                    }
                 }
         }
     }

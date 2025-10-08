@@ -4,9 +4,9 @@ import androidx.lifecycle.viewModelScope
 import com.jiyingcao.a51fengliu.api.response.PageData
 import com.jiyingcao.a51fengliu.api.response.Street
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
-import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
+import com.jiyingcao.a51fengliu.domain.model.ApiResult
 import com.jiyingcao.a51fengliu.repository.StreetRepository
-import com.jiyingcao.a51fengliu.util.AppLogger
+import com.jiyingcao.a51fengliu.util.getErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
@@ -104,17 +104,23 @@ class FavoriteStreetsViewModel @Inject constructor(
     
     private suspend fun handleDataResult(
         page: Int,
-        result: Result<PageData<Street>?>,
+        result: ApiResult<PageData<Street>>,
         loadingType: LoadingType
     ) {
-        result.mapCatching { requireNotNull(it) }
-            .onSuccess { pageData ->
-                updateUiStateToSuccess(page, pageData.records, pageData.noMoreData(), loadingType)
+        when (result) {
+            is ApiResult.Success -> {
+                updateUiStateToSuccess(page, result.data.records, result.data.noMoreData(), loadingType)
             }
-            .onFailure { e ->
-                updateUiStateToError(e.toUserFriendlyMessage(), loadingType)
-                AppLogger.w(TAG, "获取收藏暗巷失败: ", e)
+            is ApiResult.ApiError -> {
+                updateUiStateToError(result.message, loadingType)
             }
+            is ApiResult.NetworkError -> {
+                updateUiStateToError(result.getErrorMessage("网络连接失败"), loadingType)
+            }
+            is ApiResult.UnknownError -> {
+                updateUiStateToError(result.getErrorMessage("未知错误"), loadingType)
+            }
+        }
     }
 
     // ===== 专门的UI状态更新方法 =====

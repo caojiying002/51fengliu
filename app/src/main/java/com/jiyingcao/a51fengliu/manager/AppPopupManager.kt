@@ -2,6 +2,7 @@ package com.jiyingcao.a51fengliu.manager
 
 import com.jiyingcao.a51fengliu.ActivityManager
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
+import com.jiyingcao.a51fengliu.domain.model.ApiResult
 import com.jiyingcao.a51fengliu.repository.ConfigRepository
 import com.jiyingcao.a51fengliu.ui.dialog.CommonDialog
 import com.jiyingcao.a51fengliu.util.AppLogger
@@ -48,29 +49,39 @@ class AppPopupManager @Inject constructor(
                     AppLogger.e("AppPopupManager", "获取弹窗配置失败", exception)
                 }
                 .collect { result ->
-                    result.onSuccess { popupNotice ->
-                        AppLogger.d("AppPopupManager", "获取弹窗配置成功: enable=${popupNotice.enable}, title=${popupNotice.title}")
+                    when (result) {
+                        is ApiResult.Success -> {
+                            val popupNotice = result.data
+                            AppLogger.d("AppPopupManager", "获取弹窗配置成功: enable=${popupNotice.enable}, title=${popupNotice.title}")
 
-                        // 检查是否启用弹窗
-                        if (popupNotice.enable != true) {
-                            AppLogger.d("AppPopupManager", "弹窗未启用，跳过显示")
-                            return@onSuccess
+                            // 检查是否启用弹窗
+                            if (popupNotice.enable != true) {
+                                AppLogger.d("AppPopupManager", "弹窗未启用，跳过显示")
+                                return@collect
+                            }
+
+                            // 检查内容是否为空
+                            val content = popupNotice.content
+                            if (content.isNullOrBlank()) {
+                                AppLogger.w("AppPopupManager", "弹窗内容为空，跳过显示")
+                                return@collect
+                            }
+
+                            // 显示弹窗
+                            showPopupDialog(
+                                title = popupNotice.title,
+                                content = content
+                            )
                         }
-
-                        // 检查内容是否为空
-                        val content = popupNotice.content
-                        if (content.isNullOrBlank()) {
-                            AppLogger.w("AppPopupManager", "弹窗内容为空，跳过显示")
-                            return@onSuccess
+                        is ApiResult.ApiError -> {
+                            AppLogger.e("AppPopupManager", "获取弹窗配置失败: ${result.message}")
                         }
-
-                        // 显示弹窗
-                        showPopupDialog(
-                            title = popupNotice.title,
-                            content = content
-                        )
-                    }.onFailure { exception ->
-                        AppLogger.e("AppPopupManager", "处理弹窗配置失败", exception)
+                        is ApiResult.NetworkError -> {
+                            AppLogger.e("AppPopupManager", "获取弹窗配置失败: 网络错误", result.exception)
+                        }
+                        is ApiResult.UnknownError -> {
+                            AppLogger.e("AppPopupManager", "获取弹窗配置失败: 未知错误", result.exception)
+                        }
                     }
                 }
         }

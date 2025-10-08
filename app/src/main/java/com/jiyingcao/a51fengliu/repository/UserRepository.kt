@@ -5,6 +5,7 @@ import com.google.gson.stream.MalformedJsonException
 import com.jiyingcao.a51fengliu.api.ApiService
 import com.jiyingcao.a51fengliu.api.request.LoginRequest
 import com.jiyingcao.a51fengliu.api.response.LoginData
+import com.jiyingcao.a51fengliu.api.response.NoData
 import com.jiyingcao.a51fengliu.api.response.Profile
 import com.jiyingcao.a51fengliu.domain.exception.HttpEmptyResponseException
 import com.jiyingcao.a51fengliu.domain.exception.MissingDataException
@@ -103,17 +104,17 @@ class UserRepository @Inject constructor(
 
     /**
      * 获取个人中心用户信息
-     * @return Flow<Result<Profile>> 包含用户信息的结果流
+     * @return Flow<ApiResult<Profile>> 包含用户信息的结果流
      */
-    fun getProfile(): Flow<Result<Profile?>> = apiCall {
+    fun getProfile(): Flow<ApiResult<Profile>> = apiCall {
         apiService.getProfile()
     }
 
     /**
      * 退出登录（注销）
-     * @return Flow<Result<*> 表示注销成功或失败的结果流
+     * @return Flow<ApiResult<NoData>> 表示注销成功或失败的结果流
      */
-    fun logout(): Flow<Result<*>> = apiCall {
+    fun logout(): Flow<ApiResult<NoData>> = apiCall {
         apiService.postLogout()
     }
 }

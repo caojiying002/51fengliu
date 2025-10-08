@@ -7,9 +7,9 @@ import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
 import com.jiyingcao.a51fengliu.data.LoginStateManager
 import com.jiyingcao.a51fengliu.data.LoginEvent
-import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
+import com.jiyingcao.a51fengliu.domain.model.ApiResult
 import com.jiyingcao.a51fengliu.repository.RecordRepository
-import com.jiyingcao.a51fengliu.util.AppLogger
+import com.jiyingcao.a51fengliu.util.getErrorMessage
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -197,18 +197,27 @@ class DetailViewModel @AssistedInject constructor(
         }
     }
 
+    /**
+     * 处理ApiResult结果
+     */
     private suspend fun handleDataResult(
-        result: Result<RecordInfo?>,
+        result: ApiResult<RecordInfo>,
         loadingType: LoadingType
     ) {
-        result.mapCatching { requireNotNull(it) }
-            .onSuccess { record ->
-                updateUiStateToSuccess(record)
+        when (result) {
+            is ApiResult.Success -> {
+                updateUiStateToSuccess(result.data)
             }
-            .onFailure { e ->
-                updateUiStateToError(e.toUserFriendlyMessage(), loadingType)
-                AppLogger.w(TAG, e)
+            is ApiResult.ApiError -> {
+                updateUiStateToError(result.message, loadingType)
             }
+            is ApiResult.NetworkError -> {
+                updateUiStateToError(result.getErrorMessage("网络连接失败"), loadingType)
+            }
+            is ApiResult.UnknownError -> {
+                updateUiStateToError(result.getErrorMessage("未知错误"), loadingType)
+            }
+        }
     }
 
     private fun pullToRefresh() {
@@ -247,22 +256,32 @@ class DetailViewModel @AssistedInject constructor(
             val toggleFavoriteFlow =
                 if (wasFavorited) repository.unfavorite(infoId) else repository.favorite(infoId)
             toggleFavoriteFlow.collect { result ->
-                result.onSuccess {
-                    // 网络请求成功，更新record中的收藏/未收藏状态，清除进行中状态
-                    val updatedRecord = record.copy(isFavorite = !wasFavorited)
-                    _uiState.update { currentState ->
-                        currentState.copy(
-                            record = updatedRecord,
-                            favoriteProgress = FavoriteProgress.None
-                        )
+                when (result) {
+                    is ApiResult.Success -> {
+                        // 网络请求成功，更新record中的收藏/未收藏状态，清除进行中状态
+                        val updatedRecord = record.copy(isFavorite = !wasFavorited)
+                        _uiState.update { currentState ->
+                            currentState.copy(
+                                record = updatedRecord,
+                                favoriteProgress = FavoriteProgress.None
+                            )
+                        }
+                        val message = if (wasFavorited) "取消收藏成功" else "收藏成功"
+                        _effect.send(DetailEffect.ShowToast(message))
                     }
-                    val message = if (wasFavorited) "取消收藏成功" else "收藏成功"
-                    _effect.send(DetailEffect.ShowToast(message))
-                }.onFailure { e ->
-                    // 网络请求失败，恢复原来的收藏/未收藏状态
-                    _uiState.update { it.copy(favoriteProgress = FavoriteProgress.None) }
-                    _effect.send(DetailEffect.ShowToast(e.toUserFriendlyMessage()))
-                    AppLogger.w(TAG, e)
+                    is ApiResult.ApiError -> {
+                        // 网络请求失败，恢复原来的收藏/未收藏状态
+                        _uiState.update { it.copy(favoriteProgress = FavoriteProgress.None) }
+                        _effect.send(DetailEffect.ShowToast(result.message))
+                    }
+                    is ApiResult.NetworkError -> {
+                        _uiState.update { it.copy(favoriteProgress = FavoriteProgress.None) }
+                        _effect.send(DetailEffect.ShowToast(result.getErrorMessage("网络连接失败")))
+                    }
+                    is ApiResult.UnknownError -> {
+                        _uiState.update { it.copy(favoriteProgress = FavoriteProgress.None) }
+                        _effect.send(DetailEffect.ShowToast(result.getErrorMessage("未知错误")))
+                    }
                 }
             }
         }

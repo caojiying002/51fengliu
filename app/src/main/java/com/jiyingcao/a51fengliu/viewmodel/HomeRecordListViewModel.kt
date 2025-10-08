@@ -5,9 +5,9 @@ import com.jiyingcao.a51fengliu.api.request.RecordsRequest
 import com.jiyingcao.a51fengliu.api.response.PageData
 import com.jiyingcao.a51fengliu.api.response.RecordInfo
 import com.jiyingcao.a51fengliu.data.RemoteLoginManager.remoteLoginCoroutineContext
-import com.jiyingcao.a51fengliu.domain.exception.toUserFriendlyMessage
+import com.jiyingcao.a51fengliu.domain.model.ApiResult
 import com.jiyingcao.a51fengliu.repository.RecordRepository
-import com.jiyingcao.a51fengliu.util.AppLogger
+import com.jiyingcao.a51fengliu.util.getErrorMessage
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -100,27 +100,32 @@ class HomeRecordListViewModel @AssistedInject constructor(
             
             val request = RecordsRequest.forHome(sort, page)
             repository.getRecords(request)
-                .onEach { result -> 
+                .collect { result ->
                     handleDataResult(page, result, loadingType)
+                    fetchJob = null
                 }
-                .onCompletion { fetchJob = null }
-                .collect()
         }
     }
     
     private suspend fun handleDataResult(
         page: Int,
-        result: Result<PageData<RecordInfo>?>,
+        result: ApiResult<PageData<RecordInfo>>,
         loadingType: LoadingType
     ) {
-        result.mapCatching { requireNotNull(it) }
-            .onSuccess { pageData ->
-                updateUiStateToSuccess(page, pageData.records, pageData.noMoreData(), loadingType)
+        when (result) {
+            is ApiResult.Success -> {
+                updateUiStateToSuccess(page, result.data.records, result.data.noMoreData(), loadingType)
             }
-            .onFailure { e ->
-                updateUiStateToError(e.toUserFriendlyMessage(), loadingType)
-                AppLogger.w(TAG, "网络请求失败: ", e)
+            is ApiResult.ApiError -> {
+                updateUiStateToError(result.message, loadingType)
             }
+            is ApiResult.NetworkError -> {
+                updateUiStateToError(result.getErrorMessage("网络连接失败"), loadingType)
+            }
+            is ApiResult.UnknownError -> {
+                updateUiStateToError(result.getErrorMessage("未知错误"), loadingType)
+            }
+        }
     }
 
     // ===== 专门的UI状态更新方法 =====

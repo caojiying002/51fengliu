@@ -26,10 +26,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### 技术栈组合
 - **传统View系统** + **Jetpack Compose** 混合架构
 - **Hilt** 依赖注入
-- **Retrofit + Moshi** 网络层（逐步从Gson迁移）
+- **Retrofit + Gson** 网络层（逐步迁移到Moshi）
 - **Room** 数据库
 - **DataStore** 数据持久化
-- **Coil + Glide** 图片加载（并存，自定义Lint规则约束）
+- **Coil** 图片加载（统一使用Coil）
 - **自定义Lint规则** 强制代码规范
 
 ### 核心架构模式
@@ -86,18 +86,23 @@ data class Profile(
 
 ### 图片加载策略
 
-**强制使用模式**（自定义Lint规则约束）:
+**统一使用 Coil**:
+- View系统和Compose系统统一使用 **Coil** 进行图片加载
+- Compose中使用 `AsyncImage` composable
+- View中使用 `ImageView.load()` 扩展函数
+- 使用 `HostInvariantKeyer` 实现主机无关缓存键，确保BASE_IMAGE_URL变更时缓存不失效
+
+**使用示例**:
 ```kotlin
-// ✅ 正确用法 - 使用HostInvariantGlideUrl
-AppConfig.Network.createImageUrl(imagePath)
+// Compose中加载图片
+AsyncImage(
+    model = imageUrl,
+    contentDescription = null
+)
 
-// ❌ 禁止用法 - 直接字符串URL
-Glide.with(context).load("https://example.com/image.jpg")
+// View中加载图片
+imageView.load(imageUrl)
 ```
-
-**双引擎并存**:
-- **Glide**: 传统View系统，复杂加载逻辑
-- **Coil**: Jetpack Compose，现代化API
 
 ### 状态管理核心
 
@@ -131,12 +136,26 @@ _uiState.update { currentState ->
 - `TitleBarBack`: 可复用工具栏组件
 - Compose组件在`/ui/components/`目录
 
+**UI风格约定**:
+- 🎨 **国内APP风格优先**：本项目面向国内用户，UI风格应参考国内主流APP，而非Material Design
+- ⚠️ **限制Material组件使用**（Compose部分）：
+  - ✅ 允许使用骨架级Material组件（如Scaffold、LazyColumn等不影响视觉的基础组件）
+  - ❌ 避免使用有明显Material风格的组件（如FloatingActionButton、Material Card的elevation等）
+  - ❌ 禁用默认的水波纹点击效果（ripple effect）
+- 🎯 **使用Foundation组件**（Compose部分）：优先使用`androidx.compose.foundation`包中的基础组件
+  - 使用`Box`、`Column`、`Row`等布局组件
+  - 使用`Canvas`、`Shape`自定义绘制和外观
+  - 使用`Modifier.clickable(indication = null)`移除点击水波纹
+- 🔧 **自定义组件**：通过`/ui/components/`目录下的自定义组件实现国内APP常见UI模式
+  - 扁平化设计、简洁的分割线
+  - 自定义按钮样式（无elevation、简洁背景色）
+  - 国内常见的列表样式和卡片样式
+
 ## 开发约定
 
 **文件组织原则**:
 - ViewModel处理所有业务逻辑和状态管理
 - Activity/Fragment作为轻量级UI控制器
-- 自定义Lint规则强制`HostInvariantGlideUrl`使用规范
 
 **配置管理**:
 - `AppConfig`: 分环境配置管理（Debug/Release变体）
@@ -149,7 +168,7 @@ _uiState.update { currentState ->
 - 网络层透明处理Token刷新
 
 **自定义Lint规则**:
-- `/lint-rules`模块强制Glide URL处理模式
+- `/lint-rules`模块用于添加自定义代码规范检查
 - 通过`lintChecks(project(":lint-rules"))`集成
 - 运行`./gradlew lint`应用自定义规则
 
@@ -167,4 +186,4 @@ _uiState.update { currentState ->
 - 新界面优先使用Jetpack Compose
 - 使用`ActivityResultContracts`处理View和Compose界面间导航
 - 状态提升模式，ViewModel为Composable提供状态
-- Material 3主题配合自定义配色方案
+- UI风格遵循国内APP规范，Material 3主题仅作为基础，配合自定义配色方案（详见"UI风格约定"章节）

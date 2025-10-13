@@ -47,12 +47,12 @@ object CoilConfig {
                 chain.proceed(requestWithHeaders)
             }
 
-            // 只在需要时添加图片加载日志拦截器
-            if (AppConfig.Debug.isImageLoadingLoggingEnabled()) {
+            // coil3.util.DebugLogger已经添加到Debug构建，通常不必使用OkHttp拦截器追踪图片
+            /*if (AppConfig.Debug.isImageLoadingLoggingEnabled()) {
                 addInterceptor(HttpLoggingInterceptor().apply {
                     level = HttpLoggingInterceptor.Level.HEADERS
                 })
-            }
+            }*/
             
             // 设置超时参数
             connectTimeout(10, TimeUnit.SECONDS)

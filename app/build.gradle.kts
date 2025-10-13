@@ -3,7 +3,6 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt.android)
-    id("kotlin-kapt") // 暂时保留，直到所有ksp依赖迁移完成
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.dexcount)
 }
@@ -61,8 +60,8 @@ android {
         checkReleaseBuilds = true
         abortOnError = true
 
-        // 设置错误级别
-        error.add("DirectGlideStringUsage")
+        // 这里可以添加自定义规则
+        // error.add("DirectGlideStringUsage") // Glide已移除
 
         // HTML 报告
         htmlReport = true
@@ -109,8 +108,6 @@ dependencies {
     implementation(libs.squareup.okhttp.logginginterceptor)
     implementation(libs.squareup.okio)
     implementation(libs.gson)   // 待移除
-    implementation(libs.bumptech.glide)
-    implementation(libs.bumptech.glide.okhttp3integration)
     implementation(libs.coil)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
@@ -127,8 +124,6 @@ dependencies {
     ksp(libs.hilt.compiler)
     ksp(libs.squareup.moshi.kotlin.codegen)
     ksp(libs.androidx.room.compiler)
-    //noinspection KaptUsageInsteadOfKsp
-    kapt(libs.bumptech.glide.compiler)
 
     // Compose
     implementation(libs.androidx.activity.compose)

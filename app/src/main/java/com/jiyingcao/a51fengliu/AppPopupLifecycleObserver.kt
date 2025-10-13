@@ -23,6 +23,6 @@ class AppPopupLifecycleObserver @Inject constructor(
     override fun onStart(owner: LifecycleOwner) {
         super.onStart(owner)
         AppLogger.d("AppPopupLifecycleObserver", "应用进入前台，开始检查弹窗")
-        appPopupManager.checkAndShowPopup()
+        //appPopupManager.checkAndShowPopup()
     }
 }

@@ -23,9 +23,11 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import androidx.core.graphics.drawable.toDrawable
 import androidx.fragment.app.viewModels
+import coil3.load
+import coil3.request.crossfade
+import com.jiyingcao.a51fengliu.config.AppConfig
 import com.jiyingcao.a51fengliu.viewmodel.ImageUploadState
 import com.jiyingcao.a51fengliu.viewmodel.SubmitState
-import com.jiyingcao.a51fengliu.util.ImageLoader
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.lifecycle.withCreationCallback
 
@@ -204,10 +206,15 @@ class ReportDialog : DialogFragment() {
         
         // Load the image with ImageLoader
         // TODO 能否使用本地文件显示
-        ImageLoader.loadCenterCrop(
-            imageView = binding.ivUploadedImage,
-            url = relativeUrl
-        )
+        val fullUrl = if (relativeUrl.startsWith("http")) {
+            relativeUrl
+        } else {
+            AppConfig.Network.BASE_IMAGE_URL + relativeUrl
+        }
+
+        binding.ivUploadedImage.load(fullUrl) {
+            crossfade(true)
+        }
     }
     
     private fun resetUploadUI() {

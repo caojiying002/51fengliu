@@ -12,8 +12,7 @@ class CustomIssueRegistry : IssueRegistry() {
 
     override val issues: List<Issue>
         get() = listOf(
-            GlideUsageDetector.ISSUE
-            // 在这里添加其他自定义规则
+            // 在这里添加自定义规则
         )
 
     override val api: Int

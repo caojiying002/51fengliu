@@ -81,7 +81,7 @@ object AppConfig {
          * 开发过程中可以手动切换的图片加载日志开关
          * 只在Debug构建中生效，Release构建始终关闭日志
          */
-        private const val DEFAULT_IMAGE_LOADING_LOGGING_ENABLED = false
+        private const val DEFAULT_IMAGE_LOADING_LOGGING_ENABLED = true
 
         /**
          * 开发过程中可以手动切换是否跳过大图查看功能限制的开关

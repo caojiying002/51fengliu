@@ -10,27 +10,40 @@ import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * 暗巷数据仓库
+ *
+ * ## 关于数据去重
+ * 使用 [PageDataDeduplicator] 对分页数据进行去重（包括同页去重和跨页去重）。
+ * 详细说明参见 [MerchantRepository] 和 [PageDataDeduplicator] 的注释。
+ */
 @Singleton
 class StreetRepository @Inject constructor(
     private val apiService: ApiService
 ) : BaseRepository() {
 
+    // 分页数据去重器
+    private val streetDeduplicator = PageDataDeduplicator<Street> { it.id }
+    private val favoriteDeduplicator = PageDataDeduplicator<Street> { it.id }
+
     /**
-     * 获取暗巷列表，带分页功能
+     * 获取暗巷列表，带分页功能和自动去重
      * @param cityCode 城市代码
      * @param sort 排序方式，默认为"publish"
      * @param page 页码，默认从1开始
      * @param perPage 每页数量，默认30
-     * @return Flow<ApiResult<PageData<Street>>> 包含暗巷列表的结果流
+     * @return Flow<ApiResult<PageData<Street>>> 包含暗巷列表的结果流（已去重）
      */
     fun getStreets(
         cityCode: String,
         sort: String = "publish",
         page: Int = 1,
         perPage: Int = 30
-    ): Flow<ApiResult<PageData<Street>>> = apiCall {
-        apiService.getStreets(cityCode, sort, page, perPage)
-    }
+    ): Flow<ApiResult<PageData<Street>>> =
+        streetDeduplicator.deduplicate(
+            flow = apiCall { apiService.getStreets(cityCode, sort, page, perPage) },
+            page = page
+        )
 
     /**
      * 获取暗巷详情
@@ -60,12 +73,14 @@ class StreetRepository @Inject constructor(
     }
 
     /**
-     * 获取我的暗巷收藏列表
+     * 获取我的暗巷收藏列表，带自动去重
      * @param page 页码，默认从1开始
      * @param perPage 每页数量，默认30
-     * @return Flow<ApiResult<PageData<Street>>> 包含暗巷收藏列表的结果流
+     * @return Flow<ApiResult<PageData<Street>>> 包含暗巷收藏列表的结果流（已去重）
      */
-    fun getFavoriteStreets(page: Int = 1, perPage: Int = 30): Flow<ApiResult<PageData<Street>>> = apiCall {
-        apiService.getFavoriteStreets(page, perPage)
-    }
+    fun getFavoriteStreets(page: Int = 1, perPage: Int = 30): Flow<ApiResult<PageData<Street>>> =
+        favoriteDeduplicator.deduplicate(
+            flow = apiCall { apiService.getFavoriteStreets(page, perPage) },
+            page = page
+        )
 }

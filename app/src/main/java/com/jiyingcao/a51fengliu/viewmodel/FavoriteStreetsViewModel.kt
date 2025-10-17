@@ -31,9 +31,9 @@ data class FavoriteStreetsUiState(
 ) {
     // 派生状态 - 通过计算得出，避免状态冗余
     val showContent: Boolean get() = !isLoading && !isError && streets.isNotEmpty()
-    val showEmpty: Boolean get() = !isLoading && !isError && streets.isEmpty() && hasLoaded
     val showFullScreenLoading: Boolean get() = isLoading && loadingType == LoadingType.FULL_SCREEN
     val showFullScreenError: Boolean get() = isError && loadingType == LoadingType.FULL_SCREEN
+    val showFullScreenEmpty: Boolean get() = !isLoading && !isError && streets.isEmpty() && hasLoaded
     val nextPageToLoad: Int get() = lastLoadedPage + 1
 }
 

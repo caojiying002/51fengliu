@@ -27,20 +27,33 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.cancellation.CancellationException
 
+/**
+ * 记录数据仓库
+ *
+ * ## 关于数据去重
+ * 使用 [PageDataDeduplicator] 对分页数据进行去重（包括同页去重和跨页去重）。
+ * 详细说明参见 [MerchantRepository] 和 [PageDataDeduplicator] 的注释。
+ */
 @Singleton
 class RecordRepository @Inject constructor(
     private val apiService: ApiService
 ) : BaseRepository() {
 
+    // 分页数据去重器
+    private val recordDeduplicator = PageDataDeduplicator<RecordInfo> { it.id }
+    private val favoriteDeduplicator = PageDataDeduplicator<RecordInfo> { it.id }
+
     /**
-     * 获取记录列表，带分页功能
+     * 获取记录列表，带分页功能和自动去重
      * @param request 请求参数
      */
     fun getRecords(
         request: RecordsRequest
-    ): Flow<ApiResult<PageData<RecordInfo>>> = apiCall {
-        apiService.getRecords(request.toMap())
-    }
+    ): Flow<ApiResult<PageData<RecordInfo>>> =
+        recordDeduplicator.deduplicate(
+            flow = apiCall { apiService.getRecords(request.toMap()) },
+            page = request.page
+        )
 
     /**
      * 获取单条记录详情
@@ -70,13 +83,15 @@ class RecordRepository @Inject constructor(
     }
 
     /**
-     * 获取我的收藏列表
+     * 获取我的收藏列表，带自动去重
      * @param page 页码，默认从1开始
-     * @return Flow<ApiResult<PageData<RecordInfo>>> 包含收藏列表的结果流
+     * @return Flow<ApiResult<PageData<RecordInfo>>> 包含收藏列表的结果流（已去重）
      */
-    fun getFavorites(page: Int = 1): Flow<ApiResult<PageData<RecordInfo>>> = apiCall {
-        apiService.getFavorites(page)
-    }
+    fun getFavorites(page: Int = 1): Flow<ApiResult<PageData<RecordInfo>>> =
+        favoriteDeduplicator.deduplicate(
+            flow = apiCall { apiService.getFavorites(page) },
+            page = page
+        )
 
     /**
      * 上传图片

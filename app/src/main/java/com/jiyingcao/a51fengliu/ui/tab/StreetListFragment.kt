@@ -147,7 +147,7 @@ class StreetListFragment : Fragment() {
                                 viewModel.processIntent(StreetListIntent.Retry)
                             }
                         }
-                        uiState.showEmpty -> binding.showEmptyContent()
+                        uiState.showFullScreenEmpty -> binding.showEmptyContent()
                         uiState.showContent -> binding.showRealContent()
                     }
 

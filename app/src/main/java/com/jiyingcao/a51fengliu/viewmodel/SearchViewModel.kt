@@ -33,10 +33,10 @@ data class SearchUiState(
 ) {
     // 派生状态 - 通过计算得出，避免状态冗余
     val showContent: Boolean get() = !isLoading && !isError && records.isNotEmpty()
-    val showEmpty: Boolean get() = !isLoading && !isError && records.isEmpty() && hasSearched
+    val showInitialState: Boolean get() = !hasSearched && !isLoading && !isError
     val showFullScreenLoading: Boolean get() = isLoading && loadingType == LoadingType.FULL_SCREEN
     val showFullScreenError: Boolean get() = isError && loadingType == LoadingType.FULL_SCREEN
-    val showInitialState: Boolean get() = !hasSearched && !isLoading && !isError
+    val showFullScreenEmpty: Boolean get() = !isLoading && !isError && records.isEmpty() && hasSearched
     val nextPageToLoad: Int get() = lastLoadedPage + 1
 }
 

@@ -107,7 +107,7 @@ class MerchantListFragment : Fragment() {
                                 viewModel.processIntent(MerchantListIntent.Retry)
                             }
                         }
-                        uiState.showEmpty -> statefulBinding.showEmptyContent()
+                        uiState.showFullScreenEmpty -> statefulBinding.showEmptyContent()
                         uiState.showContent -> statefulBinding.showRealContent()
                     }
 

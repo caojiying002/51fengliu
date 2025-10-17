@@ -115,7 +115,7 @@ class FavoriteStreetsFragment : Fragment() {
                             }
                         }
 
-                        uiState.showEmpty -> {
+                        uiState.showFullScreenEmpty -> {
                             binding.showEmptyContent()
                         }
 

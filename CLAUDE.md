@@ -42,6 +42,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Repository模式**:
 - `BaseRepository.apiCall()`: 标准化Flow-based API调用封装
 - 所有Repository使用Flow流进行响应式数据流
+- **分页数据去重**: 返回 `PageData<T>` 的方法必须使用 `PageDataDeduplicator` 去重，防止 LazyColumn key 冲突崩溃
+  - 参考：`MerchantRepository`、`RecordRepository`、`StreetRepository`
 - **多态响应特殊处理**: 登录和举报接口的 `data` 字段类型根据业务情况不同，**无法使用** `apiCall()`，必须手动处理
   - `UserRepository.login()`: `LoginData.Success`(token字符串) 或 `LoginData.Error`(字段错误Map)
   - `RecordRepository.report()`: `ReportData.Success`(空字符串) 或 `ReportData.Error`(字段错误Map)

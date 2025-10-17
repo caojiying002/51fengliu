@@ -58,7 +58,7 @@ fun MerchantListScreen(
                     color = Color(0xFFFF3B30)
                 )
             }
-            uiState.showEmpty -> {
+            uiState.showFullScreenEmpty -> {
                 // 显示空状态
                 Text(
                     text = "暂无商家数据",

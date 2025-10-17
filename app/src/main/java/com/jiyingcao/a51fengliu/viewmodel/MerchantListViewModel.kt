@@ -32,9 +32,9 @@ data class MerchantListUiState(
 ) {
     // 派生状态 - 通过计算得出，避免状态冗余
     val showContent: Boolean get() = !isLoading && !isError && merchants.isNotEmpty()
-    val showEmpty: Boolean get() = !isLoading && !isError && merchants.isEmpty() && hasLoaded
     val showFullScreenLoading: Boolean get() = isLoading && loadingType == LoadingType.FULL_SCREEN
     val showFullScreenError: Boolean get() = isError && loadingType == LoadingType.FULL_SCREEN
+    val showFullScreenEmpty: Boolean get() = !isLoading && !isError && merchants.isEmpty() && hasLoaded
     val nextPageToLoad: Int get() = lastLoadedPage + 1
 }
 

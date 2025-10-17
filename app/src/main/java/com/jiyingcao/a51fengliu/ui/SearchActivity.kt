@@ -84,7 +84,7 @@ class SearchActivity: BaseActivity() {
                             showErrorView(uiState.errorMessage)
                         }
 
-                        uiState.showEmpty -> {
+                        uiState.showFullScreenEmpty -> {
                             statefulContent.showEmptyContent()
                         }
 
